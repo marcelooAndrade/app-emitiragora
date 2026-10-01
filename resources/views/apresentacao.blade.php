@@ -71,39 +71,9 @@
 </head>
 <body class="fonte-inter relative min-h-screen overflow-x-hidden bg-graphite-50 text-graphite-900 antialiased selection:bg-primary-200 selection:text-primary-900">
 
-@php
-    // Ícones decorativos, geométricos e genéricos, desenhados à mão para não
-    // trazer dependência nova. Cada entrada é o miolo de um SVG 24x24 de traço.
-    $icones = [
-        'recibo' => '<path d="M6 3h9l3 3v15l-3-2-3 2-3-2-3 2V3z"/><path d="M9 8h6M9 12h6M9 16h3"/>',
-        'caixas' => '<path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>',
-        'dinheiro' => '<rect x="2.5" y="6" width="19" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 9v.01M18 15v.01"/>',
-        'relogio' => '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>',
-        'escudo' => '<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/>',
-        'upload' => '<path d="M12 15V4M8 8l4-4 4 4"/><path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3"/>',
-        'predio' => '<path d="M4 21V5a1 1 0 011-1h6a1 1 0 011 1v16"/><path d="M13 21V9l6 2v10"/><path d="M7 8h1M7 12h1M7 16h1M11 8h1M11 12h1M11 16h1"/>',
-        'painel' => '<rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 15l3-4 3 2 4-6"/>',
-        'pasta' => '<path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>',
-        'check' => '<path d="M5 12l5 5L19 7"/>',
-    ];
-
-    // Chip de ícone do template: círculo claro com brilho interno.
-    $chip = function (string $nome, string $tamanho = 'w-11 h-11') use ($icones) {
-        return '<span class="inline-flex '.$tamanho.' shrink-0 items-center justify-center rounded-2xl border border-white bg-white/80 text-primary-700 shadow-[0_2px_8px_rgba(14,27,31,0.06),inset_0_1px_0_white]">'
-            .'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5" aria-hidden="true">'
-            .$icones[$nome]
-            .'</svg></span>';
-    };
-
-    $rotulo = 'fonte-mono text-xs font-medium tracking-[-0.04em] text-primary-800 mb-4';
-    $titulo = 'text-4xl md:text-5xl lg:text-6xl font-normal tracking-tight text-graphite-900 leading-[1.05] max-w-5xl mx-auto';
-    $subtitulo = 'mt-6 text-base md:text-lg leading-8 text-graphite-600 font-light max-w-3xl mx-auto';
-    $cartao = 'rounded-[2rem] border border-white bg-white/68 p-6 shadow-[0_10px_28px_-18px_rgba(14,27,31,0.24),inset_0_1px_0_white] transition-all duration-300 hover:-translate-y-1 hover:bg-white/84';
-    $vidro = 'relative overflow-hidden rounded-[2.75rem] border border-white bg-white/60 shadow-[0_30px_80px_-45px_rgba(14,27,31,0.35),inset_0_1px_0_rgba(255,255,255,1)] backdrop-blur-xl';
-    $escuro = 'relative overflow-hidden rounded-[2.75rem] border border-white/10 bg-gradient-to-b from-graphite-800 to-graphite-900 text-white shadow-[0_40px_90px_-45px_rgba(14,27,31,0.78),inset_0_1px_0_rgba(255,255,255,0.14)]';
-    $botaoCheio = 'inline-flex whitespace-nowrap items-center justify-center rounded-full border border-primary-800 bg-gradient-to-b from-primary-600 to-primary-700 px-5 py-2.5 text-xs font-medium text-on-primary shadow-[0_5px_14px_rgba(228,87,46,0.28),inset_0_1px_0_rgba(255,255,255,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:from-primary-700 hover:to-primary-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700';
-    $botaoClaro = 'inline-flex whitespace-nowrap items-center justify-center rounded-full border border-graphite-200 bg-white/78 px-5 py-2.5 text-xs font-normal text-graphite-700 shadow-[0_1px_2px_rgba(14,27,31,0.04),inset_0_1px_0_white] transition-all duration-300 hover:-translate-y-0.5 hover:bg-white hover:text-primary-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-700';
-@endphp
+{{-- $icones, $chip, $rotulo, $titulo, $subtitulo, $cartao, $vidro, $escuro,
+     $botaoCheio e $botaoClaro chegam por View::composer, registrado em
+     AppServiceProvider, não por @include (que não devolve variável). --}}
 
 <a href="#conteudo"
    class="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-graphite-900 focus:px-4 focus:py-2 focus:text-sm focus:text-white">
@@ -626,73 +596,14 @@
     <section id="planos" data-revelar class="mx-auto max-w-7xl px-6 py-20">
         <div class="mx-auto mb-14 max-w-5xl text-center">
             <p class="{{ $rotulo }}">PLANOS</p>
-            <h2 class="{{ $titulo }}">Comece pelo gratuito</h2>
+            <h2 class="{{ $titulo }}">Um plano para cada estágio do negócio</h2>
             <p class="{{ $subtitulo }}">
-                Os dois planos têm o mesmo sistema fiscal, de estoque e financeiro.
-                O que muda é o limite de notas e a porta de entrada.
+                O mesmo sistema fiscal, de estoque e financeiro em todos. O que
+                muda é o volume de notas e o tamanho do financeiro.
             </p>
         </div>
 
-        <div class="mx-auto flex w-full max-w-4xl flex-col items-stretch justify-center gap-8 lg:flex-row">
-            <div class="relative w-full rounded-[2rem] border border-primary-200 bg-gradient-to-b from-primary-50 to-white p-8 shadow-[0_15px_35px_-10px_rgba(228,87,46,0.15),inset_0_2px_0_rgba(255,255,255,1)] transition-all duration-500 hover:-translate-y-1 lg:w-1/2">
-                <span aria-hidden="true" class="absolute right-8 top-8 flex h-10 w-10 items-center justify-center rounded-full border border-white bg-white text-primary-700 shadow-[0_2px_8px_rgba(14,27,31,0.08)]">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">{!! $icones['check'] !!}</svg>
-                </span>
-
-                <p class="fonte-mono text-xs font-medium tracking-[-0.04em] text-primary-700">Gratuito</p>
-                <p class="mt-3 text-sm font-light leading-7 text-graphite-600">Entra pelo endereço do <span class="text-primary-600">EmitirAgora</span>.</p>
-
-                <ul class="mt-7 space-y-3 border-t border-primary-200/70 pt-6 text-sm font-light text-graphite-700">
-                    @foreach ([
-                        'Cadastro imediato, sem contrato',
-                        'Até 30 notas fiscais no total',
-                        'Emissão de NF-e e de NFS-e',
-                        'Estoque como razão imutável',
-                        'Contas a pagar e a receber',
-                    ] as $item)
-                        <li class="flex gap-2.5">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-1 h-4 w-4 shrink-0 text-primary-700" aria-hidden="true">{!! $icones['check'] !!}</svg>
-                            {{ $item }}
-                        </li>
-                    @endforeach
-                </ul>
-
-                <a href="{{ route('register') }}" class="{{ $botaoCheio }} mt-8 w-full py-3 text-sm">Criar conta grátis</a>
-            </div>
-
-            <div class="relative w-full rounded-[2rem] border border-white bg-white/68 p-8 shadow-[0_10px_30px_-10px_rgba(14,27,31,0.08),inset_0_2px_0_rgba(255,255,255,1)] transition-all duration-500 hover:-translate-y-1 lg:w-1/2">
-                <span aria-hidden="true" class="absolute right-8 top-8 flex h-10 w-10 items-center justify-center rounded-full border border-white bg-graphite-50 text-graphite-500 shadow-[0_2px_8px_rgba(14,27,31,0.08)]">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5">{!! $icones['predio'] !!}</svg>
-                </span>
-
-                <p class="fonte-mono text-xs font-medium tracking-[-0.04em] text-graphite-500">Avançado</p>
-                <p class="mt-2 flex items-baseline gap-2">
-                    <span class="text-3xl font-normal tracking-tight text-graphite-900">R$119</span>
-                    <span class="text-sm font-light text-graphite-500">por mês · R$3,97 por dia</span>
-                </p>
-                <p class="mt-3 text-sm font-light leading-7 text-graphite-600">Domínio próprio, com a marca do cliente já na tela de login.</p>
-
-                <ul class="mt-7 space-y-3 border-t border-graphite-200/70 pt-6 text-sm font-light text-graphite-700">
-                    @foreach ([
-                        'Notas fiscais sem limite',
-                        'Domínio próprio',
-                        'Marca do cliente na tela de login',
-                    ] as $item)
-                        <li class="flex gap-2.5">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mt-1 h-4 w-4 shrink-0 text-graphite-400" aria-hidden="true">{!! $icones['check'] !!}</svg>
-                            {{ $item }}
-                        </li>
-                    @endforeach
-                </ul>
-
-                <a href="https://wa.me/55199971351777?text=Ol%C3%A1%2C%20quero%20contratar%20o%20plano%20Avan%C3%A7ado%20do%20EmitirAgora" target="_blank" rel="noopener" class="{{ $botaoClaro }} mt-8 w-full py-3 text-sm">
-                    Falar no WhatsApp
-                </a>
-                <p class="mt-3 text-center text-xs font-light text-graphite-500">
-                    Comece no gratuito. O avançado é ativado para quem já é cliente.
-                </p>
-            </div>
-        </div>
+        <x-planos />
     </section>
 
     {{-- ------------------------------------------------------- o que falta --}}
@@ -771,7 +682,7 @@
                         ['escudo', 'Meu contador consegue mexer na regra fiscal sozinho?', 'Sim. Tela própria, permissão própria, sem depender de programador para mudar alíquota ou CST.'],
                         ['predio', 'Serve para matriz e filial?', 'Sim. Um tenant pode ter mais de um emitente, cada um com CNPJ e certificado próprios.'],
                         ['relogio', 'O que ainda falta no sistema?', 'Está listado na seção acima, sem esconder.'],
-                        ['dinheiro', 'O plano gratuito cobra alguma coisa?', 'Não. Entra pelo endereço do EmitirAgora, sem domínio próprio, até 30 notas fiscais no total. Depois disso, o avançado custa R$119 por mês.'],
+                        ['dinheiro', 'O plano gratuito cobra alguma coisa?', 'Não. Emite NF-e até 10 notas por mês, sem cartão e sem contrato. Para NFS-e e mais notas, é só subir de plano quando precisar.'],
                         ['pasta', 'Onde ficam os meus dados?', 'No disco privado da conta, isolado por emitente. Certificado e senha nunca são logados.'],
                     ] as [$icone, $pergunta, $resposta])
                         <details class="group rounded-[1.5rem] border border-white bg-white/72 px-5 py-4 shadow-[0_8px_22px_-18px_rgba(14,27,31,0.3),inset_0_1px_0_white] transition-colors duration-300 open:bg-white/90">

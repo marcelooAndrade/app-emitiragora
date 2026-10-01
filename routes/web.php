@@ -40,6 +40,9 @@ Route::get('logo', LogoTenantController::class)->name('logo');
 Route::get('fatura/{token}', [FaturaPublicaController::class, 'show'])->name('fatura.publica');
 Route::get('fatura/{token}/logo', [FaturaPublicaController::class, 'logo'])->name('fatura.publica.logo');
 
+// Página de indicação para contadores. Pública, mesmo padrão da apresentação.
+Route::view('contadores', 'contadores')->name('contadores');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', Inicio::class)->name('dashboard');
 

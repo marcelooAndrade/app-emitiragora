@@ -67,18 +67,17 @@ it('o link ver o que ele faz aponta para a secao de recursos', function () {
         ->and($html)->not->toContain('id="o-que-faz"');
 });
 
-it('mostra os dois planos reais, e a coluna avancado nao tem botao de cadastro', function () {
+it('mostra os tres planos reais, com notas por mes e preco de config/planos.php', function () {
     $html = $this->get('http://vendaredonda.com.br/')->assertOk()->getContent();
 
-    expect($html)->toContain('>Gratuito<')
-        ->and($html)->toContain('>Avançado<')
-        ->and($html)->toContain('Comece no gratuito. O avançado é ativado para quem já é');
-
-    $inicioAvancado = strpos($html, '>Avançado<');
-    $fimSecao = strpos($html, '</section>', $inicioAvancado);
-    $colunaAvancado = substr($html, $inicioAvancado, $fimSecao - $inicioAvancado);
-
-    expect($colunaAvancado)->not->toContain('href="http://vendaredonda.com.br/register"');
+    expect($html)->toContain('>Grátis<')
+        ->and($html)->toContain('>Essencial<')
+        ->and($html)->toContain('>Completo<')
+        ->and($html)->toContain('Até 10 notas por mês')
+        ->and($html)->toContain('Até 30 notas por mês')
+        ->and($html)->toContain('Até 90 notas por mês')
+        ->and($html)->toContain('R$49')
+        ->and($html)->toContain('R$99');
 });
 
 it('a lista do que falta cita tesouraria em vez de fluxo de caixa projetado', function () {

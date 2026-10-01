@@ -14,6 +14,7 @@ use App\Services\Integrations\MetaConversoesGateway;
 use App\Services\Integrations\UazapiGateway;
 use App\Services\Nfse\GatewayNfse;
 use App\Services\Nfse\SigissGateway;
+use App\Support\ApresentacaoTokens;
 use App\Support\TenantAtual;
 use Carbon\CarbonImmutable;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -21,6 +22,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -54,6 +56,14 @@ class AppServiceProvider extends ServiceProvider
         // os clientes deste módulo. 30/min é ponto de partida, revisável
         // quando houver uso de verdade.
         RateLimiter::for('whatsapp', fn (Request $request): Limit => Limit::perMinute(30)->by($request->user()?->id));
+
+        // `@include` do Blade não devolve variável pra quem inclui, então o
+        // bloco de ícones e classes do template Aura precisa chegar por
+        // composer nas views que o reaproveitam fora da apresentação.
+        View::composer(
+            ['apresentacao', 'contadores', 'components.planos'],
+            fn ($view) => $view->with(ApresentacaoTokens::compartilhados()),
+        );
     }
 
     /**
