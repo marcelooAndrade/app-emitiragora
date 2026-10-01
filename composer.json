@@ -1,6 +1,6 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "marceloandrade/venda-redonda",
+    "name": "marceloandrade/app-emitiragora",
     "type": "project",
     "description": "Venda Redonda: sistema fiscal, de estoque e financeiro para distribuidoras de bebidas.",
     "keywords": [
