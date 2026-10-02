@@ -19,6 +19,9 @@ class EmitenteTransporte extends Model
 
     protected $guarded = ['id', 'emitente_id'];
 
+    /** Oculto também tira do audit_logs (ver Auditavel). */
+    protected $hidden = ['atm_usuario', 'atm_senha', 'atm_codigo'];
+
     protected $attributes = [
         'cte_serie' => 1,
         'mdfe_serie' => 1,
@@ -27,6 +30,7 @@ class EmitenteTransporte extends Model
         'tipo_emitente_mdfe' => '1',
         'responsavel_seguro' => '1',
         'prazo_fatura_dias' => 30,
+        'adiantamento_percentual' => 80,
     ];
 
     protected function casts(): array
@@ -35,6 +39,10 @@ class EmitenteTransporte extends Model
             'cte_serie' => 'integer',
             'mdfe_serie' => 'integer',
             'prazo_fatura_dias' => 'integer',
+            'adiantamento_percentual' => 'integer',
+            'atm_usuario' => 'encrypted',
+            'atm_senha' => 'encrypted',
+            'atm_codigo' => 'encrypted',
         ];
     }
 
@@ -53,6 +61,11 @@ class EmitenteTransporte extends Model
         $cfop = $this->cfop ?: '5353';
 
         return strtoupper($ufInicio) === strtoupper($ufFim) ? '5'.substr($cfop, 1) : '6'.substr($cfop, 1);
+    }
+
+    public function temAtm(): bool
+    {
+        return filled($this->atm_usuario) && filled($this->atm_senha) && filled($this->atm_codigo);
     }
 
     /** O que falta para o MDF-e sair, em linguagem de quem preenche. */

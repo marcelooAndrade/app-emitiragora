@@ -47,6 +47,15 @@ class Configuracao extends Component
 
     public string $prazoFaturaDias = '30';
 
+    public string $adiantamentoPercentual = '80';
+
+    // AT&M: a senha nunca volta para a tela; em branco, fica a que está salva.
+    public string $atmUsuario = '';
+
+    public string $atmSenha = '';
+
+    public string $atmCodigo = '';
+
     // Regra de ICMS em edição.
     public ?int $regraId = null;
 
@@ -80,6 +89,9 @@ class Configuracao extends Component
         $this->apolice = (string) $c->apolice;
         $this->responsavelSeguro = (string) $c->responsavel_seguro;
         $this->prazoFaturaDias = (string) $c->prazo_fatura_dias;
+        $this->adiantamentoPercentual = (string) $c->adiantamento_percentual;
+        $this->atmUsuario = (string) $c->atm_usuario;
+        $this->atmCodigo = (string) $c->atm_codigo;
     }
 
     #[Computed]
@@ -129,10 +141,21 @@ class Configuracao extends Component
             'apolice' => ['nullable', 'string', 'max:20'],
             'responsavelSeguro' => ['required', 'in:1,2'],
             'prazoFaturaDias' => ['required', 'integer', 'min:0', 'max:365'],
+            'adiantamentoPercentual' => ['required', 'integer', 'min:0', 'max:100'],
+            'atmUsuario' => ['nullable', 'string', 'max:100'],
+            'atmSenha' => ['nullable', 'string', 'max:100'],
+            'atmCodigo' => ['nullable', 'string', 'max:30', 'required_with:atmUsuario'],
         ], ['cfop.regex' => 'Use um CFOP de prestação de serviço de transporte (5351 a 5360).'], [
             'rntrc' => 'RNTRC', 'cteSerie' => 'série do CT-e', 'mdfeSerie' => 'série do MDF-e', 'naturezaOperacao' => 'natureza da operação',
             'seguradoraNome' => 'seguradora', 'prazoFaturaDias' => 'prazo da fatura',
+            'adiantamentoPercentual' => 'adiantamento padrão', 'atmUsuario' => 'usuário da AT&M', 'atmCodigo' => 'código da AT&M',
         ]);
+        $usaAtm = trim($this->atmUsuario) !== '';
+        if ($usaAtm && $this->atmSenha === '' && blank($this->config->atm_senha)) {
+            $this->addError('atmSenha', 'Informe a senha da AT&M.');
+
+            return;
+        }
 
         $this->config->update([
             'rntrc' => $this->rntrc ?: null,
@@ -146,7 +169,13 @@ class Configuracao extends Component
             'apolice' => $this->apolice !== '' ? trim($this->apolice) : null,
             'responsavel_seguro' => $this->responsavelSeguro,
             'prazo_fatura_dias' => (int) $this->prazoFaturaDias,
+            'adiantamento_percentual' => (int) $this->adiantamentoPercentual,
+            // Usuário em branco desliga a integração e apaga as credenciais.
+            'atm_usuario' => $usaAtm ? trim($this->atmUsuario) : null,
+            'atm_senha' => $usaAtm ? ($this->atmSenha !== '' ? $this->atmSenha : $this->config->atm_senha) : null,
+            'atm_codigo' => $usaAtm ? trim($this->atmCodigo) : null,
         ]);
+        $this->atmSenha = '';
         unset($this->config, $this->proximos);
         session()->flash('sucesso', 'Configuração salva.');
     }

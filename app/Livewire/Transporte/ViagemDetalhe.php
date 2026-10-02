@@ -10,6 +10,8 @@ use App\Models\Motorista;
 use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Models\ViagemNota;
+use App\Services\Transporte\AverbacaoAtm;
+use App\Services\Transporte\ContratosFrete;
 use App\Services\Transporte\EmissaoViagem;
 use App\Services\Transporte\EventosCte;
 use App\Services\Transporte\EventosMdfe;
@@ -76,6 +78,35 @@ class ViagemDetalhe extends Component
     public string $percurso = '';
 
     public string $averbacoes = '';
+
+    // Contrato com o terceiro: só aparece quando o cavalo não é da frota.
+    public string $contratoFrete = '';
+
+    public string $contratoAdiantamento = '';
+
+    public string $contratoIr = '';
+
+    public string $contratoFalta = '';
+
+    public string $contratoSeguroMotorista = '';
+
+    public string $contratoSeguroCarga = '';
+
+    public string $contratoVencimento = '';
+
+    public string $contratoForma = 'pix';
+
+    public string $contratoPix = '';
+
+    public string $contratoBanco = '';
+
+    public string $contratoAgencia = '';
+
+    public string $contratoConta = '';
+
+    public string $contratoCiot = '';
+
+    public bool $descontosAbertos = false;
 
     /** @var array{ok: array<int, string>, erros: array<int, string>}|null */
     public ?array $resultado = null;
@@ -145,7 +176,7 @@ class ViagemDetalhe extends Component
     {
         return Viagem::query()
             ->where('emitente_id', $this->emitente?->getKey())
-            ->with(['notas', 'ctes.notas', 'ctes.eventos', 'ctes.fatura', 'mdfe', 'motorista', 'veiculo', 'reboque', 'reboque2', 'eventos.user'])
+            ->with(['notas', 'ctes.notas', 'ctes.eventos', 'ctes.fatura', 'mdfe', 'contrato', 'motorista', 'veiculo', 'reboque', 'reboque2', 'eventos.user'])
             ->find($this->viagemId);
     }
 
@@ -165,6 +196,23 @@ class ViagemDetalhe extends Component
     public function carretas(): Collection
     {
         return Veiculo::where('emitente_id', $this->emitente?->getKey())->where('ativo', true)->where('tipo', 'reboque')->orderBy('placa')->get();
+    }
+
+    /** O cavalo escolhido agora na tela, salvo ou não, é de terceiro? */
+    #[Computed]
+    public function veiculoTerceiro(): bool
+    {
+        return (bool) $this->cavalos->firstWhere('id', $this->veiculoId)?->deTerceiro();
+    }
+
+    /** O saldo enquanto a pessoa digita, para ela ver a conta fechando. */
+    #[Computed]
+    public function saldoContrato(): int
+    {
+        $frete = Dinheiro::emCentavos($this->contratoFrete);
+
+        return $frete - $this->adiantamentoInformado($frete) - Dinheiro::emCentavos($this->contratoIr) - Dinheiro::emCentavos($this->contratoFalta)
+            - Dinheiro::emCentavos($this->contratoSeguroMotorista) - Dinheiro::emCentavos($this->contratoSeguroCarga);
     }
 
     #[Computed]
@@ -272,7 +320,35 @@ class ViagemDetalhe extends Component
             $montador->montar($viagem);
         }
         unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal);
-        session()->flash('sucesso', 'Viagem salva.');
+
+        // Um botão só: com veículo de terceiro, o contrato vai junto.
+        $comContrato = $this->veiculoTerceiro && filled($this->contratoFrete);
+        if ($comContrato && ! $this->gravarContrato()) {
+            return;
+        }
+        session()->flash('sucesso', $comContrato ? 'Viagem e contrato do frete salvos.' : 'Viagem salva.');
+    }
+
+    public function salvarContrato(): void
+    {
+        $this->authorize('transporte.operar');
+        if ($this->gravarContrato()) {
+            session()->flash('sucesso', 'Contrato do frete salvo. Adiantamento e saldo já estão em Contas a pagar.');
+        }
+    }
+
+    public function averbarCte(int $cteId, AverbacaoAtm $averbacao): void
+    {
+        $this->authorize('transporte.operar');
+        $cte = $this->viagem->ctes->firstWhere('id', $cteId);
+        abort_if($cte === null, 404);
+        if ($this->executar(fn () => $averbacao->averbar($cte, Auth::user()))) {
+            $this->averbacoes = implode(', ', (array) ($this->viagem->mdfe?->seguro['averbacoes'] ?? []));
+            $cte->refresh();
+            session()->flash($cte->averbacao_status === 'aprovada' ? 'sucesso' : 'aviso', $cte->averbacao_status === 'aprovada'
+                ? "CT-e {$cte->numeroFormatado()} averbado: {$cte->averbacao_numero}."
+                : "A AT&M recusou: {$cte->averbacao_mensagem}");
+        }
     }
 
     public function definirTomador(int $cteId, string $tipo): void
@@ -299,6 +375,8 @@ class ViagemDetalhe extends Component
         $this->salvarMdfeRascunho();
         $this->resultado = $emissao->emitir($this->viagem, Auth::user());
         unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal);
+        // As averbações que a AT&M devolveu durante a emissão aparecem no campo.
+        $this->averbacoes = implode(', ', (array) ($this->viagem->mdfe?->seguro['averbacoes'] ?? []));
         session()->forget('sucesso');
     }
 
@@ -490,10 +568,67 @@ class ViagemDetalhe extends Component
 
             return false;
         } finally {
-            unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal);
+            unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal, $this->saldoContrato);
         }
 
         return true;
+    }
+
+    private function gravarContrato(): bool
+    {
+        $frete = Dinheiro::emCentavos($this->contratoFrete);
+        $dados = [
+            'frete_centavos' => $frete,
+            'adiantamento_centavos' => $this->adiantamentoInformado($frete),
+            'imposto_renda_centavos' => Dinheiro::emCentavos($this->contratoIr),
+            'falta_mercadoria_centavos' => Dinheiro::emCentavos($this->contratoFalta),
+            'seguro_motorista_centavos' => Dinheiro::emCentavos($this->contratoSeguroMotorista),
+            'seguro_carga_centavos' => Dinheiro::emCentavos($this->contratoSeguroCarga),
+            'vencimento_saldo' => $this->contratoVencimento,
+            'forma_pagamento' => $this->contratoForma,
+            'chave_pix' => $this->contratoPix,
+            'banco_codigo' => $this->contratoBanco,
+            'agencia' => $this->contratoAgencia,
+            'conta' => $this->contratoConta,
+            'ciot' => $this->contratoCiot,
+        ];
+
+        $ok = $this->executar(fn () => app(ContratosFrete::class)->salvar($this->viagem, $dados, Auth::user()), 'contrato');
+        if ($ok) {
+            $this->preencherContrato();
+        }
+
+        return $ok;
+    }
+
+    /** Adiantamento em branco é o percentual padrão da empresa, como no Transm. */
+    private function adiantamentoInformado(int $frete): int
+    {
+        if (trim($this->contratoAdiantamento) !== '') {
+            return Dinheiro::emCentavos($this->contratoAdiantamento);
+        }
+
+        return $this->viagem ? app(ContratosFrete::class)->adiantamentoPadrao($this->viagem, $frete) : 0;
+    }
+
+    private function preencherContrato(): void
+    {
+        $s = app(ContratosFrete::class)->sugestao($this->viagem);
+        $dinheiro = fn (int $c): string => $c > 0 ? Dinheiro::formatar($c) : '';
+        $this->contratoFrete = $dinheiro((int) $s['frete_centavos']);
+        $this->contratoAdiantamento = $this->viagem->contrato ? Dinheiro::formatar((int) $s['adiantamento_centavos']) : '';
+        $this->contratoIr = $dinheiro((int) $s['imposto_renda_centavos']);
+        $this->contratoFalta = $dinheiro((int) $s['falta_mercadoria_centavos']);
+        $this->contratoSeguroMotorista = $dinheiro((int) $s['seguro_motorista_centavos']);
+        $this->contratoSeguroCarga = $dinheiro((int) $s['seguro_carga_centavos']);
+        $this->descontosAbertos = $this->contratoIr.$this->contratoFalta.$this->contratoSeguroMotorista.$this->contratoSeguroCarga !== '';
+        $this->contratoVencimento = (string) $s['vencimento_saldo'];
+        $this->contratoForma = (string) $s['forma_pagamento'];
+        $this->contratoPix = (string) $s['chave_pix'];
+        $this->contratoBanco = (string) $s['banco_codigo'];
+        $this->contratoAgencia = (string) $s['agencia'];
+        $this->contratoConta = (string) $s['conta'];
+        $this->contratoCiot = (string) $s['ciot'];
     }
 
     private function preencher(): void
@@ -513,6 +648,7 @@ class ViagemDetalhe extends Component
         $this->averbacoes = implode(', ', (array) ($viagem->mdfe?->seguro['averbacoes'] ?? []));
         $this->dataEncerramento = today()->toDateString();
         $this->municipioEncerramento = (string) $viagem->ctes->last()?->municipio_fim_codigo;
+        $this->preencherContrato();
         $this->preencherPesos();
     }
 

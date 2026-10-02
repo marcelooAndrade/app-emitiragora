@@ -43,4 +43,22 @@ return [
     */
     'schema' => env('FISCAL_SCHEMA', 'PL_010_V1.30'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Averbação do seguro da carga (AT&M)
+    |--------------------------------------------------------------------------
+    |
+    | Portado do app-transm, que só liberava a integração em homologação. A
+    | mesma trava fica aqui: CT-e de produção só é averbado automaticamente
+    | quando ATM_PRODUCAO=true, depois de validado com a seguradora.
+    |
+    */
+    'atm' => [
+        'url' => env('ATM_URL', 'https://webserver.averba.com.br/rest'),
+        'producao' => (bool) env('ATM_PRODUCAO', false),
+        'connect_timeout' => 10,
+        'timeout' => 45,
+        'token_ttl_seconds' => 3300,
+    ],
+
 ];

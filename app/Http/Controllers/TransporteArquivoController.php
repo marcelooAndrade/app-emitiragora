@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ContratoFrete;
 use App\Models\Cte;
 use App\Models\Mdfe;
 use App\Services\Transporte\DocumentosAuxiliares;
@@ -13,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * DACTE, DAMDFE e XML autorizados. Mesma regra do NotaServicoArquivoController:
+ * DACTE, DAMDFE, XML autorizados e o contrato do frete. Mesma regra do NotaServicoArquivoController:
  * o escopo global garante o tenant, e matriz e filial dividem o tenant, então
  * o documento ainda precisa ser do emitente em foco.
  */
@@ -29,6 +30,13 @@ class TransporteArquivoController extends Controller
         }
 
         return $this->pdf($pdf, "dacte-{$cte->numero}.pdf");
+    }
+
+    public function contrato(ContratoFrete $contrato, DocumentosAuxiliares $documentos, EmitenteAtual $emitenteAtual): Response
+    {
+        $this->conferir($contrato->emitente_id, $emitenteAtual);
+
+        return $this->pdf($documentos->contrato($contrato), "contrato-frete-{$contrato->numero}.pdf");
     }
 
     public function cteXml(Cte $cte, EmitenteAtual $emitenteAtual): StreamedResponse

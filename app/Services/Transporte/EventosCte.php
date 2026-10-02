@@ -33,6 +33,7 @@ class EventosCte
 
     public function __construct(
         private readonly GatewayCte $gateway,
+        private readonly ContratosFrete $contratos,
     ) {}
 
     public function cancelar(Cte $cte, string $justificativa, ?User $user = null): Cte
@@ -91,6 +92,7 @@ class EventosCte
             });
 
             $cte->viagem->recalcularStatus();
+            $this->contratos->cancelarSeSemCte($cte->viagem->fresh());
 
             return $cte->fresh();
         });

@@ -10,6 +10,8 @@
     $ctesValidos = $viagem->ctes->reject(fn ($c) => $c->status === CteStatus::Cancelado);
     $todosAutorizados = $ctesValidos->isNotEmpty() && $ctesValidos->every(fn ($c) => $c->status === CteStatus::Autorizado);
     $aFaturar = $viagem->ctes->filter(fn ($c) => $c->status === CteStatus::Autorizado && $c->fatura_id === null);
+    $config = $viagem->emitente->configuracaoTransporte();
+    $contrato = $viagem->contrato?->status === 'ativo' ? $viagem->contrato : null;
     $passos = [
         ['Notas da carga', $viagem->notas->isNotEmpty()],
         ['Motorista, veículo e frete', $viagem->motorista_id && $viagem->veiculo_id && $this->freteTotal > 0],
@@ -57,6 +59,9 @@
 
     @if (session('sucesso'))
         <x-ui.alert variant="success">{{ session('sucesso') }}</x-ui.alert>
+    @endif
+    @if (session('aviso'))
+        <x-ui.alert variant="warning">{{ session('aviso') }}</x-ui.alert>
     @endif
 
     @if ($resultado)
@@ -191,7 +196,7 @@
 
                         <div class="grid gap-4 sm:grid-cols-3">
                             <x-ui.field label="Cavalo (tração)" for="vg-cav" :error="$errors->first('veiculoId')">
-                                <x-ui.select id="vg-cav" wire:model="veiculoId">
+                                <x-ui.select id="vg-cav" wire:model.live="veiculoId">
                                     <option value="">Escolha</option>
                                     @foreach ($this->cavalos as $v)
                                         <option value="{{ $v->id }}">{{ $v->placaFormatada() }}{{ $v->deTerceiro() ? ' · terceiro' : '' }}</option>
@@ -278,6 +283,88 @@
                         <x-ui.field label="Observações do CT-e" for="vg-obs" hint="Saem no campo de observações de todos os CT-e da viagem." :error="$errors->first('observacoes')">
                             <x-ui.textarea id="vg-obs" wire:model="observacoes" rows="2" maxlength="1000" :disabled="$travada" />
                         </x-ui.field>
+
+                        {{-- Terceiro: o contrato do frete, que vira contas a pagar e o pagamento no MDF-e. --}}
+                        @if ($this->veiculoTerceiro)
+                            <div class="grid gap-4 rounded-lg border border-primary-200 bg-primary-50/40 p-4">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div>
+                                        <p class="font-semibold text-graphite-900">Pagamento ao terceiro</p>
+                                        <p class="text-xs text-graphite-600">O cavalo é de terceiro: o que ele recebe vira o contrato do frete, as contas a pagar e o pagamento no MDF-e.</p>
+                                    </div>
+                                    @if ($contrato)
+                                        <div class="flex flex-wrap gap-2">
+                                            <x-ui.button variant="secondary" size="sm" :href="route('transporte.contrato', $contrato)" target="_blank">Contrato em PDF</x-ui.button>
+                                            @can('financeiro.gerenciar')
+                                                <x-ui.button variant="ghost" size="sm" :href="route('contas-a-pagar')" wire:navigate>Contas a pagar</x-ui.button>
+                                            @endcan
+                                        </div>
+                                    @endif
+                                </div>
+
+                                @error('contrato')
+                                    <x-ui.alert variant="danger">{{ $message }}</x-ui.alert>
+                                @enderror
+
+                                <div class="grid gap-4 sm:grid-cols-3">
+                                    <x-ui.field label="Frete do motorista (R$)" for="ct-frete" hint="O total que o terceiro recebe pela viagem.">
+                                        <x-ui.input id="ct-frete" wire:model.blur="contratoFrete" placeholder="0,00" inputmode="decimal" />
+                                    </x-ui.field>
+                                    <x-ui.field label="Adiantamento (R$)" for="ct-adiant" :hint="'Em branco: '.$config->adiantamento_percentual.'% do frete.'">
+                                        <x-ui.input id="ct-adiant" wire:model.blur="contratoAdiantamento" placeholder="Automático" inputmode="decimal" />
+                                    </x-ui.field>
+                                    <x-ui.field label="Saldo vence em" for="ct-venc" hint="Pago contra o comprovante de entrega.">
+                                        <x-ui.input id="ct-venc" type="date" wire:model="contratoVencimento" />
+                                    </x-ui.field>
+                                </div>
+
+                                <div>
+                                    <button type="button" wire:click="$toggle('descontosAbertos')" class="text-sm font-semibold text-graphite-700 underline-offset-2 hover:underline" aria-expanded="{{ $descontosAbertos ? 'true' : 'false' }}">
+                                        {{ $descontosAbertos ? 'Esconder descontos' : 'Descontar IR, falta de mercadoria ou seguro' }}
+                                    </button>
+                                </div>
+                                @if ($descontosAbertos)
+                                    <div class="grid gap-4 sm:grid-cols-4">
+                                        <x-ui.field label="IR (R$)" for="ct-ir"><x-ui.input id="ct-ir" wire:model.blur="contratoIr" placeholder="0,00" inputmode="decimal" /></x-ui.field>
+                                        <x-ui.field label="Falta de mercadoria (R$)" for="ct-falta"><x-ui.input id="ct-falta" wire:model.blur="contratoFalta" placeholder="0,00" inputmode="decimal" /></x-ui.field>
+                                        <x-ui.field label="Seguro do motorista (R$)" for="ct-segm"><x-ui.input id="ct-segm" wire:model.blur="contratoSeguroMotorista" placeholder="0,00" inputmode="decimal" /></x-ui.field>
+                                        <x-ui.field label="Seguro da carga (R$)" for="ct-segc"><x-ui.input id="ct-segc" wire:model.blur="contratoSeguroCarga" placeholder="0,00" inputmode="decimal" /></x-ui.field>
+                                    </div>
+                                @endif
+
+                                <div class="grid gap-4 sm:grid-cols-3">
+                                    <x-ui.field label="Paga por" for="ct-forma">
+                                        <x-ui.select id="ct-forma" wire:model.live="contratoForma">
+                                            @foreach (App\Services\Transporte\ContratosFrete::FORMAS as $forma => $rotulo)
+                                                <option value="{{ $forma }}">{{ $rotulo }}</option>
+                                            @endforeach
+                                        </x-ui.select>
+                                    </x-ui.field>
+                                    @if ($contratoForma === 'pix')
+                                        <x-ui.field label="Chave Pix de quem recebe" for="ct-pix" class="sm:col-span-2" hint="Vem do cadastro do motorista quando existe.">
+                                            <x-ui.input id="ct-pix" wire:model="contratoPix" maxlength="60" />
+                                        </x-ui.field>
+                                    @else
+                                        <div class="grid grid-cols-3 gap-3 sm:col-span-2">
+                                            <x-ui.field label="Banco" for="ct-banco" hint="3 dígitos"><x-ui.input id="ct-banco" wire:model="contratoBanco" maxlength="3" inputmode="numeric" placeholder="001" /></x-ui.field>
+                                            <x-ui.field label="Agência" for="ct-ag"><x-ui.input id="ct-ag" wire:model="contratoAgencia" maxlength="10" /></x-ui.field>
+                                            <x-ui.field label="Conta" for="ct-conta"><x-ui.input id="ct-conta" wire:model="contratoConta" maxlength="20" /></x-ui.field>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <div class="grid gap-4 sm:grid-cols-[minmax(0,14rem)_1fr] sm:items-end">
+                                    <x-ui.field label="CIOT" for="ct-ciot" hint="Obrigatório para TAC. Gere na sua administradora de frete.">
+                                        <x-ui.input id="ct-ciot" wire:model="contratoCiot" maxlength="12" inputmode="numeric" placeholder="12 dígitos" />
+                                    </x-ui.field>
+                                    @php $saldo = $this->saldoContrato; @endphp
+                                    <p @class(['text-sm sm:text-right', 'text-danger-700' => $saldo < 0, 'text-graphite-600' => $saldo >= 0])>
+                                        Saldo a pagar na entrega:
+                                        <span class="num whitespace-nowrap font-semibold">R$ {{ Dinheiro::formatar($saldo) }}</span>
+                                    </p>
+                                </div>
+                            </div>
+                        @endif
                     </fieldset>
 
                     @can('transporte.operar')
@@ -336,6 +423,12 @@
                                     @endif
                                 </div>
 
+                                @if ($cte->averbacao_status === 'aprovada')
+                                    <p class="text-xs text-success-700">Carga averbada na AT&amp;M · nº <span class="num font-semibold">{{ $cte->averbacao_numero ?: $cte->averbacao_protocolo }}</span></p>
+                                @elseif ($cte->averbacao_status === 'recusada')
+                                    <x-ui.alert variant="warning" title="Averbação não saiu">{{ $cte->averbacao_mensagem }}</x-ui.alert>
+                                @endif
+
                                 @if (in_array($cte->status, [CteStatus::Rejeitado, CteStatus::Denegado, CteStatus::EmProcessamento], true) && $cte->x_motivo)
                                     <x-ui.alert :variant="$cte->status === CteStatus::EmProcessamento ? 'warning' : 'danger'"><span class="whitespace-pre-line">{{ $cte->x_motivo }}</span></x-ui.alert>
                                 @endif
@@ -360,6 +453,11 @@
                                     @endif
                                     @if ($cte->status === CteStatus::Autorizado)
                                         @can('transporte.operar')
+                                            @if ($config->temAtm() && $cte->averbacao_status !== 'aprovada')
+                                                <x-ui.button variant="secondary" size="sm" wire:click="averbarCte({{ $cte->id }})" wire:loading.attr="disabled" wire:target="averbarCte({{ $cte->id }})">
+                                                    {{ $cte->averbacao_status === 'recusada' ? 'Averbar de novo' : 'Averbar na AT&M' }}
+                                                </x-ui.button>
+                                            @endif
                                             <x-ui.button variant="ghost" size="sm" wire:click="abrirCorrecao({{ $cte->id }})">Carta de correção</x-ui.button>
                                         @endcan
                                         @can('transporte.cancelar')
@@ -443,7 +541,7 @@
                                 <x-ui.field label="UFs de passagem" for="md-perc" hint="Só as do meio, na ordem da viagem. Ex.: MG, GO.">
                                     <x-ui.input id="md-perc" wire:model="percurso" wire:change="salvarMdfeRascunho" placeholder="Nenhuma" />
                                 </x-ui.field>
-                                <x-ui.field label="Número da averbação do seguro" for="md-aver" hint="A seguradora devolve ao averbar a carga.">
+                                <x-ui.field label="Número da averbação do seguro" for="md-aver" :hint="$config->temAtm() ? 'Preenchido sozinho pela AT&M ao autorizar o CT-e.' : 'A seguradora devolve ao averbar a carga.'">
                                     <x-ui.input id="md-aver" wire:model="averbacoes" wire:change="salvarMdfeRascunho" />
                                 </x-ui.field>
                             </div>

@@ -68,6 +68,12 @@ class Viagem extends Model
         return $this->hasOne(Mdfe::class);
     }
 
+    /** @return HasOne<ContratoFrete, $this> */
+    public function contrato(): HasOne
+    {
+        return $this->hasOne(ContratoFrete::class);
+    }
+
     /** @return HasMany<TransporteEvento, $this> */
     public function eventos(): HasMany
     {
@@ -96,6 +102,12 @@ class Viagem extends Model
     public function reboque2(): BelongsTo
     {
         return $this->belongsTo(Veiculo::class, 'reboque2_id');
+    }
+
+    /** Frete pago a motorista terceiro: entra contrato, CIOT e pagamento no MDF-e. */
+    public function comTerceiro(): bool
+    {
+        return (bool) $this->veiculo?->deTerceiro();
     }
 
     public function numeroFormatado(): string

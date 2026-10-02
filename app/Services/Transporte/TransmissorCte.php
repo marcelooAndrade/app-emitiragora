@@ -32,6 +32,7 @@ class TransmissorCte
         private readonly NumeracaoTransporte $numeracao,
         private readonly CertificateService $certificados,
         private readonly SefazErrorTranslator $tradutor,
+        private readonly AverbacaoAtm $averbacao,
     ) {}
 
     public function transmitir(Cte $cte, ?User $user = null): Cte
@@ -126,6 +127,25 @@ class TransmissorCte
         return $this->aplicar($cte, $resposta, null);
     }
 
+    /**
+     * Averba na AT&M logo depois de autorizar, quando a empresa usa. Falha da
+     * seguradora fica registrada no CT-e e na viagem, e a emissão segue:
+     * o CT-e já está autorizado e a averbação pode ser refeita pela tela.
+     */
+    private function averbar(Cte $cte, ?User $user): void
+    {
+        if (! $this->averbacao->disponivel($cte)) {
+            return;
+        }
+        try {
+            $this->averbacao->averbar($cte, $user);
+        } catch (Throwable $e) {
+            $mensagem = $e instanceof TransporteException ? $e->getMessage() : 'A AT&M não respondeu: '.$e->getMessage();
+            $cte->forceFill(['averbacao_status' => 'recusada', 'averbacao_mensagem' => mb_substr($mensagem, 0, 2000)])->save();
+            $cte->viagem->registrar('cte_averbacao_recusada', "Averbação do CT-e {$cte->numeroFormatado()} não saiu: {$mensagem}", ['cte_id' => $cte->getKey()], $user?->getKey());
+        }
+    }
+
     private function aplicar(Cte $cte, RespostaSefaz $resposta, ?User $user): Cte
     {
         if ($resposta->autorizada()) {
@@ -150,6 +170,7 @@ class TransmissorCte
                     $user?->getKey(),
                 );
             });
+            $this->averbar($cte, $user);
         } elseif ($resposta->denegada() || $resposta->emProcessamento()) {
             $cte->forceFill([
                 'status' => $resposta->denegada() ? CteStatus::Denegado : CteStatus::EmProcessamento,

@@ -2,7 +2,7 @@
 
 <div class="grid gap-6">
     <x-ui.page-header eyebrow="Configuração" title="Transporte"
-        description="O que o CT-e e o MDF-e precisam além do cadastro da empresa: RNTRC, séries, seguro de carga e o ICMS do frete." />
+        description="O que o CT-e e o MDF-e precisam além do cadastro da empresa: RNTRC, séries, seguro e averbação da carga, e o ICMS do frete." />
 
     @if (session('sucesso'))
         <x-ui.alert variant="success">{{ session('sucesso') }}</x-ui.alert>
@@ -55,6 +55,35 @@
                             <option value="2">O contratante do frete</option>
                         </x-ui.select>
                     </x-ui.field>
+                </div>
+
+                <div class="grid gap-3 border-t border-graphite-100 pt-5">
+                    <div>
+                        <p class="font-semibold text-graphite-900">Averbação automática e terceiros</p>
+                        <p class="text-xs text-graphite-500">
+                            Com a AT&amp;M configurada, cada CT-e autorizado é averbado sozinho e o número entra no MDF-e.
+                            @if ($this->config->temAtm())
+                                <span class="font-semibold text-success-700">Integração ligada.</span>
+                            @endif
+                            @unless (config('fiscal.atm.producao'))
+                                Por enquanto só em homologação, como no Transm.
+                            @endunless
+                        </p>
+                    </div>
+                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <x-ui.field label="Usuário da AT&M" for="atm-usuario" hint="Em branco desliga a integração." :error="$errors->first('atmUsuario')">
+                            <x-ui.input id="atm-usuario" wire:model="atmUsuario" maxlength="100" autocomplete="off" />
+                        </x-ui.field>
+                        <x-ui.field label="Senha da AT&M" for="atm-senha" :hint="$this->config->atm_senha ? 'Salva. Em branco, continua a mesma.' : null" :error="$errors->first('atmSenha')">
+                            <x-ui.input id="atm-senha" type="password" wire:model="atmSenha" maxlength="100" autocomplete="new-password" />
+                        </x-ui.field>
+                        <x-ui.field label="Código AT&M" for="atm-codigo" :error="$errors->first('atmCodigo')">
+                            <x-ui.input id="atm-codigo" wire:model="atmCodigo" maxlength="30" autocomplete="off" />
+                        </x-ui.field>
+                        <x-ui.field label="Adiantamento ao terceiro (%)" for="adiant-pct" hint="Sugerido no contrato do frete." required :error="$errors->first('adiantamentoPercentual')">
+                            <x-ui.input id="adiant-pct" wire:model="adiantamentoPercentual" inputmode="numeric" maxlength="3" />
+                        </x-ui.field>
+                    </div>
                 </div>
             </fieldset>
             @if ($podeEditar)

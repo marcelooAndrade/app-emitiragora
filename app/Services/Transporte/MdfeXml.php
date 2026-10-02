@@ -3,6 +3,7 @@
 namespace App\Services\Transporte;
 
 use App\Enums\Transporte\CteStatus;
+use App\Models\ContratoFrete;
 use App\Models\Cte;
 use App\Models\Emitente;
 use App\Models\Mdfe;
@@ -19,15 +20,15 @@ use NFePHP\MDFe\Make;
  *
  * Portado do `MdfeXmlBuilder` do app-transm. A diferença de fundo: lá todo
  * frete era de motorista terceiro, então CIOT e pagamento (infPag) eram
- * obrigatórios. Aqui eles só entram quando a viagem tem CIOT; frota própria
- * emite MDF-e sem nada disso, que é o caso comum.
+ * obrigatórios. Aqui eles só entram quando a viagem tem contrato de frete
+ * com terceiro; frota própria emite MDF-e sem nada disso.
  */
 class MdfeXml
 {
     /** @return array{xml: string, chave: string, emitido_em: Carbon} */
     public function montar(Mdfe $mdfe): array
     {
-        $mdfe->loadMissing(['emitente', 'viagem.ctes.notas', 'viagem.motorista', 'viagem.veiculo', 'viagem.reboque', 'viagem.reboque2']);
+        $mdfe->loadMissing(['emitente', 'viagem.ctes.notas', 'viagem.motorista', 'viagem.veiculo', 'viagem.reboque', 'viagem.reboque2', 'viagem.contrato']);
         $emitente = $mdfe->emitente;
         $config = $emitente->configuracaoTransporte();
         $viagem = $mdfe->viagem;
@@ -111,6 +112,11 @@ class MdfeXml
                 'nApol' => $seguro['apolice'] ?? null,
                 'nAver' => array_values(array_filter((array) ($seguro['averbacoes'] ?? []))),
             ]);
+        }
+
+        $contrato = $viagem->contrato;
+        if ($contrato !== null && $contrato->status === 'ativo' && $viagem->comTerceiro()) {
+            $make->taginfPag($this->pagamento($contrato));
         }
 
         $make->tagveicTracao((object) [
@@ -202,6 +208,39 @@ class MdfeXml
         }
 
         return ['xml' => $xml, 'chave' => $make->getChave() ?: $chave, 'emitido_em' => $emitidoEm];
+    }
+
+    /**
+     * Pagamento do frete ao terceiro, como o Transm montava: quem recebe, o
+     * valor do contrato e, havendo saldo, uma parcela a prazo. O componente
+     * vai como "outros: frete" (99), que é o que ele é.
+     */
+    private function pagamento(ContratoFrete $contrato): object
+    {
+        $documento = (string) $contrato->contratado_documento;
+        $aPrazo = $contrato->saldo_centavos > 0;
+        $valor = fn (int $centavos): string => number_format($centavos / 100, 2, '.', '');
+
+        return (object) [
+            'xNome' => $contrato->contratado_nome,
+            'CPF' => strlen($documento) === 11 ? $documento : null,
+            'CNPJ' => strlen($documento) === 14 ? $documento : null,
+            'idEstrangeiro' => null,
+            'Comp' => [(object) ['tpComp' => '99', 'vComp' => $valor($contrato->frete_centavos), 'xComp' => 'FRETE']],
+            'vContrato' => $valor($contrato->frete_centavos),
+            'indAltoDesemp' => null,
+            'indPag' => $aPrazo ? '1' : '0',
+            'vAdiant' => $aPrazo ? $valor($contrato->adiantamento_centavos) : null,
+            'indAntecipaAdiant' => null,
+            'infPrazo' => $aPrazo ? [(object) [
+                'nParcela' => '001',
+                'dVenc' => $contrato->vencimento_saldo->format('Y-m-d'),
+                'vParcela' => $valor($contrato->saldo_centavos),
+            ]] : [],
+            'infBanc' => (object) ($contrato->forma_pagamento === 'pix'
+                ? ['codBanco' => null, 'codAgencia' => null, 'CNPJIPEF' => null, 'PIX' => $contrato->chave_pix]
+                : ['codBanco' => $contrato->banco_codigo, 'codAgencia' => $contrato->agencia, 'CNPJIPEF' => null, 'PIX' => null]),
+        ];
     }
 
     /**

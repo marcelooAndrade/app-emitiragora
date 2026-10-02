@@ -40,7 +40,7 @@ class TransmissorMdfe
      */
     public function preparar(Viagem $viagem): Mdfe
     {
-        $viagem->load(['ctes', 'mdfe', 'emitente']);
+        $viagem->load(['ctes', 'mdfe', 'emitente', 'contrato']);
         $ctes = $viagem->ctes->filter(fn (Cte $c): bool => $c->status === CteStatus::Autorizado)->values();
         if ($ctes->isEmpty()) {
             throw new TransporteException('O MDF-e precisa de pelo menos um CT-e autorizado.');
@@ -82,12 +82,17 @@ class TransmissorMdfe
             'municipio_carregamento_codigo' => $primeiro->municipio_inicio_codigo,
             'municipio_carregamento' => $primeiro->municipio_inicio,
             'percurso_ufs' => $mdfe->exists && $mdfe->percurso_ufs !== null ? $mdfe->percurso_ufs : $percursoPadrao,
+            'ciot' => $viagem->contrato?->status === 'ativo' ? $viagem->contrato->ciot : null,
             'seguro' => $config->seguradora_nome ? [
                 'responsavel' => $config->responsavel_seguro,
                 'seguradora_nome' => $config->seguradora_nome,
                 'seguradora_cnpj' => $config->seguradora_cnpj,
                 'apolice' => $config->apolice,
-                'averbacoes' => $seguroAtual['averbacoes'] ?? [],
+                // As averbações digitadas mais as que a AT&M devolveu nos CT-e.
+                'averbacoes' => array_values(array_unique(array_filter([
+                    ...(array) ($seguroAtual['averbacoes'] ?? []),
+                    ...$ctes->pluck('averbacao_numero')->all(),
+                ]))),
             ] : null,
         ]);
         $mdfe->save();
@@ -152,7 +157,7 @@ class TransmissorMdfe
     /** O que impede o MDF-e, dito de um jeito que dá para resolver. */
     public function pendencias(Viagem $viagem): array
     {
-        $viagem->loadMissing(['ctes', 'emitente', 'motorista', 'veiculo', 'reboque', 'reboque2']);
+        $viagem->loadMissing(['ctes', 'emitente', 'motorista', 'veiculo', 'reboque', 'reboque2', 'contrato']);
         $pendencias = [];
         $validos = $viagem->ctes->reject(fn (Cte $c): bool => $c->status === CteStatus::Cancelado);
         if ($validos->isEmpty() || $validos->contains(fn (Cte $c): bool => $c->status !== CteStatus::Autorizado)) {
@@ -171,6 +176,16 @@ class TransmissorMdfe
         foreach ([$viagem->reboque, $viagem->reboque2] as $reboque) {
             if ($reboque && ($faltando = $reboque->pendenciasMdfe())) {
                 $pendencias[] = 'Complete o cadastro da carreta '.$reboque->placaFormatada().': '.implode(', ', $faltando).'.';
+            }
+        }
+        if ($viagem->comTerceiro()) {
+            // Frete pago a terceiro: o MDF-e leva o pagamento (infPag) e, para
+            // TAC, o CIOT. Sem contrato não há de onde tirar nenhum dos dois.
+            $contrato = $viagem->contrato?->status === 'ativo' ? $viagem->contrato : null;
+            if ($contrato === null) {
+                $pendencias[] = 'Veículo de terceiro: preencha o contrato do frete (quanto o motorista recebe e como).';
+            } elseif ($contrato->exigeCiot() && blank($contrato->ciot)) {
+                $pendencias[] = 'O proprietário do veículo é TAC: informe o CIOT no contrato do frete.';
             }
         }
         if ($faltando = $viagem->emitente->configuracaoTransporte()->pendenciasMdfe()) {
