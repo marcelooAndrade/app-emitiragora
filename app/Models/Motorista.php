@@ -17,13 +17,33 @@ class Motorista extends Model
 
     protected function casts(): array
     {
-        return ['ativo' => 'boolean'];
+        return ['ativo' => 'boolean', 'nascimento' => 'date'];
     }
 
     /** @return BelongsTo<Emitente, $this> */
     public function emitente(): BelongsTo
     {
         return $this->belongsTo(Emitente::class);
+    }
+
+    /** O que o e-Frete pede do motorista além do que o MDF-e pede. */
+    public function pendenciasEfrete(): array
+    {
+        $faltando = [];
+        if (strlen(preg_replace('/\D/', '', (string) $this->cnh)) !== 11) {
+            $faltando[] = 'CNH com 11 dígitos';
+        }
+        if ($this->nascimento === null) {
+            $faltando[] = 'data de nascimento';
+        }
+        if (! in_array(strlen(preg_replace('/\D/', '', (string) $this->telefone)), [10, 11], true)) {
+            $faltando[] = 'celular com DDD';
+        }
+        if (blank($this->cep) || blank($this->municipio_codigo) || blank($this->logradouro) || blank($this->bairro)) {
+            $faltando[] = 'endereço com CEP';
+        }
+
+        return $faltando;
     }
 
     public function cpfFormatado(): string

@@ -58,6 +58,30 @@
                     <x-ui.field label="Chave Pix" hint="Para pagar o frete do motorista terceiro." :error="$errors->first('chavePix')">
                         <x-ui.input wire:model="chavePix" maxlength="77" />
                     </x-ui.field>
+                    @if ($this->usaEfrete)
+                        <div class="grid gap-3 border-t border-graphite-100 pt-3">
+                            <p class="text-xs font-semibold text-graphite-700">Para o CIOT pelo e-Frete (CNH com 11 dígitos e celular com DDD acima)</p>
+                            <div class="grid gap-3 sm:grid-cols-2">
+                                <x-ui.field label="Nascimento" :error="$errors->first('nascimento')">
+                                    <x-ui.input type="date" wire:model="nascimento" />
+                                </x-ui.field>
+                                <x-ui.field label="CEP" :hint="$municipio ?: 'Preenche o endereço sozinho.'" :error="$errors->first('cep')">
+                                    <x-ui.input wire:model.blur="cep" inputmode="numeric" maxlength="9" />
+                                </x-ui.field>
+                            </div>
+                            <x-ui.field label="Rua" :error="$errors->first('logradouro')">
+                                <x-ui.input wire:model="logradouro" maxlength="60" />
+                            </x-ui.field>
+                            <div class="grid gap-3 sm:grid-cols-3">
+                                <x-ui.field label="Número" :error="$errors->first('numero')">
+                                    <x-ui.input wire:model="numero" maxlength="10" />
+                                </x-ui.field>
+                                <x-ui.field label="Bairro" class="sm:col-span-2" :error="$errors->first('bairro')">
+                                    <x-ui.input wire:model="bairro" maxlength="60" />
+                                </x-ui.field>
+                            </div>
+                        </div>
+                    @endif
                     <div class="flex gap-2">
                         <x-ui.button type="submit">{{ $editandoId ? 'Salvar' : 'Cadastrar' }}</x-ui.button>
                         @if ($editandoId)

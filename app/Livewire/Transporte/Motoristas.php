@@ -4,6 +4,7 @@ namespace App\Livewire\Transporte;
 
 use App\Models\Emitente;
 use App\Models\Motorista;
+use App\Services\Integrations\ViaCepService;
 use App\Support\Documento;
 use App\Support\EmitenteAtual;
 use Illuminate\Support\Collection;
@@ -12,6 +13,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use RuntimeException;
 
 #[Layout('components.layouts.fiscal')]
 #[Title('Motoristas')]
@@ -29,6 +31,23 @@ class Motoristas extends Component
 
     public string $chavePix = '';
 
+    // Só o e-Frete pede: nascimento e endereço.
+    public string $nascimento = '';
+
+    public string $cep = '';
+
+    public string $municipioCodigo = '';
+
+    public string $municipio = '';
+
+    public string $logradouro = '';
+
+    public string $numero = '';
+
+    public string $complemento = '';
+
+    public string $bairro = '';
+
     public function mount(): void
     {
         abort_unless($this->emitente !== null, 404, 'Nenhum emitente vinculado a este usuário.');
@@ -39,6 +58,32 @@ class Motoristas extends Component
     public function emitente(): ?Emitente
     {
         return app(EmitenteAtual::class)->resolver();
+    }
+
+    /** Os campos do e-Frete só aparecem para quem usa a integração. */
+    #[Computed]
+    public function usaEfrete(): bool
+    {
+        return $this->emitente->configuracaoTransporte()->temEfrete();
+    }
+
+    /** CEP completo: o ViaCEP preenche rua, bairro e município. */
+    public function updatedCep(ViaCepService $viaCep): void
+    {
+        $this->cep = preg_replace('/\D/', '', $this->cep);
+        if (strlen($this->cep) !== 8) {
+            return;
+        }
+        try {
+            $r = $viaCep->consultar($this->cep);
+            $this->logradouro = $this->logradouro ?: (string) $r->logradouro;
+            $this->bairro = $this->bairro ?: (string) $r->bairro;
+            $this->municipioCodigo = (string) $r->codigoIbge;
+            $this->municipio = trim($r->municipio.'/'.$r->uf, '/');
+            $this->resetErrorBag('cep');
+        } catch (RuntimeException $e) {
+            $this->addError('cep', $e->getMessage());
+        }
     }
 
     #[Computed]
@@ -59,6 +104,14 @@ class Motoristas extends Component
         $this->cnh = (string) $m->cnh;
         $this->telefone = (string) $m->telefone;
         $this->chavePix = (string) $m->chave_pix;
+        $this->nascimento = (string) $m->nascimento?->toDateString();
+        $this->cep = (string) $m->cep;
+        $this->municipioCodigo = (string) $m->municipio_codigo;
+        $this->municipio = $m->municipio_codigo ? 'IBGE '.$m->municipio_codigo : '';
+        $this->logradouro = (string) $m->logradouro;
+        $this->numero = (string) $m->numero;
+        $this->complemento = (string) $m->complemento;
+        $this->bairro = (string) $m->bairro;
     }
 
     public function novo(): void
@@ -78,6 +131,13 @@ class Motoristas extends Component
             'cnh' => ['nullable', 'string', 'max:20'],
             'telefone' => ['nullable', 'string', 'max:20'],
             'chavePix' => ['nullable', 'string', 'max:77'],
+            'nascimento' => ['nullable', 'date', 'before:today'],
+            'cep' => ['nullable', 'digits:8'],
+            'municipioCodigo' => ['nullable', 'digits:7'],
+            'logradouro' => ['nullable', 'string', 'max:60'],
+            'numero' => ['nullable', 'string', 'max:10'],
+            'complemento' => ['nullable', 'string', 'max:60'],
+            'bairro' => ['nullable', 'string', 'max:60'],
         ], ['cpf.unique' => 'Já existe motorista com este CPF.'], ['chavePix' => 'chave Pix', 'cpf' => 'CPF']);
 
         $dados = [
@@ -86,6 +146,13 @@ class Motoristas extends Component
             'cnh' => $this->cnh ?: null,
             'telefone' => $this->telefone ?: null,
             'chave_pix' => $this->chavePix ?: null,
+            'nascimento' => $this->nascimento ?: null,
+            'cep' => $this->cep ?: null,
+            'municipio_codigo' => $this->municipioCodigo ?: null,
+            'logradouro' => $this->logradouro !== '' ? mb_strtoupper(trim($this->logradouro)) : null,
+            'numero' => $this->numero !== '' ? trim($this->numero) : null,
+            'complemento' => $this->complemento !== '' ? mb_strtoupper(trim($this->complemento)) : null,
+            'bairro' => $this->bairro !== '' ? mb_strtoupper(trim($this->bairro)) : null,
         ];
         if ($this->editandoId) {
             $this->motoristas->firstWhere('id', $this->editandoId)?->update($dados);

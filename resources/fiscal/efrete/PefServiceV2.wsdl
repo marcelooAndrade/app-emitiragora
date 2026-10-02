@@ -1,0 +1,3031 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:s="http://www.w3.org/2001/XMLSchema" xmlns:s2="http://schemas.ipc.adm.br/efrete/objects" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:tns="http://schemas.ipc.adm.br/efrete/pefV2" xmlns:s5="http://schemas.ipc.adm.br/efrete/pef/AdicionarOperacaoTransporte" xmlns:s9="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarPagamento" xmlns:s15="http://schemas.ipc.adm.br/efrete/pef/objects/RegistrarQuantidadeDaMercadoriaNoDesembarque" xmlns:http="http://schemas.xmlsoap.org/wsdl/http/" xmlns:s6="http://schemas.ipc.adm.br/efrete/pef/RetificarOperacaoTransporte" xmlns:soap12="http://schemas.xmlsoap.org/wsdl/soap12/" xmlns:tm="http://microsoft.com/wsdl/mime/textMatching/" xmlns:s10="http://microsoft.com/wsdl/types/" xmlns:s11="http://schemas.ipc.adm.br/efrete/pef/ObterOperacaoTransporteObjects" xmlns:s12="http://schemas.ipc.adm.br/efrete/pef/objects/AbonarQuebraDeFrete" xmlns:s14="http://schemas.ipc.adm.br/efrete/pef/ObterVinculoParaTransporteObjects" xmlns:s3="http://schemas.ipc.adm.br/efrete/pefV2/objects" xmlns:s17="http://schemas.ipc.adm.br/efrete/pef/ConsultarTipoCarga" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns:s4="http://schemas.ipc.adm.br/efrete/pef/objects" xmlns:s7="http://schemas.ipc.adm.br/efrete/pefV2/EncerrarOperacaoTransporte" xmlns:s13="http://schemas.ipc.adm.br/efrete/pef/ObterTransacoesObjects" xmlns:s1="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarOperacaoTransporte" xmlns:s8="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarViagem" xmlns:s16="http://schemas.ipc.adm.br/efrete/pef/objects/RegistrarPagamentoQuitacao" targetNamespace="http://schemas.ipc.adm.br/efrete/pefV2" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pefV2">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarOperacaoTransporte" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pefV2/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarPagamento" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/objects" />
+      <s:element name="AdicionarOperacaoTransporte">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s1:AdicionarOperacaoTransporteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarOperacaoTransporteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s3:AdicionarOperacaoTransporteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CancelarOperacaoTransporte">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:CancelarOperacaoTransporteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CancelarOperacaoTransporteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:CancelarOperacaoTransporteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RetificarOperacaoTransporte">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:RetificarOperacaoTransporteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RetificarOperacaoTransporteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:RetificarOperacaoTransporteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="EncerrarOperacaoTransporte">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s3:EncerrarOperacaoTransporteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="EncerrarOperacaoTransporteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s3:EncerrarOperacaoTransporteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarViagem">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s3:AdicionarViagemRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarViagemResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s3:AdicionarViagemResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarPagamento">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s9:AdicionarPagamentoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarPagamentoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s3:AdicionarPagamentoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CancelarPagamento">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:CancelarPagamentoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="CancelarPagamentoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:CancelarPagamentoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AlterarDataLiberacaoPagamento">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:EditarPagamentoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AlterarDataLiberacaoPagamentoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:AlterarDataLiberacaoPagamentoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterOperacaoTransporteParaImpressao">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:ObterOperacaoTransporteParaImpressaoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterOperacaoTransporteParaImpressaoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterOperacaoTransporteParaImpressaoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConsultarDownloadDocumento">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:ConsultarDownloadDocumentoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConsultarDownloadDocumentoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ConsultarDownloadDocumentoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DownloadDocumento">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:DownloadDocumentoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="DownloadDocumentoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:DownloadDocumentoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterOperacaoTransportePdf">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:ObterOperacaoTransportePdfRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterOperacaoTransportePdfResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterOperacaoTransportePdfResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterOperacoesTransporteAgrupadasPdf">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:ObterOperacoesTransporteAgrupadasPdfRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterOperacoesTransporteAgrupadasPdfResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" name="ObterOperacoesTransporteAgrupadasPdfResult" type="tns:ObterOperacoesTransporteAgrupadasPdfResponse" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:complexType name="ObterOperacoesTransporteAgrupadasPdfResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="Pdf" type="s:base64Binary" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterOperacaoTransporte">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:ObterOperacaoTransporteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterOperacaoTransporteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterOperacaoTransporteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AbonarQuebraDeFrete">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:AbonarQuebraDeFreteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AbonarQuebraDeFreteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:AbonarQuebraDeFreteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterTransacoes">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterTransacoesRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterTransacoesResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterTransacoesResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterVinculoParaTransporte">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterVinculoParaTransporteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterVinculoParaTransporteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterVinculoParaTransporteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConsultaSituacaoTransportador">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ConsultaSituacaoTransportadorRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConsultaSituacaoTransportadorResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ConsultaSituacaoTransportadorResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoCliente">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RegistrarQuantidadeDaMercadoriaNoDesembarque">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:RegistrarQuantidadeDaMercadoriaNoDesembarqueRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RegistrarQuantidadeDaMercadoriaNoDesembarqueResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:RegistrarQuantidadeDaMercadoriaNoDesembarqueResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RegistrarPagamento">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:RegistrarPagamentoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RegistrarPagamentoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:RegistrarPagamentoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RegistrarPagamentoQuitacao">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:RegistrarPagamentoQuitacaoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="RegistrarPagamentoQuitacaoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:RegistrarPagamentoQuitacaoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AlterarEntregaDocumentacao">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:AlterarEntregaDocumentacaoRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AlterarEntregaDocumentacaoResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:AlterarEntregaDocumentacaoResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarValeFrete">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:AdicionarValeFreteRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarValeFreteResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:AdicionarValeFreteResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConsultarTipoCarga">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:ConsultarTipoCargaRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConsultarTipoCargaResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ConsultarTipoCargaResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarCreditoViagem">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:adicionarCreditoViagemRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="AdicionarCreditoViagemResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:AdicionarCreditoViagemResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="InterromperViagem">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:interromperViagemRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="InterromperViagemResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:InterromperViagemResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConsultarValidadeCiot">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="0" maxOccurs="1" ref="s4:ConsultarValidadeCiotRequest" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+      <s:element name="ConsultarValidadeCiotResponse">
+        <s:complexType>
+          <s:sequence>
+            <s:element minOccurs="1" maxOccurs="1" ref="s4:ConsultarValidadeCiotResult" />
+          </s:sequence>
+        </s:complexType>
+      </s:element>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarOperacaoTransporte">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pefV2/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/AdicionarOperacaoTransporte" />
+      <s:element name="AdicionarOperacaoTransporteRequest" type="s1:AdicionarOperacaoTransporteRequest" />
+      <s:complexType name="AdicionarOperacaoTransporteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" ref="s3:TipoViagem" />
+              <s:element minOccurs="1" maxOccurs="1" ref="s3:TipoPagamento" />
+              <s:element minOccurs="0" maxOccurs="1" name="MatrizCNPJ" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="FilialCNPJ" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="IdOperacaoCliente" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataInicioViagem" nillable="true" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataFimViagem" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="CodigoNCMNaturezaCarga" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="PesoCarga" nillable="true" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="TipoEmbalagem" nillable="true" type="s1:TipoEmbalagem" />
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacaoPrincipal" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="ObservacoesAoTransportador" type="s1:ArrayOfString" />
+              <s:element minOccurs="0" maxOccurs="1" name="ObservacoesAoCredenciado" type="s1:ArrayOfString" />
+              <s:element minOccurs="1" maxOccurs="1" name="EntregaDocumentacao" nillable="true" type="s1:TipoEntregaDocumentacao" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadeSaques" nillable="true" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadeTransferencias" nillable="true" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorSaques" nillable="true" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorTransferencias" nillable="true" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="CodigoTipoCarga" nillable="true" type="s:unsignedShort" />
+              <s:element minOccurs="1" maxOccurs="1" name="AltoDesempenho" nillable="true" type="s:boolean" />
+              <s:element minOccurs="0" maxOccurs="unbounded" name="Viagens" type="s1:Viagem" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s3:Impostos" />
+              <s:element minOccurs="0" maxOccurs="unbounded" name="Pagamentos" type="s1:Pagamento" />
+              <s:element minOccurs="0" maxOccurs="1" name="Contratado" type="s1:Contratado" />
+              <s:element minOccurs="0" maxOccurs="1" name="Motorista" type="s1:Motorista" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s3:Destinatario" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s3:Contratante" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s3:Subcontratante" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s3:Consignatario" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s3:TomadorServico" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s3:Remetente" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s3:ProprietarioCarga" />
+              <s:element minOccurs="0" maxOccurs="unbounded" name="Veiculos" type="s5:Veiculo" />
+              <s:element minOccurs="0" maxOccurs="1" name="ContratantesCargaFracionada" type="s1:ArrayOfString" />
+              <s:element minOccurs="1" maxOccurs="1" name="ComposicaoVeicular" nillable="true" type="s:boolean" />
+              <s:element minOccurs="1" maxOccurs="1" name="RetornoVazio" nillable="true" type="s:boolean" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:simpleType name="TipoEmbalagem">
+        <s:restriction base="s:string">
+          <s:enumeration value="Indefinido" />
+          <s:enumeration value="Bigbag" />
+          <s:enumeration value="Pallet" />
+          <s:enumeration value="Granel" />
+          <s:enumeration value="Container" />
+          <s:enumeration value="Saco" />
+          <s:enumeration value="Caixa" />
+          <s:enumeration value="Unitario" />
+          <s:enumeration value="Fardo" />
+          <s:enumeration value="Tanque" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoEntregaDocumentacao">
+        <s:restriction base="s:string">
+          <s:enumeration value="RedeCredenciada" />
+          <s:enumeration value="Cliente" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="Viagem">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioOrigem" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioDestino" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepDestino" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LatitudeOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LongitudeOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LatitudeDestino" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LongitudeDestino" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DistanciaPercorrida" nillable="true" type="s:unsignedInt" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:Valores" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:TipoPagamento" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="1" name="NotasFiscais" type="s1:ArrayOfNotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfNotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotaFiscal" nillable="true" type="s5:NotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Pagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataDeLiberacao" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:TipoPagamento" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:Categoria" />
+          <s:element minOccurs="0" maxOccurs="1" name="Documento" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="1" name="InformacaoAdicional" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CnpjFilialAbastecimento" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoChavePix" nillable="true" type="s1:TipoChave" />
+          <s:element minOccurs="0" maxOccurs="1" name="ValorChavePix" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CpfCnpjCreditado" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="IdentificadorPix" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="IndicadorPagamento" type="s1:TipoIndicadorPagamentoEnum" />
+          <s:element minOccurs="1" maxOccurs="1" name="NumeroParcela" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="CodigoPagamento" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoChave">
+        <s:restriction base="s:string">
+          <s:enumeration value="CpfOuCnpj" />
+          <s:enumeration value="Email" />
+          <s:enumeration value="TelefoneCelular" />
+          <s:enumeration value="ChaveAleatoria" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="TipoIndicadorPagamentoEnum">
+        <s:restriction base="s:string">
+          <s:enumeration value="Indefinido" />
+          <s:enumeration value="AVista" />
+          <s:enumeration value="APrazo" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="Contratado">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="CpfOuCnpj" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="RNTRC" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Motorista">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="CpfOuCnpj" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CNH" type="s:long" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s3:Celular" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Pessoa">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="NomeOuRazaoSocial" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CpfOuCnpj" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Endereco" type="s2:Endereco" />
+          <s:element minOccurs="0" maxOccurs="1" name="EMail" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Telefones" type="s2:Telefones" />
+          <s:element minOccurs="1" maxOccurs="1" name="ResponsavelPeloPagamento" type="s:boolean" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/objects">
+      <s:complexType name="Request" abstract="true">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Token" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Integrador" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Versao" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Telefone">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="DDD" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="Numero" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Endereco">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Bairro" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Rua" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Complemento" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CEP" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipio" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Telefones">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Celular" type="s2:Telefone" />
+          <s:element minOccurs="0" maxOccurs="1" name="Fixo" type="s2:Telefone" />
+          <s:element minOccurs="0" maxOccurs="1" name="Fax" type="s2:Telefone" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Response" abstract="true">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="Versao" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="Sucesso" type="s:boolean" />
+          <s:element minOccurs="0" maxOccurs="1" name="Excecao" type="s2:Excecao" />
+          <s:element minOccurs="1" maxOccurs="1" name="ProtocoloServico" nillable="true" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Excecao">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Mensagem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Codigo" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pefV2/objects">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarOperacaoTransporte" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pefV2/EncerrarOperacaoTransporte" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarViagem" />
+      <s:element name="TipoViagem" type="s3:TipoViagem" />
+      <s:simpleType name="TipoViagem">
+        <s:restriction base="s:string">
+          <s:enumeration value="Indefinido" />
+          <s:enumeration value="Padrao" />
+          <s:enumeration value="TAC_Agregado" />
+          <s:enumeration value="Frota" />
+          <s:enumeration value="Fracionado" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="TipoPagamento" nillable="true" type="s3:TipoPagamento" />
+      <s:simpleType name="TipoPagamento">
+        <s:restriction base="s:string">
+          <s:enumeration value="TransferenciaBancaria" />
+          <s:enumeration value="eFRETE" />
+          <s:enumeration value="Parceiro" />
+          <s:enumeration value="Outros" />
+          <s:enumeration value="DepositoAgendado" />
+          <s:enumeration value="DepositoAgendadoMotorista" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="Impostos" type="s4:Impostos" />
+      <s:element name="Celular" type="s2:Telefone" />
+      <s:element name="Destinatario" type="s3:Destinatario" />
+      <s:complexType name="Destinatario">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ProprietarioCarga">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Remetente">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="TomadorServico">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Consignatario">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Subcontratante">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Contratante">
+        <s:complexContent mixed="false">
+          <s:extension base="s1:Pessoa">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="RNTRC" type="s:long" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="Contratante" type="s3:Contratante" />
+      <s:element name="Subcontratante" type="s3:Subcontratante" />
+      <s:element name="Consignatario" type="s3:Consignatario" />
+      <s:element name="TomadorServico" type="s3:TomadorServico" />
+      <s:element name="Remetente" type="s3:Remetente" />
+      <s:element name="ProprietarioCarga" type="s3:ProprietarioCarga" />
+      <s:element name="AdicionarOperacaoTransporteResult" nillable="true" type="s3:AdicionarOperacaoTransporteResponse" />
+      <s:complexType name="AdicionarOperacaoTransporteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="EncerrarOperacaoTransporteRequest" type="s3:EncerrarOperacaoTransporteRequest" />
+      <s:complexType name="EncerrarOperacaoTransporteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="PesoCarga" nillable="true" type="s:decimal" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s7:Viagens" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s7:Pagamentos" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadeSaques" nillable="true" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadeTransferencias" nillable="true" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorSaques" nillable="true" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorTransferencias" nillable="true" type="s:decimal" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="EncerrarOperacaoTransporteResult" nillable="true" type="s3:EncerrarOperacaoTransporteResponse" />
+      <s:complexType name="EncerrarOperacaoTransporteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Protocolo" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="AdicionarViagemRequest" type="s3:AdicionarViagemRequest" />
+      <s:complexType name="AdicionarViagemRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s8:Viagens" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s8:Pagamentos" />
+              <s:element minOccurs="1" maxOccurs="1" name="NaoAdicionarParcialmente" nillable="true" type="s:boolean" />
+              <s:element minOccurs="1" maxOccurs="1" name="PesoCarga" nillable="true" type="s:decimal" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="AdicionarViagemResult" nillable="true" type="s3:AdicionarViagemResponse" />
+      <s:complexType name="AdicionarViagemResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadeViagens" type="s:int" />
+              <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s3:ArrayOfString" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadePagamentos" type="s:int" />
+              <s:element minOccurs="0" maxOccurs="1" name="DocumentoPagamento" type="s3:ArrayOfString" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="AdicionarPagamentoResult" nillable="true" type="s3:AdicionarPagamentoResponse" />
+      <s:complexType name="AdicionarPagamentoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadePagamentos" type="s:int" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/objects">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/RetificarOperacaoTransporte" />
+      <s:import namespace="http://microsoft.com/wsdl/types/" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/ObterOperacaoTransporteObjects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects/AbonarQuebraDeFrete" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/ObterTransacoesObjects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/ObterVinculoParaTransporteObjects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects/RegistrarQuantidadeDaMercadoriaNoDesembarque" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects/RegistrarPagamentoQuitacao" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/ConsultarTipoCarga" />
+      <s:element name="Valores" type="s4:ViagemValores" />
+      <s:complexType name="ViagemValores">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="TotalOperacao" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="TotalViagem" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="TotalDeAdiantamento" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="TotalDeQuitacao" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="Combustivel" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="Pedagio" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="OutrosCreditos" type="s:decimal" />
+          <s:element minOccurs="0" maxOccurs="1" name="JustificativaOutrosCreditos" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Seguro" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="OutrosDebitos" type="s:decimal" />
+          <s:element minOccurs="0" maxOccurs="1" name="JustificativaOutrosDebitos" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="TipoPagamento" type="s4:TipoPagamento" />
+      <s:simpleType name="TipoPagamento">
+        <s:restriction base="s:string">
+          <s:enumeration value="TransferenciaBancaria" />
+          <s:enumeration value="eFRETE" />
+          <s:enumeration value="Parceiro" />
+          <s:enumeration value="Outros" />
+          <s:enumeration value="DepositoAgendado" />
+          <s:enumeration value="DepositoAgendadoMotorista" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="InformacoesBancarias" type="s4:InformacoesBancarias" />
+      <s:complexType name="InformacoesBancarias">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="InstituicaoBancaria" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Agencia" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Conta" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoConta" nillable="true" type="s4:TipoConta" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoConta">
+        <s:restriction base="s:string">
+          <s:enumeration value="Indefinido" />
+          <s:enumeration value="ContaCorrente" />
+          <s:enumeration value="ContaPoupanca" />
+          <s:enumeration value="ContaPagamento" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="DiferencaDeFrete">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="Tipo" type="s4:DiferencaFreteTipo" />
+          <s:element minOccurs="1" maxOccurs="1" name="Base" type="s4:DiferencaFreteBaseCalculo" />
+          <s:element minOccurs="0" maxOccurs="1" name="Tolerancia" type="s4:DiferencaFreteTolerancia" />
+          <s:element minOccurs="0" maxOccurs="1" name="MargemGanho" type="s4:DiferencaFreteMargem" />
+          <s:element minOccurs="0" maxOccurs="1" name="MargemPerda" type="s4:DiferencaFreteMargem" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="DiferencaFreteTipo">
+        <s:restriction base="s:string">
+          <s:enumeration value="SemDiferenca" />
+          <s:enumeration value="SomenteUltrapassado" />
+          <s:enumeration value="Integral" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="DiferencaFreteBaseCalculo">
+        <s:restriction base="s:string">
+          <s:enumeration value="QuantidadeDesembarque" />
+          <s:enumeration value="QuantidadeMenor" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="DiferencaFreteTolerancia">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="Tipo" type="s4:TipoProporcao" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoProporcao">
+        <s:restriction base="s:string">
+          <s:enumeration value="Nenhum" />
+          <s:enumeration value="Porcentagem" />
+          <s:enumeration value="Absoluto" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="DiferencaFreteMargem">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="Tipo" type="s4:TipoProporcao" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Impostos">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="IRRF" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="SestSenat" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="INSS" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="ISSQN" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="OutrosImpostos" type="s:decimal" />
+          <s:element minOccurs="0" maxOccurs="1" name="DescricaoOutrosImpostos" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="Categoria" nillable="true" type="s4:CategoriaPagamento" />
+      <s:simpleType name="CategoriaPagamento">
+        <s:restriction base="s:string">
+          <s:enumeration value="SemCategoria" />
+          <s:enumeration value="Adiantamento" />
+          <s:enumeration value="Quitacao" />
+          <s:enumeration value="Estadia" />
+          <s:enumeration value="Frota" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="CancelarOperacaoTransporteRequest" type="s4:CancelarOperacaoTransporteRequest" />
+      <s:complexType name="CancelarOperacaoTransporteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Motivo" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="CancelarOperacaoTransporteResult" nillable="true" type="s4:CancelarOperacaoTransporteResponse" />
+      <s:complexType name="CancelarOperacaoTransporteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="Data" type="s:dateTime" />
+              <s:element minOccurs="0" maxOccurs="1" name="Protocolo" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="RetificarOperacaoTransporteRequest" type="s4:RetificarOperacaoTransporteRequest" />
+      <s:complexType name="RetificarOperacaoTransporteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataInicioViagem" nillable="true" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataFimViagem" nillable="true" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="CodigoNCMNaturezaCarga" nillable="true" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="PesoCarga" nillable="true" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioOrigem" nillable="true" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioDestino" nillable="true" type="s:int" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s6:Veiculos" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadeSaques" nillable="true" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="QuantidadeTransferencias" nillable="true" type="s:int" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorSaques" nillable="true" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorTransferencias" nillable="true" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="CodigoTipoCarga" nillable="true" type="s:unsignedShort" />
+              <s:element minOccurs="0" maxOccurs="1" name="CepOrigem" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="CepDestino" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="DistanciaPercorrida" nillable="true" type="s:unsignedInt" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="RetificarOperacaoTransporteResult" nillable="true" type="s4:RetificarOperacaoTransporteResponse" />
+      <s:complexType name="RetificarOperacaoTransporteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataRetificacao" type="s:dateTime" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="UnidadeDeMedidaDaMercadoria" type="s4:UnidadeDeMedidaDaMercadoria" />
+      <s:simpleType name="UnidadeDeMedidaDaMercadoria">
+        <s:restriction base="s:string">
+          <s:enumeration value="Indefinido" />
+          <s:enumeration value="Tonelada" />
+          <s:enumeration value="Kg" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="TipoDeCalculo" type="s4:ViagemTipoDeCalculo" />
+      <s:simpleType name="ViagemTipoDeCalculo">
+        <s:restriction base="s:string">
+          <s:enumeration value="SemQuebra" />
+          <s:enumeration value="QuebraSomenteUltrapassado" />
+          <s:enumeration value="QuebraIntegral" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="ToleranciaDePerdaDeMercadoria" type="s4:ToleranciaDePerdaDeMercadoria" />
+      <s:complexType name="ToleranciaDePerdaDeMercadoria">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="Tipo" type="s4:TipoToleranciaDePerdaDeMercadoria" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoToleranciaDePerdaDeMercadoria">
+        <s:restriction base="s:string">
+          <s:enumeration value="Nenhum" />
+          <s:enumeration value="Porcentagem" />
+          <s:enumeration value="ValorAbsoluto" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="CancelarPagamentoRequest" type="s4:CancelarPagamentoRequest" />
+      <s:complexType name="CancelarPagamentoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Motivo" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="CancelarPagamentoResult" nillable="true" type="s4:CancelarPagamentoResponse" />
+      <s:complexType name="CancelarPagamentoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="EditarPagamentoRequest" type="s4:AlterarDataLiberacaoPagamentoRequest" />
+      <s:complexType name="AlterarDataLiberacaoPagamentoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataLiberacao" type="s:dateTime" />
+              <s:element minOccurs="0" maxOccurs="1" name="Motivo" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="AlterarDataLiberacaoPagamentoResult" nillable="true" type="s4:AlterarDataLiberacaoPagamentoResponse" />
+      <s:complexType name="AlterarDataLiberacaoPagamentoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataLiberacao" type="s:dateTime" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterOperacaoTransporteParaImpressaoRequest" type="s4:ObterOperacaoTransporteParaImpressaoRequest" />
+      <s:complexType name="ObterOperacaoTransporteParaImpressaoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterOperacaoTransporteParaImpressaoResult" nillable="true" type="s4:ObterOperacaoTransporteParaImpressaoResponse" />
+      <s:complexType name="ObterOperacaoTransporteParaImpressaoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="Html" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ConsultarDownloadDocumentoRequest" type="s4:ConsultarDownloadDocumentoRequest" />
+      <s:complexType name="ConsultarDownloadDocumentoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="DataInicial" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataFinal" nillable="true" type="s:dateTime" />
+              <s:element minOccurs="0" maxOccurs="1" name="MatrizCNPJ" type="s4:ArrayOfString" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ConsultarDownloadDocumentoResult" nillable="true" type="s4:ConsultarDownloadDocumentoResponse" />
+      <s:complexType name="ConsultarDownloadDocumentoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="Transacoes" type="s4:ArrayOfGuid" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfGuid">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="guid" type="s10:guid" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="DownloadDocumentoRequest" type="s4:DownloadDocumentoRequest" />
+      <s:complexType name="DownloadDocumentoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="Transacao" type="s10:guid" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="DownloadDocumentoResult" nillable="true" type="s4:DownloadDocumentoResponse" />
+      <s:complexType name="DownloadDocumentoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="Documentos" type="s4:ArrayOfDocumento" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfDocumento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Documento" nillable="true" type="s4:Documento" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Documento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Arquivo" type="s:base64Binary" />
+          <s:element minOccurs="0" maxOccurs="1" name="Mimetype" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Filename" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ObterOperacaoTransportePdfRequest" type="s4:ObterOperacaoTransportePdfRequest" />
+      <s:complexType name="ObterOperacaoTransportePdfRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterOperacaoTransportePdfResult" nillable="true" type="s4:ObterOperacaoTransportePdfResponse" />
+      <s:complexType name="ObterOperacaoTransportePdfResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="Pdf" type="s:base64Binary" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterOperacoesTransporteAgrupadasPdfRequest" type="s4:ObterOperacoesTransporteAgrupadasPdfRequest" />
+      <s:complexType name="ObterOperacoesTransporteAgrupadasPdfRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigosIdentificacaoOperacao" type="s4:ArrayOfString" />
+              <s:element minOccurs="0" maxOccurs="1" name="IdentificacaoDoLote" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="ObservacoesDasViagens" type="s4:ArrayOfString" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterOperacaoTransporteRequest" type="s4:ObterOperacaoTransporteRequest" />
+      <s:complexType name="ObterOperacaoTransporteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterOperacaoTransporteResult" nillable="true" type="s4:ObterOperacaoTransporteResponse" />
+      <s:complexType name="ObterOperacaoTransporteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="OperacaoTransporte" type="s11:OperacaoTransporte" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Destinatario">
+        <s:complexContent mixed="false">
+          <s:extension base="s4:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Pessoa">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="NomeOuRazaoSocial" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CpfOuCnpj" type="s:long" />
+          <s:element minOccurs="0" maxOccurs="1" name="Endereco" type="s2:Endereco" />
+          <s:element minOccurs="0" maxOccurs="1" name="EMail" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Telefones" type="s2:Telefones" />
+          <s:element minOccurs="1" maxOccurs="1" name="ResponsavelPeloPagamento" type="s:boolean" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Consignatario">
+        <s:complexContent mixed="false">
+          <s:extension base="s4:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Subcontratante">
+        <s:complexContent mixed="false">
+          <s:extension base="s4:Pessoa" />
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="Contratante">
+        <s:complexContent mixed="false">
+          <s:extension base="s4:Pessoa">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="RNTRC" type="s:long" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="AbonarQuebraDeFreteRequest" nillable="true" type="s4:AbonarQuebraDeFreteRequest" />
+      <s:complexType name="AbonarQuebraDeFreteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="AplicarEmTodasAsNotasFiscais" type="s:boolean" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s12:NotasFiscais" />
+              <s:element minOccurs="0" maxOccurs="1" name="AbonoDeQuebra" type="s12:AbonoDeQuebra" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="Tipo" type="s4:TipoAbonoDeQuebra" />
+      <s:simpleType name="TipoAbonoDeQuebra">
+        <s:restriction base="s:string">
+          <s:enumeration value="Nenhum" />
+          <s:enumeration value="Porcentagem" />
+          <s:enumeration value="ValorAbsoluto" />
+          <s:enumeration value="Peso" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="Valor" type="s:decimal" />
+      <s:element name="AbonarQuebraDeFreteResult" nillable="true" type="s4:AbonarQuebraDeFreteResponse" />
+      <s:complexType name="AbonarQuebraDeFreteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="NotasFiscais" type="s4:ArrayOfNotaFiscal" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfNotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotaFiscal" nillable="true" type="s12:NotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ObterTransacoesRequest" nillable="true" type="s4:ObterTransacoesRequest" />
+      <s:complexType name="ObterTransacoesRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="DataInicial" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataFinal" nillable="true" type="s:dateTime" />
+              <s:element minOccurs="0" maxOccurs="1" name="MatrizCNPJ" type="s4:ArrayOfLong" />
+              <s:element minOccurs="0" maxOccurs="1" name="CIOTs" type="s4:ArrayOfString" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfLong">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="long" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ObterTransacoesResult" nillable="true" type="s4:ObterTransacoesResponse" />
+      <s:complexType name="ObterTransacoesResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="Transacoes" type="s4:ArrayOfTransacao" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfTransacao">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Transacao" nillable="true" type="s13:Transacao" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ObterVinculoParaTransporteRequest" nillable="true" type="s4:ObterVinculoParaTransporteRequest" />
+      <s:complexType name="ObterVinculoParaTransporteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CNPJ" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TransportadoraInteressadaCNPJ" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="RNTRC" type="s:long" />
+              <s:element minOccurs="0" maxOccurs="1" name="Veiculos" type="s4:ArrayOfVeiculoRequest" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfVeiculoRequest">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="VeiculoRequest" nillable="true" type="s14:VeiculoRequest" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ObterVinculoParaTransporteResult" nillable="true" type="s4:ObterVinculoParaTransporteResponse" />
+      <s:complexType name="ObterVinculoParaTransporteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CNPJ" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="RNTRC" type="s:long" />
+              <s:element minOccurs="0" maxOccurs="1" name="Veiculos" type="s4:ArrayOfVeiculoResponse" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfVeiculoResponse">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="VeiculoResponse" nillable="true" type="s14:VeiculoResponse" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="ConsultaSituacaoTransportadorRequest" nillable="true" type="s4:ConsultaSituacaoTransportadorRequest" />
+      <s:complexType name="ConsultaSituacaoTransportadorRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="InteressadoCpfOuCnpj" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TransportadorCpfOuCnpj" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TransportadorRNTRC" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataPrevistaFimViagem" nillable="true" type="s:dateTime" />
+              <s:element minOccurs="0" maxOccurs="1" name="Veiculos" type="s4:ArrayOfVeiculoRequest" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ConsultaSituacaoTransportadorResult" nillable="true" type="s4:ConsultaSituacaoTransportadorResponse" />
+      <s:complexType name="ConsultaSituacaoTransportadorResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CpfOuCnpj" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="RNTRC" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="RNTRCAtivo" type="s:boolean" />
+              <s:element minOccurs="1" maxOccurs="1" name="TACouEquiparado" type="s:boolean" />
+              <s:element minOccurs="1" maxOccurs="1" name="RNTRCAtivoDataPrevistaFimViagem" nillable="true" type="s:boolean" />
+              <s:element minOccurs="0" maxOccurs="1" name="Veiculos" type="s4:ArrayOfVeiculoResponse" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteRequest" nillable="true" type="s4:ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteRequest" />
+      <s:complexType name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="1" maxOccurs="1" name="MatrizCNPJ" type="s:long" />
+              <s:element minOccurs="0" maxOccurs="1" name="IdOperacaoCliente" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteResult" nillable="true" type="s4:ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteResponse" />
+      <s:complexType name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="EstadoCiot" nillable="true" type="s4:EstadoCiot" />
+              <s:element minOccurs="0" maxOccurs="1" name="Protocolo" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:simpleType name="EstadoCiot">
+        <s:restriction base="s:string">
+          <s:enumeration value="EmViagem" />
+          <s:enumeration value="Encerrado" />
+          <s:enumeration value="Cancelado" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="RegistrarQuantidadeDaMercadoriaNoDesembarqueRequest" type="s4:RegistrarQuantidadeDaMercadoriaNoDesembarqueRequest" />
+      <s:complexType name="RegistrarQuantidadeDaMercadoriaNoDesembarqueRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s15:NotasFiscais" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="RegistrarQuantidadeDaMercadoriaNoDesembarqueResult" nillable="true" type="s4:RegistrarQuantidadeDaMercadoriaNoDesembarqueResponse" />
+      <s:complexType name="RegistrarQuantidadeDaMercadoriaNoDesembarqueResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="RegistrarPagamentoRequest" type="s4:RegistrarPagamentoRequest" />
+      <s:complexType name="RegistrarPagamentoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="Categoria" type="s4:CategoriaPagamento" />
+              <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+              <s:element minOccurs="0" maxOccurs="1" name="TokenCompra" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="RegistrarPagamentoResult" nillable="true" type="s4:RegistrarPagamentoResponse" />
+      <s:complexType name="RegistrarPagamentoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TransacaoId" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorLiquido" type="s:decimal" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="RegistrarPagamentoQuitacaoRequest" type="s4:RegistrarPagamentoQuitacaoRequest" />
+      <s:complexType name="RegistrarPagamentoQuitacaoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" ref="s16:NotasFiscais" />
+              <s:element minOccurs="0" maxOccurs="1" name="TokenCompra" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="RegistrarPagamentoQuitacaoResult" nillable="true" type="s4:RegistrarPagamentoQuitacaoResponse" />
+      <s:complexType name="RegistrarPagamentoQuitacaoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TransacaoId" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorLiquido" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorQuebra" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="ValorDiferencaDeFrete" type="s:decimal" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="AlterarEntregaDocumentacaoRequest" type="s4:AlterarEntregaDocumentacaoRequest" />
+      <s:complexType name="AlterarEntregaDocumentacaoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="EntregaDocumentacao" type="s4:TipoEntregaDocumentacao" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:simpleType name="TipoEntregaDocumentacao">
+        <s:restriction base="s:string">
+          <s:enumeration value="RedeCredenciada" />
+          <s:enumeration value="Cliente" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="AlterarEntregaDocumentacaoResult" nillable="true" type="s4:AlterarEntregaDocumentacaoResponse" />
+      <s:complexType name="AlterarEntregaDocumentacaoResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="EntregaDocumentacao" type="s4:TipoEntregaDocumentacao" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="AdicionarValeFreteRequest" type="s4:AdicionarValeFreteRequest" />
+      <s:complexType name="AdicionarValeFreteRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="ContratanteCpfOuCnpj" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="ContratadoCpfOuCnpj" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="ContratadoRNTRC" type="s:long" />
+              <s:element minOccurs="0" maxOccurs="1" name="ContratadoPlaca" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="MotoristaCPF" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="MotoristaCelular" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+              <s:element minOccurs="0" maxOccurs="1" name="IdOperacaoCliente" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="AdicionarValeFreteResult" nillable="true" type="s4:AdicionarValeFreteResponse" />
+      <s:complexType name="AdicionarValeFreteResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ConsultarTipoCargaRequest" type="s4:ConsultarTipoCargaRequest" />
+      <s:complexType name="ConsultarTipoCargaRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request" />
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ConsultarTipoCargaResult" nillable="true" type="s4:ConsultarTipoCargaResponse" />
+      <s:complexType name="ConsultarTipoCargaResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="TipoCargas" type="s4:ArrayOfTipoCarga" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfTipoCarga">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="TipoCarga" nillable="true" type="s17:TipoCarga" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="CodigoTipoCarga" type="s:int" />
+      <s:element name="DescricaoTipoCarga" type="s:string" />
+      <s:element name="adicionarCreditoViagemRequest" type="s4:AdicionarCreditoViagemRequest" />
+      <s:complexType name="AdicionarCreditoViagemRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="CreditoNoSaldo" nillable="true" type="s4:CreditoNoSaldo" />
+              <s:element minOccurs="0" maxOccurs="1" name="InformacaoAdicional" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:simpleType name="CreditoNoSaldo">
+        <s:restriction base="s:string">
+          <s:enumeration value="Sim" />
+          <s:enumeration value="Nao" />
+        </s:restriction>
+      </s:simpleType>
+      <s:element name="AdicionarCreditoViagemResult" nillable="true" type="s4:AdicionarCreditoViagemResponse" />
+      <s:complexType name="AdicionarCreditoViagemResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+              <s:element minOccurs="1" maxOccurs="1" name="CreditoNoSaldo" type="s4:CreditoNoSaldo" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="interromperViagemRequest" type="s4:InterromperViagemRequest" />
+      <s:complexType name="InterromperViagemRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Motivo" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="InterromperViagemResult" nillable="true" type="s4:InterromperViagemResponse" />
+      <s:complexType name="InterromperViagemResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ConsultarValidadeCiotRequest" type="s4:ConsultarValidadeCiotRequest" />
+      <s:complexType name="ConsultarValidadeCiotRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CIOT" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="DocumentoContratante" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="DocumentoContratado" type="s:string" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:element name="ConsultarValidadeCiotResult" nillable="true" type="s4:ConsultarValidadeCiotResponse" />
+      <s:complexType name="ConsultarValidadeCiotResponse">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Response">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CIOT" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Status" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="TipoViagem" type="s:string" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataDeclaracao" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataInicioViagem" nillable="true" type="s:dateTime" />
+              <s:element minOccurs="1" maxOccurs="1" name="DataFimViagem" type="s:dateTime" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/AdicionarOperacaoTransporte">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:complexType name="NotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Serie" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Data" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorTotal" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDaMercadoriaPorUnidade" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoNCMNaturezaCarga" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="DescricaoDaMercadoria" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="UnidadeDeMedidaDaMercadoria" type="s5:UnidadeDeMedidaDaMercadoria" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoDeCalculo" type="s5:ViagemTipoDeCalculo" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDoFretePorUnidadeDeMercadoria" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDaMercadoriaNoEmbarque" type="s:decimal" />
+          <s:element minOccurs="0" maxOccurs="1" name="ToleranciaDePerdaDeMercadoria" type="s5:ToleranciaDePerdaDeMercadoria" />
+          <s:element minOccurs="0" maxOccurs="1" name="DiferencaDeFrete" type="s4:DiferencaDeFrete" />
+          <s:element minOccurs="0" maxOccurs="1" name="CnpjEmissor" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="UnidadeDeMedidaDaMercadoria">
+        <s:restriction base="s:string">
+          <s:enumeration value="Indefinido" />
+          <s:enumeration value="Tonelada" />
+          <s:enumeration value="Kg" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="ViagemTipoDeCalculo">
+        <s:restriction base="s:string">
+          <s:enumeration value="SemQuebra" />
+          <s:enumeration value="QuebraSomenteUltrapassado" />
+          <s:enumeration value="QuebraIntegral" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="ToleranciaDePerdaDeMercadoria">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="Tipo" type="s5:TipoToleranciaDePerdaDeMercadoria" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoToleranciaDePerdaDeMercadoria">
+        <s:restriction base="s:string">
+          <s:enumeration value="Nenhum" />
+          <s:enumeration value="Porcentagem" />
+          <s:enumeration value="ValorAbsoluto" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="Veiculo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Placa" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/RetificarOperacaoTransporte">
+      <s:element name="Veiculos" type="s6:ArrayOfVeiculo" />
+      <s:complexType name="ArrayOfVeiculo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Veiculo" nillable="true" type="s6:Veiculo" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Veiculo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Placa" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pefV2/EncerrarOperacaoTransporte">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:element name="Viagens" type="s7:ArrayOfViagem" />
+      <s:complexType name="ArrayOfViagem">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Viagem" nillable="true" type="s7:Viagem" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Viagem">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioOrigem" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioDestino" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepDestino" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:Valores" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:TipoPagamento" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="1" name="NotasFiscais" type="s7:ArrayOfNotaFiscal" />
+          <s:element minOccurs="0" maxOccurs="1" name="LatitudeOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LongitudeOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LatitudeDestino" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LongitudeDestino" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DistanciaPecorrida" nillable="true" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfNotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotaFiscal" nillable="true" type="s7:NotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="NotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Serie" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Data" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorTotal" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDaMercadoriaPorUnidade" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoNCMNaturezaCarga" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="DescricaoDaMercadoria" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:UnidadeDeMedidaDaMercadoria" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:TipoDeCalculo" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDoFretePorUnidadeDeMercadoria" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDaMercadoriaNoEmbarque" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDaMercadoriaNoDesembarque" nillable="true" type="s:decimal" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:ToleranciaDePerdaDeMercadoria" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="Pagamentos" type="s7:ArrayOfPagamento" />
+      <s:complexType name="ArrayOfPagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Pagamento" nillable="true" type="s7:Pagamento" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Pagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataDeLiberacao" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoPagamento" type="s7:TipoPagamento" />
+          <s:element minOccurs="0" maxOccurs="1" name="InformacoesBancarias" type="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="1" name="InformacaoAdicional" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CpfCnpjCreditado" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoChavePix" nillable="true" type="s7:TipoChave" />
+          <s:element minOccurs="0" maxOccurs="1" name="ValorChavePix" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoPagamento">
+        <s:restriction base="s:string">
+          <s:enumeration value="TransferenciaBancaria" />
+          <s:enumeration value="eFRETE" />
+          <s:enumeration value="Parceiro" />
+          <s:enumeration value="Outros" />
+          <s:enumeration value="DepositoAgendado" />
+          <s:enumeration value="DepositoAgendadoMotorista" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="TipoChave">
+        <s:restriction base="s:string">
+          <s:enumeration value="CpfOuCnpj" />
+          <s:enumeration value="Email" />
+          <s:enumeration value="TelefoneCelular" />
+          <s:enumeration value="ChaveAleatoria" />
+        </s:restriction>
+      </s:simpleType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarViagem">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:element name="Viagens" type="s8:ArrayOfViagem" />
+      <s:complexType name="ArrayOfViagem">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Viagem" nillable="true" type="s8:Viagem" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Viagem">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioOrigem" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioDestino" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepDestino" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:Valores" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:TipoPagamento" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotasFiscais" type="s8:NotaFiscal" />
+          <s:element minOccurs="0" maxOccurs="1" name="LatitudeOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LongitudeOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LatitudeDestino" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="LongitudeDestino" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="PesoCarga" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="DistanciaPercorrida" nillable="true" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="NotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Serie" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Data" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorTotal" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDaMercadoriaPorUnidade" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoNCMNaturezaCarga" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="DescricaoDaMercadoria" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:UnidadeDeMedidaDaMercadoria" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:TipoDeCalculo" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDoFretePorUnidadeDeMercadoria" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDaMercadoriaNoEmbarque" type="s:decimal" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:ToleranciaDePerdaDeMercadoria" />
+        </s:sequence>
+      </s:complexType>
+      <s:element name="Pagamentos" type="s8:ArrayOfPagamento" />
+      <s:complexType name="ArrayOfPagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Pagamento" nillable="true" type="s8:Pagamento" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Pagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataDeLiberacao" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:TipoPagamento" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:Categoria" />
+          <s:element minOccurs="0" maxOccurs="1" name="Documento" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="1" name="InformacaoAdicional" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CnpjFilialAbastecimento" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoChavePix" nillable="true" type="s8:TipoChave" />
+          <s:element minOccurs="0" maxOccurs="1" name="ValorChavePix" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CpfCnpjCreditado" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoChave">
+        <s:restriction base="s:string">
+          <s:enumeration value="CpfOuCnpj" />
+          <s:enumeration value="Email" />
+          <s:enumeration value="TelefoneCelular" />
+          <s:enumeration value="ChaveAleatoria" />
+        </s:restriction>
+      </s:simpleType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarPagamento">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:element name="AdicionarPagamentoRequest" type="s9:AdicionarPagamentoRequest" />
+      <s:complexType name="AdicionarPagamentoRequest">
+        <s:complexContent mixed="false">
+          <s:extension base="s2:Request">
+            <s:sequence>
+              <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+              <s:element minOccurs="0" maxOccurs="1" name="Pagamentos" type="s9:ArrayOfPagamento" />
+            </s:sequence>
+          </s:extension>
+        </s:complexContent>
+      </s:complexType>
+      <s:complexType name="ArrayOfPagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Pagamento" nillable="true" type="s9:Pagamento" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Pagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataDeLiberacao" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:TipoPagamento" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:Categoria" />
+          <s:element minOccurs="0" maxOccurs="1" name="Documento" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="1" name="InformacaoAdicional" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CnpjFilialAbastecimento" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoChavePix" nillable="true" type="s9:TipoChave" />
+          <s:element minOccurs="0" maxOccurs="1" name="ValorChavePix" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CpfCnpjCreditado" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoChave">
+        <s:restriction base="s:string">
+          <s:enumeration value="CpfOuCnpj" />
+          <s:enumeration value="Email" />
+          <s:enumeration value="TelefoneCelular" />
+          <s:enumeration value="ChaveAleatoria" />
+        </s:restriction>
+      </s:simpleType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://microsoft.com/wsdl/types/">
+      <s:simpleType name="guid">
+        <s:restriction base="s:string">
+          <s:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}" />
+        </s:restriction>
+      </s:simpleType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/ObterOperacaoTransporteObjects">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/objects" />
+      <s:complexType name="OperacaoTransporte">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Cancelamento" type="s11:Cancelamento" />
+          <s:element minOccurs="0" maxOccurs="1" name="Encerramento" type="s11:Encerramento" />
+          <s:element minOccurs="0" maxOccurs="1" name="CodigoIdentificacaoOperacao" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoViagem" type="s11:TipoViagem" />
+          <s:element minOccurs="1" maxOccurs="1" name="Transacao" type="s:long" />
+          <s:element minOccurs="1" maxOccurs="1" name="MatrizCNPJ" type="s:long" />
+          <s:element minOccurs="1" maxOccurs="1" name="FilialCNPJ" nillable="true" type="s:long" />
+          <s:element minOccurs="0" maxOccurs="1" name="IdOperacaoCliente" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataRegistro" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataInicioViagem" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataFimViagem" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataRetificacao" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoNCMNaturezaCarga" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoTipoCarga" nillable="true" type="s:unsignedShort" />
+          <s:element minOccurs="1" maxOccurs="1" name="AltoDesempenho" nillable="true" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="DestinacaoComercial" nillable="true" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="FreteRetorno" nillable="true" type="s:boolean" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepRetorno" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DistanciaRetorno" nillable="true" type="s:long" />
+          <s:element minOccurs="1" maxOccurs="1" name="PesoCarga" nillable="true" type="s:decimal" />
+          <s:element minOccurs="0" maxOccurs="1" name="Viagens" type="s11:ArrayOfViagem" />
+          <s:element minOccurs="0" maxOccurs="1" name="Pagamentos" type="s11:ArrayOfPagamento" />
+          <s:element minOccurs="0" maxOccurs="1" name="Impostos" type="s4:Impostos" />
+          <s:element minOccurs="0" maxOccurs="1" name="Contratado" type="s11:Contratado" />
+          <s:element minOccurs="0" maxOccurs="1" name="Motorista" type="s11:Motorista" />
+          <s:element minOccurs="0" maxOccurs="1" name="Destinatario" type="s4:Destinatario" />
+          <s:element minOccurs="0" maxOccurs="1" name="Contratante" type="s4:Contratante" />
+          <s:element minOccurs="0" maxOccurs="1" name="Subcontratante" type="s4:Subcontratante" />
+          <s:element minOccurs="0" maxOccurs="1" name="Consignatario" type="s4:Consignatario" />
+          <s:element minOccurs="0" maxOccurs="1" name="Veiculos" type="s11:ArrayOfVeiculo" />
+          <s:element minOccurs="0" maxOccurs="1" name="AvisoTransportador" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="ObservacoesAoTransportador" type="s11:ArrayOfString" />
+          <s:element minOccurs="0" maxOccurs="1" name="ObservacoesAoCredenciado" type="s11:ArrayOfString" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoPagamento" type="s11:TipoPagamento" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeSaques" nillable="true" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeTransferencias" nillable="true" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorSaques" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorTransferencias" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="VersaoServico" type="s:int" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Cancelamento">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="EstaCancelado" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="Data" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="Protocolo" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Motivo" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Encerramento">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="EstaEncerrado" type="s:boolean" />
+          <s:element minOccurs="1" maxOccurs="1" name="Data" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="Protocolo" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoViagem">
+        <s:restriction base="s:string">
+          <s:enumeration value="Indefinido" />
+          <s:enumeration value="Padrao" />
+          <s:enumeration value="TAC_Agregado" />
+          <s:enumeration value="Frota" />
+          <s:enumeration value="Fracionado" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="ArrayOfViagem">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Viagem" nillable="true" type="s11:Viagem" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Viagem">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioOrigem" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoMunicipioDestino" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepOrigem" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CepDestino" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DistanciaPercorrida" nillable="true" type="s:unsignedInt" />
+          <s:element minOccurs="0" maxOccurs="1" name="Valores" type="s4:ViagemValores" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoPagamento" type="s11:TipoPagamento" />
+          <s:element minOccurs="0" maxOccurs="1" name="InformacoesBancarias" type="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="1" name="NotasFiscais" type="s11:ArrayOfNotaFiscal" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataRegistro" type="s:dateTime" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoPagamento">
+        <s:restriction base="s:string">
+          <s:enumeration value="TransferenciaBancaria" />
+          <s:enumeration value="eFRETE" />
+          <s:enumeration value="Parceiro" />
+          <s:enumeration value="Outros" />
+          <s:enumeration value="DepositoAgendado" />
+          <s:enumeration value="DepositoAgendadoMotorista" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="ArrayOfNotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotaFiscal" nillable="true" type="s11:NotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="NotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Serie" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Data" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorTotal" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDaMercadoriaPorUnidade" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoNCMNaturezaCarga" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="DescricaoDaMercadoria" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="UnidadeDeMedidaDaMercadoria" type="s11:UnidadeDeMedidaDaMercadoria" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoDeCalculo" type="s11:ViagemTipoDeCalculo" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDoFretePorUnidadeDeMercadoria" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDaMercadoriaNoEmbarque" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDaMercadoriaNoDesembarque" nillable="true" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataDesembarque" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="ToleranciaDePerdaDeMercadoria" type="s4:ToleranciaDePerdaDeMercadoria" />
+          <s:element minOccurs="0" maxOccurs="1" name="AbonoDeQuebra" type="s11:AbonoDeQuebra" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDaQuebraDeFrete" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="UnidadeDeMedidaDaMercadoria">
+        <s:restriction base="s:string">
+          <s:enumeration value="Indefinido" />
+          <s:enumeration value="Tonelada" />
+          <s:enumeration value="Kg" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="ViagemTipoDeCalculo">
+        <s:restriction base="s:string">
+          <s:enumeration value="SemQuebra" />
+          <s:enumeration value="QuebraSomenteUltrapassado" />
+          <s:enumeration value="QuebraIntegral" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="AbonoDeQuebra">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="Tipo" type="s11:TipoAbonoDeQuebra" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoAbonoDeQuebra">
+        <s:restriction base="s:string">
+          <s:enumeration value="Nenhum" />
+          <s:enumeration value="Porcentagem" />
+          <s:enumeration value="ValorAbsoluto" />
+          <s:enumeration value="Peso" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="ArrayOfPagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Pagamento" nillable="true" type="s11:Pagamento" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Pagamento">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="IdPagamentoCliente" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataDeRegistro" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataDeLiberacao" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="Valor" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoPagamento" type="s11:TipoPagamento" />
+          <s:element minOccurs="1" maxOccurs="1" name="Categoria" type="s11:CategoriaPagamento" />
+          <s:element minOccurs="0" maxOccurs="1" name="Documento" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="InformacoesBancarias" type="s4:InformacoesBancarias" />
+          <s:element minOccurs="0" maxOccurs="1" name="InformacaoAdicional" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Cancelado" type="s11:PagamentoCancelamento" />
+          <s:element minOccurs="0" maxOccurs="1" name="CnpjFilialAbastecimento" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="CpfCnpjCreditado" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoChavePix" nillable="true" type="s11:TipoChave" />
+          <s:element minOccurs="0" maxOccurs="1" name="ValorChavePix" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="CategoriaPagamento">
+        <s:restriction base="s:string">
+          <s:enumeration value="SemCategoria" />
+          <s:enumeration value="Adiantamento" />
+          <s:enumeration value="Quitacao" />
+          <s:enumeration value="Estadia" />
+          <s:enumeration value="Frota" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="PagamentoCancelamento">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="EstaCancelado" type="s:boolean" />
+          <s:element minOccurs="0" maxOccurs="1" name="Motivo" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataCancelamento" nillable="true" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="Solicitante" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoChave">
+        <s:restriction base="s:string">
+          <s:enumeration value="CpfOuCnpj" />
+          <s:enumeration value="Email" />
+          <s:enumeration value="TelefoneCelular" />
+          <s:enumeration value="ChaveAleatoria" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="Contratado">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="CpfOuCnpj" type="s:long" />
+          <s:element minOccurs="1" maxOccurs="1" name="RNTRC" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Motorista">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" name="CpfOuCnpj" type="s:long" />
+          <s:element minOccurs="0" maxOccurs="1" name="Celular" type="s2:Telefone" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfVeiculo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="Veiculo" nillable="true" type="s11:Veiculo" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="Veiculo">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Placa" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="ArrayOfString">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="string" nillable="true" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/objects/AbonarQuebraDeFrete">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:element name="NotasFiscais" type="s12:ArrayOfNotaFiscal" />
+      <s:complexType name="ArrayOfNotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotaFiscal" nillable="true" type="s12:NotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="NotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Serie" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="AbonoDeQuebra">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:Tipo" />
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:Valor" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/ObterTransacoesObjects">
+      <s:complexType name="Transacao">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Id" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TransportadoraCNPJ" type="s:long" />
+          <s:element minOccurs="1" maxOccurs="1" name="CredenciadoCNPJ" type="s:long" />
+          <s:element minOccurs="1" maxOccurs="1" name="DataDeOperacao" type="s:dateTime" />
+          <s:element minOccurs="0" maxOccurs="1" name="CIOT" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="DocumentoViagem" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="TransacaoDoCIOT" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="TipoDeCobranca" type="s13:TipoDeCobranca" />
+          <s:element minOccurs="1" maxOccurs="1" name="Status" type="s13:TransacaoStatus" />
+          <s:element minOccurs="0" maxOccurs="1" name="NotasFiscais" type="s13:ArrayOfNotaFiscal" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorPago" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+      <s:simpleType name="TipoDeCobranca">
+        <s:restriction base="s:string">
+          <s:enumeration value="SemCategoria" />
+          <s:enumeration value="Adiantamento" />
+          <s:enumeration value="Quitacao" />
+          <s:enumeration value="Estadia" />
+          <s:enumeration value="Frota" />
+        </s:restriction>
+      </s:simpleType>
+      <s:simpleType name="TransacaoStatus">
+        <s:restriction base="s:string">
+          <s:enumeration value="Ativo" />
+          <s:enumeration value="Estornado" />
+        </s:restriction>
+      </s:simpleType>
+      <s:complexType name="ArrayOfNotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotaFiscal" nillable="true" type="s13:NotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="NotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Serie" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="Data" type="s:dateTime" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDaMercadoriaPorQuantidadeUnitaria" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="CodigoDaMercadoria" type="s:int" />
+          <s:element minOccurs="0" maxOccurs="1" name="DescricaoMercadoria" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDeSaida" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDeChegada" type="s:decimal" />
+          <s:element minOccurs="0" maxOccurs="1" name="UnidadeDeMedidaDaQuantidade" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDaQuebraDeFrete" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="ValorDaDiferencaDeFrete" type="s:decimal" />
+          <s:element minOccurs="1" maxOccurs="1" name="PorcentagemDeAbonoDeQuebra" type="s:int" />
+          <s:element minOccurs="1" maxOccurs="1" name="CPFUsuarioQueAbonouQuebra" type="s:long" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/ObterVinculoParaTransporteObjects">
+      <s:complexType name="VeiculoRequest">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Placa" type="s:string" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="VeiculoResponse">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Placa" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="FazParteDaFrota" type="s:boolean" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/objects/RegistrarQuantidadeDaMercadoriaNoDesembarque">
+      <s:element name="NotasFiscais" type="s15:ArrayOfNotaFiscal" />
+      <s:complexType name="ArrayOfNotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotaFiscal" nillable="true" type="s15:NotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="NotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Serie" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDaMercadoriaNoDesembarque" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/objects/RegistrarPagamentoQuitacao">
+      <s:element name="NotasFiscais" type="s16:ArrayOfNotaFiscal" />
+      <s:complexType name="ArrayOfNotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="unbounded" name="NotaFiscal" nillable="true" type="s16:NotaFiscal" />
+        </s:sequence>
+      </s:complexType>
+      <s:complexType name="NotaFiscal">
+        <s:sequence>
+          <s:element minOccurs="0" maxOccurs="1" name="Numero" type="s:string" />
+          <s:element minOccurs="0" maxOccurs="1" name="Serie" type="s:string" />
+          <s:element minOccurs="1" maxOccurs="1" name="QuantidadeDaMercadoriaNoDesembarque" type="s:decimal" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+    <s:schema elementFormDefault="qualified" targetNamespace="http://schemas.ipc.adm.br/efrete/pef/ConsultarTipoCarga">
+      <s:import namespace="http://schemas.ipc.adm.br/efrete/pef/objects" />
+      <s:complexType name="TipoCarga">
+        <s:sequence>
+          <s:element minOccurs="1" maxOccurs="1" ref="s4:CodigoTipoCarga" />
+          <s:element minOccurs="0" maxOccurs="1" ref="s4:DescricaoTipoCarga" />
+        </s:sequence>
+      </s:complexType>
+    </s:schema>
+  </wsdl:types>
+  <wsdl:message name="AdicionarOperacaoTransporteSoapIn">
+    <wsdl:part name="parameters" element="tns:AdicionarOperacaoTransporte" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarOperacaoTransporteSoapOut">
+    <wsdl:part name="parameters" element="tns:AdicionarOperacaoTransporteResponse" />
+  </wsdl:message>
+  <wsdl:message name="CancelarOperacaoTransporteSoapIn">
+    <wsdl:part name="parameters" element="tns:CancelarOperacaoTransporte" />
+  </wsdl:message>
+  <wsdl:message name="CancelarOperacaoTransporteSoapOut">
+    <wsdl:part name="parameters" element="tns:CancelarOperacaoTransporteResponse" />
+  </wsdl:message>
+  <wsdl:message name="RetificarOperacaoTransporteSoapIn">
+    <wsdl:part name="parameters" element="tns:RetificarOperacaoTransporte" />
+  </wsdl:message>
+  <wsdl:message name="RetificarOperacaoTransporteSoapOut">
+    <wsdl:part name="parameters" element="tns:RetificarOperacaoTransporteResponse" />
+  </wsdl:message>
+  <wsdl:message name="EncerrarOperacaoTransporteSoapIn">
+    <wsdl:part name="parameters" element="tns:EncerrarOperacaoTransporte" />
+  </wsdl:message>
+  <wsdl:message name="EncerrarOperacaoTransporteSoapOut">
+    <wsdl:part name="parameters" element="tns:EncerrarOperacaoTransporteResponse" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarViagemSoapIn">
+    <wsdl:part name="parameters" element="tns:AdicionarViagem" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarViagemSoapOut">
+    <wsdl:part name="parameters" element="tns:AdicionarViagemResponse" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarPagamentoSoapIn">
+    <wsdl:part name="parameters" element="tns:AdicionarPagamento" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarPagamentoSoapOut">
+    <wsdl:part name="parameters" element="tns:AdicionarPagamentoResponse" />
+  </wsdl:message>
+  <wsdl:message name="CancelarPagamentoSoapIn">
+    <wsdl:part name="parameters" element="tns:CancelarPagamento" />
+  </wsdl:message>
+  <wsdl:message name="CancelarPagamentoSoapOut">
+    <wsdl:part name="parameters" element="tns:CancelarPagamentoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AlterarDataLiberacaoPagamentoSoapIn">
+    <wsdl:part name="parameters" element="tns:AlterarDataLiberacaoPagamento" />
+  </wsdl:message>
+  <wsdl:message name="AlterarDataLiberacaoPagamentoSoapOut">
+    <wsdl:part name="parameters" element="tns:AlterarDataLiberacaoPagamentoResponse" />
+  </wsdl:message>
+  <wsdl:message name="ObterOperacaoTransporteParaImpressaoSoapIn">
+    <wsdl:part name="parameters" element="tns:ObterOperacaoTransporteParaImpressao" />
+  </wsdl:message>
+  <wsdl:message name="ObterOperacaoTransporteParaImpressaoSoapOut">
+    <wsdl:part name="parameters" element="tns:ObterOperacaoTransporteParaImpressaoResponse" />
+  </wsdl:message>
+  <wsdl:message name="ConsultarDownloadDocumentoSoapIn">
+    <wsdl:part name="parameters" element="tns:ConsultarDownloadDocumento" />
+  </wsdl:message>
+  <wsdl:message name="ConsultarDownloadDocumentoSoapOut">
+    <wsdl:part name="parameters" element="tns:ConsultarDownloadDocumentoResponse" />
+  </wsdl:message>
+  <wsdl:message name="DownloadDocumentoSoapIn">
+    <wsdl:part name="parameters" element="tns:DownloadDocumento" />
+  </wsdl:message>
+  <wsdl:message name="DownloadDocumentoSoapOut">
+    <wsdl:part name="parameters" element="tns:DownloadDocumentoResponse" />
+  </wsdl:message>
+  <wsdl:message name="ObterOperacaoTransportePdfSoapIn">
+    <wsdl:part name="parameters" element="tns:ObterOperacaoTransportePdf" />
+  </wsdl:message>
+  <wsdl:message name="ObterOperacaoTransportePdfSoapOut">
+    <wsdl:part name="parameters" element="tns:ObterOperacaoTransportePdfResponse" />
+  </wsdl:message>
+  <wsdl:message name="ObterOperacoesTransporteAgrupadasPdfSoapIn">
+    <wsdl:part name="parameters" element="tns:ObterOperacoesTransporteAgrupadasPdf" />
+  </wsdl:message>
+  <wsdl:message name="ObterOperacoesTransporteAgrupadasPdfSoapOut">
+    <wsdl:part name="parameters" element="tns:ObterOperacoesTransporteAgrupadasPdfResponse" />
+  </wsdl:message>
+  <wsdl:message name="ObterOperacaoTransporteSoapIn">
+    <wsdl:part name="parameters" element="tns:ObterOperacaoTransporte" />
+  </wsdl:message>
+  <wsdl:message name="ObterOperacaoTransporteSoapOut">
+    <wsdl:part name="parameters" element="tns:ObterOperacaoTransporteResponse" />
+  </wsdl:message>
+  <wsdl:message name="AbonarQuebraDeFreteSoapIn">
+    <wsdl:part name="parameters" element="tns:AbonarQuebraDeFrete" />
+  </wsdl:message>
+  <wsdl:message name="AbonarQuebraDeFreteSoapOut">
+    <wsdl:part name="parameters" element="tns:AbonarQuebraDeFreteResponse" />
+  </wsdl:message>
+  <wsdl:message name="ObterTransacoesSoapIn">
+    <wsdl:part name="parameters" element="tns:ObterTransacoes" />
+  </wsdl:message>
+  <wsdl:message name="ObterTransacoesSoapOut">
+    <wsdl:part name="parameters" element="tns:ObterTransacoesResponse" />
+  </wsdl:message>
+  <wsdl:message name="ObterVinculoParaTransporteSoapIn">
+    <wsdl:part name="parameters" element="tns:ObterVinculoParaTransporte" />
+  </wsdl:message>
+  <wsdl:message name="ObterVinculoParaTransporteSoapOut">
+    <wsdl:part name="parameters" element="tns:ObterVinculoParaTransporteResponse" />
+  </wsdl:message>
+  <wsdl:message name="ConsultaSituacaoTransportadorSoapIn">
+    <wsdl:part name="parameters" element="tns:ConsultaSituacaoTransportador" />
+  </wsdl:message>
+  <wsdl:message name="ConsultaSituacaoTransportadorSoapOut">
+    <wsdl:part name="parameters" element="tns:ConsultaSituacaoTransportadorResponse" />
+  </wsdl:message>
+  <wsdl:message name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteSoapIn">
+    <wsdl:part name="parameters" element="tns:ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoCliente" />
+  </wsdl:message>
+  <wsdl:message name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteSoapOut">
+    <wsdl:part name="parameters" element="tns:ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteResponse" />
+  </wsdl:message>
+  <wsdl:message name="RegistrarQuantidadeDaMercadoriaNoDesembarqueSoapIn">
+    <wsdl:part name="parameters" element="tns:RegistrarQuantidadeDaMercadoriaNoDesembarque" />
+  </wsdl:message>
+  <wsdl:message name="RegistrarQuantidadeDaMercadoriaNoDesembarqueSoapOut">
+    <wsdl:part name="parameters" element="tns:RegistrarQuantidadeDaMercadoriaNoDesembarqueResponse" />
+  </wsdl:message>
+  <wsdl:message name="RegistrarPagamentoSoapIn">
+    <wsdl:part name="parameters" element="tns:RegistrarPagamento" />
+  </wsdl:message>
+  <wsdl:message name="RegistrarPagamentoSoapOut">
+    <wsdl:part name="parameters" element="tns:RegistrarPagamentoResponse" />
+  </wsdl:message>
+  <wsdl:message name="RegistrarPagamentoQuitacaoSoapIn">
+    <wsdl:part name="parameters" element="tns:RegistrarPagamentoQuitacao" />
+  </wsdl:message>
+  <wsdl:message name="RegistrarPagamentoQuitacaoSoapOut">
+    <wsdl:part name="parameters" element="tns:RegistrarPagamentoQuitacaoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AlterarEntregaDocumentacaoSoapIn">
+    <wsdl:part name="parameters" element="tns:AlterarEntregaDocumentacao" />
+  </wsdl:message>
+  <wsdl:message name="AlterarEntregaDocumentacaoSoapOut">
+    <wsdl:part name="parameters" element="tns:AlterarEntregaDocumentacaoResponse" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarValeFreteSoapIn">
+    <wsdl:part name="parameters" element="tns:AdicionarValeFrete" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarValeFreteSoapOut">
+    <wsdl:part name="parameters" element="tns:AdicionarValeFreteResponse" />
+  </wsdl:message>
+  <wsdl:message name="ConsultarTipoCargaSoapIn">
+    <wsdl:part name="parameters" element="tns:ConsultarTipoCarga" />
+  </wsdl:message>
+  <wsdl:message name="ConsultarTipoCargaSoapOut">
+    <wsdl:part name="parameters" element="tns:ConsultarTipoCargaResponse" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarCreditoViagemSoapIn">
+    <wsdl:part name="parameters" element="tns:AdicionarCreditoViagem" />
+  </wsdl:message>
+  <wsdl:message name="AdicionarCreditoViagemSoapOut">
+    <wsdl:part name="parameters" element="tns:AdicionarCreditoViagemResponse" />
+  </wsdl:message>
+  <wsdl:message name="InterromperViagemSoapIn">
+    <wsdl:part name="parameters" element="tns:InterromperViagem" />
+  </wsdl:message>
+  <wsdl:message name="InterromperViagemSoapOut">
+    <wsdl:part name="parameters" element="tns:InterromperViagemResponse" />
+  </wsdl:message>
+  <wsdl:message name="ConsultarValidadeCiotSoapIn">
+    <wsdl:part name="parameters" element="tns:ConsultarValidadeCiot" />
+  </wsdl:message>
+  <wsdl:message name="ConsultarValidadeCiotSoapOut">
+    <wsdl:part name="parameters" element="tns:ConsultarValidadeCiotResponse" />
+  </wsdl:message>
+  <wsdl:portType name="PefServiceV2Soap">
+    <wsdl:operation name="AdicionarOperacaoTransporte">
+      <wsdl:input message="tns:AdicionarOperacaoTransporteSoapIn" />
+      <wsdl:output message="tns:AdicionarOperacaoTransporteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CancelarOperacaoTransporte">
+      <wsdl:input message="tns:CancelarOperacaoTransporteSoapIn" />
+      <wsdl:output message="tns:CancelarOperacaoTransporteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RetificarOperacaoTransporte">
+      <wsdl:input message="tns:RetificarOperacaoTransporteSoapIn" />
+      <wsdl:output message="tns:RetificarOperacaoTransporteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="EncerrarOperacaoTransporte">
+      <wsdl:input message="tns:EncerrarOperacaoTransporteSoapIn" />
+      <wsdl:output message="tns:EncerrarOperacaoTransporteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarViagem">
+      <wsdl:input message="tns:AdicionarViagemSoapIn" />
+      <wsdl:output message="tns:AdicionarViagemSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarPagamento">
+      <wsdl:input message="tns:AdicionarPagamentoSoapIn" />
+      <wsdl:output message="tns:AdicionarPagamentoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="CancelarPagamento">
+      <wsdl:input message="tns:CancelarPagamentoSoapIn" />
+      <wsdl:output message="tns:CancelarPagamentoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AlterarDataLiberacaoPagamento">
+      <wsdl:input message="tns:AlterarDataLiberacaoPagamentoSoapIn" />
+      <wsdl:output message="tns:AlterarDataLiberacaoPagamentoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransporteParaImpressao">
+      <wsdl:input message="tns:ObterOperacaoTransporteParaImpressaoSoapIn" />
+      <wsdl:output message="tns:ObterOperacaoTransporteParaImpressaoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarDownloadDocumento">
+      <wsdl:input message="tns:ConsultarDownloadDocumentoSoapIn" />
+      <wsdl:output message="tns:ConsultarDownloadDocumentoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="DownloadDocumento">
+      <wsdl:input message="tns:DownloadDocumentoSoapIn" />
+      <wsdl:output message="tns:DownloadDocumentoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransportePdf">
+      <wsdl:input message="tns:ObterOperacaoTransportePdfSoapIn" />
+      <wsdl:output message="tns:ObterOperacaoTransportePdfSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacoesTransporteAgrupadasPdf">
+      <wsdl:input message="tns:ObterOperacoesTransporteAgrupadasPdfSoapIn" />
+      <wsdl:output message="tns:ObterOperacoesTransporteAgrupadasPdfSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransporte">
+      <wsdl:input message="tns:ObterOperacaoTransporteSoapIn" />
+      <wsdl:output message="tns:ObterOperacaoTransporteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AbonarQuebraDeFrete">
+      <wsdl:input message="tns:AbonarQuebraDeFreteSoapIn" />
+      <wsdl:output message="tns:AbonarQuebraDeFreteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ObterTransacoes">
+      <wsdl:input message="tns:ObterTransacoesSoapIn" />
+      <wsdl:output message="tns:ObterTransacoesSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ObterVinculoParaTransporte">
+      <wsdl:input message="tns:ObterVinculoParaTransporteSoapIn" />
+      <wsdl:output message="tns:ObterVinculoParaTransporteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ConsultaSituacaoTransportador">
+      <wsdl:input message="tns:ConsultaSituacaoTransportadorSoapIn" />
+      <wsdl:output message="tns:ConsultaSituacaoTransportadorSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoCliente">
+      <wsdl:input message="tns:ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteSoapIn" />
+      <wsdl:output message="tns:ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoClienteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarQuantidadeDaMercadoriaNoDesembarque">
+      <wsdl:input message="tns:RegistrarQuantidadeDaMercadoriaNoDesembarqueSoapIn" />
+      <wsdl:output message="tns:RegistrarQuantidadeDaMercadoriaNoDesembarqueSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarPagamento">
+      <wsdl:input message="tns:RegistrarPagamentoSoapIn" />
+      <wsdl:output message="tns:RegistrarPagamentoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarPagamentoQuitacao">
+      <wsdl:input message="tns:RegistrarPagamentoQuitacaoSoapIn" />
+      <wsdl:output message="tns:RegistrarPagamentoQuitacaoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AlterarEntregaDocumentacao">
+      <wsdl:input message="tns:AlterarEntregaDocumentacaoSoapIn" />
+      <wsdl:output message="tns:AlterarEntregaDocumentacaoSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarValeFrete">
+      <wsdl:input message="tns:AdicionarValeFreteSoapIn" />
+      <wsdl:output message="tns:AdicionarValeFreteSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarTipoCarga">
+      <wsdl:input message="tns:ConsultarTipoCargaSoapIn" />
+      <wsdl:output message="tns:ConsultarTipoCargaSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarCreditoViagem">
+      <wsdl:input message="tns:AdicionarCreditoViagemSoapIn" />
+      <wsdl:output message="tns:AdicionarCreditoViagemSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="InterromperViagem">
+      <wsdl:input message="tns:InterromperViagemSoapIn" />
+      <wsdl:output message="tns:InterromperViagemSoapOut" />
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarValidadeCiot">
+      <wsdl:input message="tns:ConsultarValidadeCiotSoapIn" />
+      <wsdl:output message="tns:ConsultarValidadeCiotSoapOut" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="PefServiceV2Soap" type="tns:PefServiceV2Soap">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="AdicionarOperacaoTransporte">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CancelarOperacaoTransporte">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/CancelarOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RetificarOperacaoTransporte">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/RetificarOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EncerrarOperacaoTransporte">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/EncerrarOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarViagem">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarViagem" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarPagamento">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarPagamento" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CancelarPagamento">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/CancelarPagamento" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AlterarDataLiberacaoPagamento">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AlterarDataLiberacaoPagamento" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransporteParaImpressao">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterOperacaoTransporteParaImpressao" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarDownloadDocumento">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ConsultarDownloadDocumento" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DownloadDocumento">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/DownloadDocumento" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransportePdf">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterOperacaoTransportePdf" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacoesTransporteAgrupadasPdf">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterOperacoesTransporteAgrupadasPdf" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransporte">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AbonarQuebraDeFrete">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AbonarQuebraDeFrete" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterTransacoes">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterTransacoes" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterVinculoParaTransporte">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterVinculoParaTransporte" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConsultaSituacaoTransportador">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ConsultaSituacaoTransportador" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoCliente">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoCliente" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarQuantidadeDaMercadoriaNoDesembarque">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/RegistrarQuantidadeDaMercadoriaNoDesembarque" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarPagamento">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/RegistrarPagamento" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarPagamentoQuitacao">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/RegistrarPagamentoQuitacao" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AlterarEntregaDocumentacao">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AlterarEntregaDocumentacao" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarValeFrete">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarValeFrete" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarTipoCarga">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ConsultarTipoCarga" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarCreditoViagem">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarCreditoViagem" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="InterromperViagem">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/InterromperViagem" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarValidadeCiot">
+      <soap:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ConsultarValidadeCiot" style="document" />
+      <wsdl:input>
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="PefServiceV2Soap12" type="tns:PefServiceV2Soap">
+    <soap12:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="AdicionarOperacaoTransporte">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CancelarOperacaoTransporte">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/CancelarOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RetificarOperacaoTransporte">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/RetificarOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="EncerrarOperacaoTransporte">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/EncerrarOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarViagem">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarViagem" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarPagamento">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarPagamento" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="CancelarPagamento">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/CancelarPagamento" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AlterarDataLiberacaoPagamento">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AlterarDataLiberacaoPagamento" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransporteParaImpressao">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterOperacaoTransporteParaImpressao" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarDownloadDocumento">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ConsultarDownloadDocumento" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="DownloadDocumento">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/DownloadDocumento" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransportePdf">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterOperacaoTransportePdf" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacoesTransporteAgrupadasPdf">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterOperacoesTransporteAgrupadasPdf" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterOperacaoTransporte">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterOperacaoTransporte" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AbonarQuebraDeFrete">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AbonarQuebraDeFrete" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterTransacoes">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterTransacoes" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterVinculoParaTransporte">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterVinculoParaTransporte" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConsultaSituacaoTransportador">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ConsultaSituacaoTransportador" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoCliente">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ObterCodigoIdentificacaoOperacaoTransportePorIdOperacaoCliente" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarQuantidadeDaMercadoriaNoDesembarque">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/RegistrarQuantidadeDaMercadoriaNoDesembarque" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarPagamento">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/RegistrarPagamento" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="RegistrarPagamentoQuitacao">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/RegistrarPagamentoQuitacao" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AlterarEntregaDocumentacao">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AlterarEntregaDocumentacao" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarValeFrete">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarValeFrete" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarTipoCarga">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ConsultarTipoCarga" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="AdicionarCreditoViagem">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/AdicionarCreditoViagem" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="InterromperViagem">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/InterromperViagem" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="ConsultarValidadeCiot">
+      <soap12:operation soapAction="http://schemas.ipc.adm.br/efrete/pefV2/ConsultarValidadeCiot" style="document" />
+      <wsdl:input>
+        <soap12:body use="literal" />
+      </wsdl:input>
+      <wsdl:output>
+        <soap12:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="PefServiceV2">
+    <wsdl:port name="PefServiceV2Soap" binding="tns:PefServiceV2Soap">
+      <soap:address location="https://dev.efrete.com.br/Services/PefServiceV2.asmx" />
+    </wsdl:port>
+    <wsdl:port name="PefServiceV2Soap12" binding="tns:PefServiceV2Soap12">
+      <soap12:address location="https://dev.efrete.com.br/Services/PefServiceV2.asmx" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

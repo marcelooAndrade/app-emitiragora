@@ -39,6 +39,14 @@ class TransporteArquivoController extends Controller
         return $this->pdf($documentos->contrato($contrato), "contrato-frete-{$contrato->numero}.pdf");
     }
 
+    public function ciotPdf(ContratoFrete $contrato, EmitenteAtual $emitenteAtual): Response
+    {
+        $this->conferir($contrato->emitente_id, $emitenteAtual);
+        abort_if(blank($contrato->ciot_pdf_path) || ! Storage::disk('fiscal')->exists($contrato->ciot_pdf_path), 404);
+
+        return $this->pdf((string) Storage::disk('fiscal')->get($contrato->ciot_pdf_path), "ciot-{$contrato->ciot}.pdf");
+    }
+
     public function cteXml(Cte $cte, EmitenteAtual $emitenteAtual): StreamedResponse
     {
         $this->conferir($cte->emitente_id, $emitenteAtual);

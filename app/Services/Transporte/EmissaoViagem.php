@@ -2,17 +2,19 @@
 
 namespace App\Services\Transporte;
 
+use App\Enums\Fiscal\Ambiente;
 use App\Enums\Transporte\CteStatus;
 use App\Enums\Transporte\MdfeStatus;
 use App\Models\Cte;
 use App\Models\User;
 use App\Models\Viagem;
+use App\Services\Transporte\Efrete\CiotEfrete;
 
 /**
  * O botão "Emitir": transmite os CT-e pendentes e, com todos autorizados,
- * o MDF-e. É o "automatizar" do Transm (FiscalProcessoOrchestrator), que lá
- * passava por contrato e CIOT antes do MDF-e; aqui esses só entram quando o
- * veículo é de terceiro.
+ * o MDF-e. É o "automatizar" do Transm (FiscalProcessoOrchestrator): com
+ * veículo de terceiro e e-Frete configurado, o CIOT sai no meio, entre os
+ * CT-e autorizados e o MDF-e, sem outro clique.
  *
  * Não para no primeiro CT-e rejeitado: transmite todos, para quem opera ver
  * de uma vez o que precisa corrigir.
@@ -25,6 +27,7 @@ class EmissaoViagem
         private readonly MontadorCtes $montador,
         private readonly TransmissorCte $ctes,
         private readonly TransmissorMdfe $mdfe,
+        private readonly CiotEfrete $ciot,
     ) {}
 
     /** @return array{ok: array<int, string>, erros: array<int, string>} */
@@ -65,7 +68,12 @@ class EmissaoViagem
         $validos = $viagem->ctes->reject(fn (Cte $c): bool => $c->status === CteStatus::Cancelado);
         $todosAutorizados = $validos->isNotEmpty() && $validos->every(fn (Cte $c): bool => $c->status === CteStatus::Autorizado);
 
-        if ($erros === [] && $todosAutorizados && ! in_array($viagem->mdfe?->status, [MdfeStatus::Autorizado, MdfeStatus::Encerrado], true)) {
+        $mdfePendente = ! in_array($viagem->mdfe?->status, [MdfeStatus::Autorizado, MdfeStatus::Encerrado], true);
+        if ($erros === [] && $todosAutorizados && $mdfePendente) {
+            $this->gerarCiot($viagem, $user, $ok, $erros);
+        }
+
+        if ($erros === [] && $todosAutorizados && $mdfePendente) {
             try {
                 $mdfe = $this->mdfe->transmitir($viagem, $user);
                 $mdfe->status === MdfeStatus::Autorizado
@@ -77,5 +85,26 @@ class EmissaoViagem
         }
 
         return ['ok' => $ok, 'erros' => $erros];
+    }
+
+    /** Só quando dá para gerar sozinho: terceiro, contrato sem CIOT e e-Frete ligado. */
+    private function gerarCiot(Viagem $viagem, ?User $user, array &$ok, array &$erros): void
+    {
+        $viagem->loadMissing(['contrato', 'emitente', 'veiculo']);
+        $contrato = $viagem->contrato;
+        if (! $viagem->comTerceiro() || $contrato?->status !== 'ativo' || (filled($contrato->ciot) && $contrato->ciot_status !== 'processando')
+            || ! $viagem->emitente->configuracaoTransporte()->temEfrete()
+            // Fora de homologação a trava do e-Frete vale: o CIOT é digitado.
+            || $viagem->emitente->ambiente !== Ambiente::Homologacao) {
+            return;
+        }
+        try {
+            $contrato = $this->ciot->gerar($contrato, [], $user);
+            $contrato->ciot_status === 'registrado'
+                ? $ok[] = "CIOT {$contrato->ciot} gerado no e-Frete."
+                : $erros[] = 'O e-Frete aceitou o CIOT e ainda não devolveu o número. Aperte Emitir de novo em instantes.';
+        } catch (TransporteException $e) {
+            $erros[] = 'CIOT: '.$e->getMessage();
+        }
     }
 }

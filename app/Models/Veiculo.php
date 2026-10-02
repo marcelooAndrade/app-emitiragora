@@ -44,6 +44,7 @@ class Veiculo extends Model
             'tara_kg' => 'integer',
             'capacidade_kg' => 'integer',
             'capacidade_m3' => 'integer',
+            'eixos' => 'integer',
             'ativo' => 'boolean',
         ];
     }
@@ -78,6 +79,27 @@ class Veiculo extends Model
     }
 
     /** O que falta no cadastro para o MDF-e aceitar este veículo. */
+    /** O que o e-Frete pede do veículo e do proprietário. */
+    public function pendenciasEfrete(): array
+    {
+        $faltando = [];
+        if (strlen((string) $this->chassi) !== 17) {
+            $faltando[] = 'chassi com 17 caracteres';
+        }
+        if ((int) $this->eixos <= 0) {
+            $faltando[] = 'quantidade de eixos';
+        }
+        if (blank($this->renavam)) {
+            $faltando[] = 'RENAVAM';
+        }
+        if ($this->deTerceiro() && (blank($this->proprietario_cep) || blank($this->proprietario_municipio_codigo)
+            || blank($this->proprietario_logradouro) || blank($this->proprietario_bairro))) {
+            $faltando[] = 'endereço do proprietário com CEP';
+        }
+
+        return $faltando;
+    }
+
     public function pendenciasMdfe(): array
     {
         $faltando = [];

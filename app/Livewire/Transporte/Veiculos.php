@@ -4,6 +4,7 @@ namespace App\Livewire\Transporte;
 
 use App\Models\Emitente;
 use App\Models\Veiculo;
+use App\Services\Integrations\ViaCepService;
 use App\Support\Documento;
 use App\Support\EmitenteAtual;
 use Illuminate\Support\Collection;
@@ -12,6 +13,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Component;
+use RuntimeException;
 
 /**
  * Cavalos e carretas. No Transm eram três cadastros (cavalos, carretas e
@@ -54,6 +56,23 @@ class Veiculos extends Component
 
     public string $proprietarioTp = '1';
 
+    // e-Frete: chassi e eixos do veículo, endereço do proprietário.
+    public string $chassi = '';
+
+    public string $eixos = '';
+
+    public string $proprietarioCep = '';
+
+    public string $proprietarioMunicipioCodigo = '';
+
+    public string $proprietarioMunicipio = '';
+
+    public string $proprietarioLogradouro = '';
+
+    public string $proprietarioNumero = '';
+
+    public string $proprietarioBairro = '';
+
     public function mount(): void
     {
         abort_unless($this->emitente !== null, 404, 'Nenhum emitente vinculado a este usuário.');
@@ -65,6 +84,30 @@ class Veiculos extends Component
     public function emitente(): ?Emitente
     {
         return app(EmitenteAtual::class)->resolver();
+    }
+
+    #[Computed]
+    public function usaEfrete(): bool
+    {
+        return $this->emitente->configuracaoTransporte()->temEfrete();
+    }
+
+    public function updatedProprietarioCep(ViaCepService $viaCep): void
+    {
+        $this->proprietarioCep = preg_replace('/\D/', '', $this->proprietarioCep);
+        if (strlen($this->proprietarioCep) !== 8) {
+            return;
+        }
+        try {
+            $r = $viaCep->consultar($this->proprietarioCep);
+            $this->proprietarioLogradouro = $this->proprietarioLogradouro ?: (string) $r->logradouro;
+            $this->proprietarioBairro = $this->proprietarioBairro ?: (string) $r->bairro;
+            $this->proprietarioMunicipioCodigo = (string) $r->codigoIbge;
+            $this->proprietarioMunicipio = trim($r->municipio.'/'.$r->uf, '/');
+            $this->resetErrorBag('proprietarioCep');
+        } catch (RuntimeException $e) {
+            $this->addError('proprietarioCep', $e->getMessage());
+        }
     }
 
     #[Computed]
@@ -95,6 +138,14 @@ class Veiculos extends Component
         $this->proprietarioIe = (string) $v->proprietario_ie;
         $this->proprietarioUf = (string) $v->proprietario_uf;
         $this->proprietarioTp = (string) ($v->proprietario_tp ?? '1');
+        $this->chassi = (string) $v->chassi;
+        $this->eixos = (string) $v->eixos;
+        $this->proprietarioCep = (string) $v->proprietario_cep;
+        $this->proprietarioMunicipioCodigo = (string) $v->proprietario_municipio_codigo;
+        $this->proprietarioMunicipio = $v->proprietario_municipio_codigo ? 'IBGE '.$v->proprietario_municipio_codigo : '';
+        $this->proprietarioLogradouro = (string) $v->proprietario_logradouro;
+        $this->proprietarioNumero = (string) $v->proprietario_numero;
+        $this->proprietarioBairro = (string) $v->proprietario_bairro;
     }
 
     public function novo(): void
@@ -110,6 +161,7 @@ class Veiculos extends Component
         $this->placa = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $this->placa));
         $this->proprietarioDocumento = preg_replace('/\D/', '', $this->proprietarioDocumento);
         $this->proprietarioRntrc = preg_replace('/\D/', '', $this->proprietarioRntrc);
+        $this->chassi = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $this->chassi));
         $terceiro = $this->proprietarioTipo === 'terceiro';
 
         $this->validate([
@@ -132,6 +184,13 @@ class Veiculos extends Component
             'proprietarioIe' => ['nullable', 'string', 'max:20'],
             'proprietarioUf' => ['nullable', 'size:2'],
             'proprietarioTp' => [$terceiro ? 'required' : 'nullable', 'in:0,1,2'],
+            'chassi' => ['nullable', 'size:17'],
+            'eixos' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'proprietarioCep' => ['nullable', 'digits:8'],
+            'proprietarioMunicipioCodigo' => ['nullable', 'digits:7'],
+            'proprietarioLogradouro' => ['nullable', 'string', 'max:60'],
+            'proprietarioNumero' => ['nullable', 'string', 'max:10'],
+            'proprietarioBairro' => ['nullable', 'string', 'max:60'],
         ], ['placa.regex' => 'Placa no formato ABC1D23 ou ABC1234.', 'placa.unique' => 'Já existe veículo com esta placa.'], [
             'tara' => 'tara', 'rodado' => 'tipo de rodado', 'carroceria' => 'carroceria',
             'proprietarioDocumento' => 'CPF/CNPJ do proprietário', 'proprietarioNome' => 'nome do proprietário',
@@ -154,6 +213,13 @@ class Veiculos extends Component
             'proprietario_ie' => $terceiro && $this->proprietarioIe !== '' ? $this->proprietarioIe : null,
             'proprietario_uf' => $terceiro && $this->proprietarioUf !== '' ? strtoupper($this->proprietarioUf) : null,
             'proprietario_tp' => $terceiro ? $this->proprietarioTp : null,
+            'chassi' => $this->chassi ?: null,
+            'eixos' => $this->eixos !== '' ? (int) $this->eixos : null,
+            'proprietario_cep' => $terceiro && $this->proprietarioCep !== '' ? $this->proprietarioCep : null,
+            'proprietario_municipio_codigo' => $terceiro && $this->proprietarioMunicipioCodigo !== '' ? $this->proprietarioMunicipioCodigo : null,
+            'proprietario_logradouro' => $terceiro && $this->proprietarioLogradouro !== '' ? mb_strtoupper(trim($this->proprietarioLogradouro)) : null,
+            'proprietario_numero' => $terceiro && $this->proprietarioNumero !== '' ? trim($this->proprietarioNumero) : null,
+            'proprietario_bairro' => $terceiro && $this->proprietarioBairro !== '' ? mb_strtoupper(trim($this->proprietarioBairro)) : null,
         ];
 
         if ($this->editandoId) {

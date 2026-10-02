@@ -185,7 +185,9 @@ class TransmissorMdfe
             if ($contrato === null) {
                 $pendencias[] = 'Veículo de terceiro: preencha o contrato do frete (quanto o motorista recebe e como).';
             } elseif ($contrato->exigeCiot() && blank($contrato->ciot)) {
-                $pendencias[] = 'O proprietário do veículo é TAC: informe o CIOT no contrato do frete.';
+                $pendencias[] = $viagem->emitente->configuracaoTransporte()->temEfrete()
+                    ? 'O proprietário do veículo é TAC: gere o CIOT no e-Frete (botão no contrato ou Emitir).'
+                    : 'O proprietário do veículo é TAC: informe o CIOT no contrato do frete.';
             }
         }
         if ($faltando = $viagem->emitente->configuracaoTransporte()->pendenciasMdfe()) {

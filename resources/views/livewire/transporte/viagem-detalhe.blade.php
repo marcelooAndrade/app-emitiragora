@@ -306,6 +306,11 @@
                                     <x-ui.alert variant="danger">{{ $message }}</x-ui.alert>
                                 @enderror
 
+                                @php $ciotEfrete = $contrato?->ciotPeloEfrete(); @endphp
+                                @if ($ciotEfrete)
+                                    <p class="text-xs text-graphite-600">Os valores foram para o e-Frete junto com o CIOT e não mudam mais.</p>
+                                @endif
+                                <fieldset @disabled($ciotEfrete) class="grid gap-4">
                                 <div class="grid gap-4 sm:grid-cols-3">
                                     <x-ui.field label="Frete do motorista (R$)" for="ct-frete" hint="O total que o terceiro recebe pela viagem.">
                                         <x-ui.input id="ct-frete" wire:model.blur="contratoFrete" placeholder="0,00" inputmode="decimal" />
@@ -353,10 +358,64 @@
                                     @endif
                                 </div>
 
+                                @if ($this->usaEfrete)
+                                    <div class="grid gap-4 sm:grid-cols-4">
+                                        <x-ui.field label="Distância (km)" for="ct-dist" hint="Para o CIOT.">
+                                            <x-ui.input id="ct-dist" wire:model="ciotDistancia" inputmode="numeric" maxlength="5" />
+                                        </x-ui.field>
+                                        <x-ui.field label="Embalagem" for="ct-emb">
+                                            <x-ui.select id="ct-emb" wire:model="ciotEmbalagem">
+                                                @foreach (App\Services\Transporte\Efrete\PayloadEfrete::EMBALAGENS as $codigo => $nome)
+                                                    <option value="{{ $codigo }}">{{ $nome }}</option>
+                                                @endforeach
+                                            </x-ui.select>
+                                        </x-ui.field>
+                                        <x-ui.field label="Tipo de carga" for="ct-tipo">
+                                            <x-ui.select id="ct-tipo" wire:model="ciotTipoCarga">
+                                                @foreach (App\Services\Transporte\Efrete\PayloadEfrete::TIPOS_CARGA as $codigo => $nome)
+                                                    <option value="{{ $codigo }}">{{ $nome }}</option>
+                                                @endforeach
+                                            </x-ui.select>
+                                        </x-ui.field>
+                                        <x-ui.field label="Entrega prevista" for="ct-fim">
+                                            <x-ui.input id="ct-fim" type="date" wire:model="ciotFimPrevisto" />
+                                        </x-ui.field>
+                                    </div>
+                                @endif
+                                </fieldset>
+
                                 <div class="grid gap-4 sm:grid-cols-[minmax(0,14rem)_1fr] sm:items-end">
-                                    <x-ui.field label="CIOT" for="ct-ciot" hint="Obrigatório para TAC. Gere na sua administradora de frete.">
-                                        <x-ui.input id="ct-ciot" wire:model="contratoCiot" maxlength="12" inputmode="numeric" placeholder="12 dígitos" />
-                                    </x-ui.field>
+                                    @if ($this->usaEfrete)
+                                        <div class="grid gap-1.5">
+                                            <span class="text-xs font-medium text-graphite-600">CIOT</span>
+                                            @if ($contrato?->ciot && $ciotEfrete)
+                                                <p class="num text-base font-semibold text-graphite-900">{{ $contrato->ciot }}{{ $contrato->ciot_verificador ? '/'.$contrato->ciot_verificador : '' }}</p>
+                                                <p class="text-xs {{ $contrato->ciot_status === 'encerrado' ? 'text-graphite-500' : 'text-success-700' }}">{{ $contrato->ciot_status === 'encerrado' ? 'Encerrado no e-Frete' : 'Gerado no e-Frete' }}</p>
+                                            @elseif ($contrato?->ciot_status === 'processando')
+                                                <p class="text-sm text-ember-800">Aguardando o número do e-Frete.</p>
+                                            @else
+                                                <p class="text-xs text-graphite-500">Sai sozinho ao emitir, depois dos CT-e, ou pelo botão abaixo.</p>
+                                            @endif
+                                            <div class="flex flex-wrap gap-2">
+                                                @if (! $ciotEfrete && $viagem->ctes->contains(fn ($c) => $c->status === CteStatus::Autorizado) && ! $mdfeEmitido)
+                                                    <x-ui.button size="sm" variant="secondary" wire:click="gerarCiot" wire:loading.attr="disabled" wire:target="gerarCiot">
+                                                        <span wire:loading.remove wire:target="gerarCiot">{{ $contrato?->ciot_status === 'processando' ? 'Consultar CIOT' : 'Gerar CIOT no e-Frete' }}</span>
+                                                        <span wire:loading wire:target="gerarCiot">Falando com o e-Frete...</span>
+                                                    </x-ui.button>
+                                                @endif
+                                                @if ($contrato?->ciot_pdf_path)
+                                                    <x-ui.button size="sm" variant="ghost" :href="route('transporte.ciot.pdf', $contrato)" target="_blank">PDF do CIOT</x-ui.button>
+                                                @endif
+                                                @if ($contrato?->ciot_status === 'registrado' && $mdfe?->status === MdfeStatus::Encerrado)
+                                                    <x-ui.button size="sm" variant="ghost" wire:click="encerrarCiot" wire:confirm="Encerrar o CIOT {{ $contrato->ciot }} no e-Frete?">Encerrar CIOT</x-ui.button>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @else
+                                        <x-ui.field label="CIOT" for="ct-ciot" hint="Obrigatório para TAC. Gere na sua administradora de frete.">
+                                            <x-ui.input id="ct-ciot" wire:model="contratoCiot" maxlength="12" inputmode="numeric" placeholder="12 dígitos" />
+                                        </x-ui.field>
+                                    @endif
                                     @php $saldo = $this->saldoContrato; @endphp
                                     <p @class(['text-sm sm:text-right', 'text-danger-700' => $saldo < 0, 'text-graphite-600' => $saldo >= 0])>
                                         Saldo a pagar na entrega:

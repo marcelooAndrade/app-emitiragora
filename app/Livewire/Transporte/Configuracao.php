@@ -56,6 +56,15 @@ class Configuracao extends Component
 
     public string $atmCodigo = '';
 
+    // e-Frete: senha e hash também nunca voltam para a tela.
+    public string $efreteUsuario = '';
+
+    public string $efreteSenha = '';
+
+    public string $efreteIntegrador = '';
+
+    public bool $efreteMassaAntt = false;
+
     // Regra de ICMS em edição.
     public ?int $regraId = null;
 
@@ -92,6 +101,8 @@ class Configuracao extends Component
         $this->adiantamentoPercentual = (string) $c->adiantamento_percentual;
         $this->atmUsuario = (string) $c->atm_usuario;
         $this->atmCodigo = (string) $c->atm_codigo;
+        $this->efreteUsuario = (string) $c->efrete_usuario;
+        $this->efreteMassaAntt = (bool) $c->efrete_massa_antt;
     }
 
     #[Computed]
@@ -145,6 +156,9 @@ class Configuracao extends Component
             'atmUsuario' => ['nullable', 'string', 'max:100'],
             'atmSenha' => ['nullable', 'string', 'max:100'],
             'atmCodigo' => ['nullable', 'string', 'max:30', 'required_with:atmUsuario'],
+            'efreteUsuario' => ['nullable', 'string', 'max:100'],
+            'efreteSenha' => ['nullable', 'string', 'max:100'],
+            'efreteIntegrador' => ['nullable', 'string', 'max:200'],
         ], ['cfop.regex' => 'Use um CFOP de prestação de serviço de transporte (5351 a 5360).'], [
             'rntrc' => 'RNTRC', 'cteSerie' => 'série do CT-e', 'mdfeSerie' => 'série do MDF-e', 'naturezaOperacao' => 'natureza da operação',
             'seguradoraNome' => 'seguradora', 'prazoFaturaDias' => 'prazo da fatura',
@@ -155,6 +169,14 @@ class Configuracao extends Component
             $this->addError('atmSenha', 'Informe a senha da AT&M.');
 
             return;
+        }
+        $usaEfrete = trim($this->efreteUsuario) !== '';
+        foreach (['efreteSenha' => ['efrete_senha', 'a senha do e-Frete'], 'efreteIntegrador' => ['efrete_integrador', 'o hash do integrador']] as $campo => [$coluna, $nome]) {
+            if ($usaEfrete && $this->{$campo} === '' && blank($this->config->{$coluna})) {
+                $this->addError($campo, "Informe {$nome}.");
+
+                return;
+            }
         }
 
         $this->config->update([
@@ -174,8 +196,14 @@ class Configuracao extends Component
             'atm_usuario' => $usaAtm ? trim($this->atmUsuario) : null,
             'atm_senha' => $usaAtm ? ($this->atmSenha !== '' ? $this->atmSenha : $this->config->atm_senha) : null,
             'atm_codigo' => $usaAtm ? trim($this->atmCodigo) : null,
+            'efrete_usuario' => $usaEfrete ? trim($this->efreteUsuario) : null,
+            'efrete_senha' => $usaEfrete ? ($this->efreteSenha !== '' ? $this->efreteSenha : $this->config->efrete_senha) : null,
+            'efrete_integrador' => $usaEfrete ? ($this->efreteIntegrador !== '' ? trim($this->efreteIntegrador) : $this->config->efrete_integrador) : null,
+            'efrete_massa_antt' => $usaEfrete && $this->efreteMassaAntt,
         ]);
         $this->atmSenha = '';
+        $this->efreteSenha = '';
+        $this->efreteIntegrador = '';
         unset($this->config, $this->proximos);
         session()->flash('sucesso', 'Configuração salva.');
     }

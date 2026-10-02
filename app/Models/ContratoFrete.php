@@ -35,6 +35,12 @@ class ContratoFrete extends Model
             'saldo_centavos' => 'integer',
             'vencimento_saldo' => 'date',
             'emitido_em' => 'datetime',
+            'ciot_distancia_km' => 'integer',
+            'ciot_tipo_carga' => 'integer',
+            'ciot_fim_previsto' => 'date',
+            'ciot_resposta' => 'array',
+            'ciot_emitido_em' => 'datetime',
+            'ciot_encerrado_em' => 'datetime',
         ];
     }
 
@@ -66,6 +72,12 @@ class ContratoFrete extends Model
     {
         return (int) $this->imposto_renda_centavos + (int) $this->falta_mercadoria_centavos
             + (int) $this->seguro_motorista_centavos + (int) $this->seguro_carga_centavos;
+    }
+
+    /** CIOT gerado pelo e-Frete (e não digitado): não se edita mais à mão. */
+    public function ciotPeloEfrete(): bool
+    {
+        return in_array($this->ciot_status, ['registrado', 'encerrado'], true);
     }
 
     /** TAC (autônomo, agregado ou independente): o CIOT é obrigatório. */

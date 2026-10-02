@@ -90,6 +90,14 @@
                                 @endforeach
                             </x-ui.select>
                         </x-ui.field>
+                        @if ($this->usaEfrete)
+                            <x-ui.field label="Chassi" hint="17 caracteres. Para o CIOT." :error="$errors->first('chassi')">
+                                <x-ui.input wire:model="chassi" maxlength="17" />
+                            </x-ui.field>
+                            <x-ui.field label="Eixos" hint="Para o CIOT." :error="$errors->first('eixos')">
+                                <x-ui.input wire:model="eixos" inputmode="numeric" maxlength="2" />
+                            </x-ui.field>
+                        @endif
                     </div>
 
                     <x-ui.field label="De quem é" required>
@@ -123,6 +131,21 @@
                             <x-ui.field label="UF do proprietário" :error="$errors->first('proprietarioUf')">
                                 <x-ui.input wire:model="proprietarioUf" maxlength="2" />
                             </x-ui.field>
+                            @if ($this->usaEfrete)
+                                <p class="text-xs font-semibold text-graphite-700 sm:col-span-2">Endereço do proprietário, para o CIOT</p>
+                                <x-ui.field label="CEP" :hint="$proprietarioMunicipio ?: 'Preenche o endereço sozinho.'" :error="$errors->first('proprietarioCep')">
+                                    <x-ui.input wire:model.blur="proprietarioCep" inputmode="numeric" maxlength="9" />
+                                </x-ui.field>
+                                <x-ui.field label="Número" :error="$errors->first('proprietarioNumero')">
+                                    <x-ui.input wire:model="proprietarioNumero" maxlength="10" />
+                                </x-ui.field>
+                                <x-ui.field label="Rua" :error="$errors->first('proprietarioLogradouro')">
+                                    <x-ui.input wire:model="proprietarioLogradouro" maxlength="60" />
+                                </x-ui.field>
+                                <x-ui.field label="Bairro" :error="$errors->first('proprietarioBairro')">
+                                    <x-ui.input wire:model="proprietarioBairro" maxlength="60" />
+                                </x-ui.field>
+                            @endif
                         </div>
                     @endif
 

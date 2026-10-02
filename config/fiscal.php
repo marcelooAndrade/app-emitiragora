@@ -61,4 +61,28 @@ return [
         'token_ttl_seconds' => 3300,
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | CIOT pelo e-Frete
+    |--------------------------------------------------------------------------
+    |
+    | Portado do app-transm, com a mesma trava: só o endereço oficial de
+    | homologação e só para emitente em homologação. A massa de teste da ANTT
+    | troca contratado, RNTRC e placas pelos dados que a ANTT aceita em teste.
+    |
+    */
+    'efrete' => [
+        'url' => 'https://dev.efrete.com.br',
+        'connect_timeout' => 10,
+        'timeout' => 45,
+        'consultas' => 3,
+        'espera_consulta_ms' => 1500,
+        'massa_antt' => [
+            'contratado' => '48384601000171',
+            'rntrc' => '55887888',
+            'placa_cavalo' => 'BWP6E54',
+            'placa_carreta' => 'AFY2E46',
+        ],
+    ],
+
 ];

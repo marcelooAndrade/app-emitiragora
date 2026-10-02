@@ -121,9 +121,11 @@ class ContratosFrete
                 'banco_codigo' => $forma === 'transferencia' ? preg_replace('/\D/', '', (string) ($dados['banco_codigo'] ?? '')) : null,
                 'agencia' => $forma === 'transferencia' ? trim((string) ($dados['agencia'] ?? '')) : null,
                 'conta' => $forma === 'transferencia' ? trim((string) ($dados['conta'] ?? '')) : null,
-                'ciot' => filled($dados['ciot'] ?? null) ? preg_replace('/\D/', '', (string) $dados['ciot']) : null,
+                // CIOT que o e-Frete gerou (ou está gerando) não é trocado pelo formulário.
+                'ciot' => $contrato->ciot_status !== null ? $contrato->ciot
+                    : (filled($dados['ciot'] ?? null) ? preg_replace('/\D/', '', (string) $dados['ciot']) : null),
                 'emitido_em' => $contrato->emitido_em ?? now(),
-            ])->save();
+            ])->forceFill(array_intersect_key($dados, array_flip(['ciot_distancia_km', 'ciot_embalagem', 'ciot_tipo_carga', 'ciot_fim_previsto'])))->save();
 
             // Os campos da viagem acompanham o contrato, para quem lê só a viagem.
             $viagem->forceFill(['frete_motorista_centavos' => $frete, 'adiantamento_centavos' => $adiantamento])->save();
@@ -170,6 +172,9 @@ class ContratosFrete
         }
         if ($this->travado($viagem)) {
             throw new TransporteException('O MDF-e desta viagem já foi para a SEFAZ com o contrato. Para mudar, cancele o MDF-e.');
+        }
+        if ($viagem->contrato?->ciotPeloEfrete()) {
+            throw new TransporteException('O CIOT deste contrato já foi gerado no e-Frete com estes valores. Para mudar, cancele a operação no e-Frete.');
         }
         if ($viagem->motorista === null) {
             throw new TransporteException('Escolha o motorista antes do contrato.');

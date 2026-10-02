@@ -14,6 +14,8 @@ use App\Services\Integrations\MetaConversoesGateway;
 use App\Services\Integrations\UazapiGateway;
 use App\Services\Nfse\GatewayNfse;
 use App\Services\Nfse\SigissGateway;
+use App\Services\Transporte\Efrete\EfreteSoap;
+use App\Services\Transporte\Efrete\GatewaySoapEfrete;
 use App\Services\Transporte\GatewayCte;
 use App\Services\Transporte\GatewayMdfe;
 use App\Services\Transporte\NfephpCteGateway;
@@ -45,6 +47,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(GatewayNfse::class, SigissGateway::class);
         $this->app->bind(GatewayCte::class, NfephpCteGateway::class);
         $this->app->bind(GatewayMdfe::class, NfephpMdfeGateway::class);
+        $this->app->bind(GatewaySoapEfrete::class, EfreteSoap::class);
         $this->app->singleton(TenantAtual::class);
 
         //

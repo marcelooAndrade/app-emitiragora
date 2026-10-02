@@ -12,6 +12,7 @@ use App\Models\Viagem;
 use App\Models\ViagemNota;
 use App\Services\Transporte\AverbacaoAtm;
 use App\Services\Transporte\ContratosFrete;
+use App\Services\Transporte\Efrete\CiotEfrete;
 use App\Services\Transporte\EmissaoViagem;
 use App\Services\Transporte\EventosCte;
 use App\Services\Transporte\EventosMdfe;
@@ -108,6 +109,15 @@ class ViagemDetalhe extends Component
 
     public bool $descontosAbertos = false;
 
+    // O que só o e-Frete pede para gerar o CIOT.
+    public string $ciotDistancia = '';
+
+    public string $ciotEmbalagem = 'Pallet';
+
+    public string $ciotTipoCarga = '5';
+
+    public string $ciotFimPrevisto = '';
+
     /** @var array{ok: array<int, string>, erros: array<int, string>}|null */
     public ?array $resultado = null;
 
@@ -203,6 +213,12 @@ class ViagemDetalhe extends Component
     public function veiculoTerceiro(): bool
     {
         return (bool) $this->cavalos->firstWhere('id', $this->veiculoId)?->deTerceiro();
+    }
+
+    #[Computed]
+    public function usaEfrete(): bool
+    {
+        return (bool) $this->emitente?->configuracaoTransporte()->temEfrete();
     }
 
     /** O saldo enquanto a pessoa digita, para ela ver a conta fechando. */
@@ -322,7 +338,7 @@ class ViagemDetalhe extends Component
         unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal);
 
         // Um botão só: com veículo de terceiro, o contrato vai junto.
-        $comContrato = $this->veiculoTerceiro && filled($this->contratoFrete);
+        $comContrato = $this->veiculoTerceiro && filled($this->contratoFrete) && ! $this->viagem->contrato?->ciotPeloEfrete();
         if ($comContrato && ! $this->gravarContrato()) {
             return;
         }
@@ -334,6 +350,35 @@ class ViagemDetalhe extends Component
         $this->authorize('transporte.operar');
         if ($this->gravarContrato()) {
             session()->flash('sucesso', 'Contrato do frete salvo. Adiantamento e saldo já estão em Contas a pagar.');
+        }
+    }
+
+    /** Grava o contrato como está na tela e pede o CIOT ao e-Frete. */
+    public function gerarCiot(CiotEfrete $ciot): void
+    {
+        $this->authorize('transporte.operar');
+        if (! $this->viagem->contrato?->ciotPeloEfrete() && ! $this->gravarContrato()) {
+            return;
+        }
+        $contrato = $this->viagem->contrato;
+        // Distância, embalagem e fim previsto já foram gravados com o contrato.
+        if ($this->executar(function () use ($ciot, &$contrato): void {
+            $contrato = $ciot->gerar($contrato, [], Auth::user());
+        }, 'contrato')) {
+            $this->preencherContrato();
+            session()->flash($contrato->ciot_status === 'registrado' ? 'sucesso' : 'aviso', $contrato->ciot_status === 'registrado'
+                ? "CIOT {$contrato->ciot} gerado no e-Frete. Já está no contrato e vai no MDF-e."
+                : 'O e-Frete aceitou o pedido e ainda não devolveu o número. Clique em Consultar CIOT em instantes.');
+        }
+    }
+
+    public function encerrarCiot(CiotEfrete $ciot): void
+    {
+        $this->authorize('transporte.operar');
+        $contrato = $this->viagem->contrato;
+        abort_if($contrato === null, 404);
+        if ($this->executar(fn () => $ciot->encerrar($contrato, Auth::user()), 'contrato')) {
+            session()->flash('sucesso', "CIOT {$contrato->ciot} encerrado no e-Frete.");
         }
     }
 
@@ -591,6 +636,7 @@ class ViagemDetalhe extends Component
             'agencia' => $this->contratoAgencia,
             'conta' => $this->contratoConta,
             'ciot' => $this->contratoCiot,
+            ...($this->usaEfrete ? $this->dadosCiot() : []),
         ];
 
         $ok = $this->executar(fn () => app(ContratosFrete::class)->salvar($this->viagem, $dados, Auth::user()), 'contrato');
@@ -599,6 +645,16 @@ class ViagemDetalhe extends Component
         }
 
         return $ok;
+    }
+
+    private function dadosCiot(): array
+    {
+        return [
+            'ciot_distancia_km' => (int) preg_replace('/\D/', '', $this->ciotDistancia) ?: null,
+            'ciot_embalagem' => $this->ciotEmbalagem ?: null,
+            'ciot_tipo_carga' => (int) $this->ciotTipoCarga ?: 5,
+            'ciot_fim_previsto' => $this->ciotFimPrevisto ?: null,
+        ];
     }
 
     /** Adiantamento em branco é o percentual padrão da empresa, como no Transm. */
@@ -629,6 +685,12 @@ class ViagemDetalhe extends Component
         $this->contratoAgencia = (string) $s['agencia'];
         $this->contratoConta = (string) $s['conta'];
         $this->contratoCiot = (string) $s['ciot'];
+        $contrato = $this->viagem->contrato;
+        $this->ciotDistancia = $contrato?->ciot_distancia_km ? (string) $contrato->ciot_distancia_km : '';
+        $this->ciotEmbalagem = $contrato?->ciot_embalagem ?: 'Pallet';
+        $this->ciotTipoCarga = (string) ($contrato?->ciot_tipo_carga ?: 5);
+        $this->ciotFimPrevisto = $contrato?->ciot_fim_previsto?->toDateString()
+            ?? ($this->viagem->data_carregamento ?? today())->addDays(3)->toDateString();
     }
 
     private function preencher(): void
