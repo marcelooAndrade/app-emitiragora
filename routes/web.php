@@ -5,6 +5,7 @@ use App\Http\Controllers\FaturaPublicaController;
 use App\Http\Controllers\LogoTenantController;
 use App\Http\Controllers\NotaServicoArquivoController;
 use App\Http\Controllers\RaizController;
+use App\Http\Controllers\TransporteArquivoController;
 use App\Livewire\Certificados\Gerenciar;
 use App\Livewire\Contador\Exportacao;
 use App\Livewire\Estoque\Painel;
@@ -21,6 +22,7 @@ use App\Livewire\Notas\Emissao;
 use App\Livewire\Painel\Inicio;
 use App\Livewire\Pessoas\Cadastro;
 use App\Livewire\Tenancy\Marca;
+use App\Livewire\Transporte;
 use App\Livewire\Tributacao\Regras;
 use App\Livewire\Usuarios\Cadastro as UsuariosCadastro;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +75,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('notas-servico', Notas::class)->name('notas-servico');
     Route::get('notas-servico/{nota}/pdf', [NotaServicoArquivoController::class, 'pdf'])->name('notas-servico.pdf');
     Route::get('notas-servico/{nota}/xml', [NotaServicoArquivoController::class, 'xml'])->name('notas-servico.xml');
+
+    // Transporte: viagem, CT-e e MDF-e (portado do app-transm).
+    Route::get('viagens', Transporte\Viagens::class)->name('viagens');
+    Route::get('viagens/{viagem}', Transporte\ViagemDetalhe::class)->whereNumber('viagem')->name('viagens.detalhe');
+    Route::get('veiculos', Transporte\Veiculos::class)->name('veiculos');
+    Route::get('motoristas', Transporte\Motoristas::class)->name('motoristas');
+    Route::get('transporte', Transporte\Configuracao::class)->name('transporte.configuracao');
+    Route::get('transporte/cte/{cte}/dacte', [TransporteArquivoController::class, 'dacte'])->name('transporte.dacte');
+    Route::get('transporte/cte/{cte}/xml', [TransporteArquivoController::class, 'cteXml'])->name('transporte.cte.xml');
+    Route::get('transporte/mdfe/{mdfe}/damdfe', [TransporteArquivoController::class, 'damdfe'])->name('transporte.damdfe');
+    Route::get('transporte/mdfe/{mdfe}/xml', [TransporteArquivoController::class, 'mdfeXml'])->name('transporte.mdfe.xml');
 
     Route::post('emitente/escolher', EscolherEmitenteController::class)->name('emitente.escolher');
 });

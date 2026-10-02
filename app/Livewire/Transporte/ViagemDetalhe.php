@@ -1,0 +1,525 @@
+<?php
+
+namespace App\Livewire\Transporte;
+
+use App\Enums\Transporte\CteStatus;
+use App\Enums\Transporte\MdfeStatus;
+use App\Models\Cte;
+use App\Models\Emitente;
+use App\Models\Motorista;
+use App\Models\Veiculo;
+use App\Models\Viagem;
+use App\Models\ViagemNota;
+use App\Services\Transporte\EmissaoViagem;
+use App\Services\Transporte\EventosCte;
+use App\Services\Transporte\EventosMdfe;
+use App\Services\Transporte\FaturamentoViagem;
+use App\Services\Transporte\MontadorCtes;
+use App\Services\Transporte\TransmissorCte;
+use App\Services\Transporte\TransmissorMdfe;
+use App\Services\Transporte\TransporteException;
+use App\Services\Transporte\Viagens;
+use App\Support\Dinheiro;
+use App\Support\Documento;
+use App\Support\EmitenteAtual;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
+use Livewire\Component;
+use Livewire\WithFileUploads;
+
+/**
+ * A viagem inteira numa tela: notas, viagem e documentos.
+ *
+ * No Transm o mesmo trabalho passava por três telas (ordem, processo fiscal,
+ * faturamento) e seis formulários. Aqui a pessoa solta os XML das NF-e,
+ * escolhe motorista e veículo, informa o frete e aperta Emitir; CT-e e MDF-e
+ * saem das notas, sem preencher documento fiscal à mão.
+ */
+#[Layout('components.layouts.fiscal')]
+class ViagemDetalhe extends Component
+{
+    use WithFileUploads;
+
+    #[Locked]
+    public int $viagemId;
+
+    /** @var array<int, mixed> */
+    public array $arquivos = [];
+
+    /** @var array<int, array{arquivo: string, erro: string}> */
+    public array $falhas = [];
+
+    /** @var array<int, string> */
+    public array $pesos = [];
+
+    public ?int $motoristaId = null;
+
+    public ?int $veiculoId = null;
+
+    public ?int $reboqueId = null;
+
+    public ?int $reboque2Id = null;
+
+    public string $dataCarregamento = '';
+
+    public string $freteModo = 'tonelada';
+
+    public string $freteValor = '';
+
+    public string $pedagio = '';
+
+    public string $observacoes = '';
+
+    public string $percurso = '';
+
+    public string $averbacoes = '';
+
+    /** @var array{ok: array<int, string>, erros: array<int, string>}|null */
+    public ?array $resultado = null;
+
+    // Cadastro rápido, sem sair da viagem.
+    public bool $novoMotoristaAberto = false;
+
+    public string $novoMotoristaNome = '';
+
+    public string $novoMotoristaCpf = '';
+
+    public bool $novoVeiculoAberto = false;
+
+    public string $novoVeiculoPlaca = '';
+
+    public string $novoVeiculoTipo = 'tracao';
+
+    public string $novoVeiculoUf = 'SP';
+
+    public string $novoVeiculoTara = '';
+
+    public string $novoVeiculoRodado = '03';
+
+    public string $novoVeiculoCarroceria = '02';
+
+    // Eventos.
+    public ?int $cteCancelarId = null;
+
+    public string $justificativa = '';
+
+    public ?int $cteCorrigirId = null;
+
+    public string $campoCorrecao = 'xObs';
+
+    public string $valorCorrecao = '';
+
+    public bool $cancelarMdfeAberto = false;
+
+    public bool $encerrarAberto = false;
+
+    public string $municipioEncerramento = '';
+
+    public string $dataEncerramento = '';
+
+    public string $vencimentoFatura = '';
+
+    public function mount(int $viagem): void
+    {
+        $this->authorize('transporte.ver');
+        $this->viagemId = $viagem;
+        abort_if($this->viagem === null, 404);
+        $this->preencher();
+    }
+
+    #[Computed]
+    public function emitente(): ?Emitente
+    {
+        return app(EmitenteAtual::class)->resolver();
+    }
+
+    /**
+     * Matriz e filial dividem o tenant: o escopo global não basta, a viagem
+     * precisa ser do emitente em foco.
+     */
+    #[Computed]
+    public function viagem(): ?Viagem
+    {
+        return Viagem::query()
+            ->where('emitente_id', $this->emitente?->getKey())
+            ->with(['notas', 'ctes.notas', 'ctes.eventos', 'ctes.fatura', 'mdfe', 'motorista', 'veiculo', 'reboque', 'reboque2', 'eventos.user'])
+            ->find($this->viagemId);
+    }
+
+    #[Computed]
+    public function motoristas(): Collection
+    {
+        return Motorista::where('emitente_id', $this->emitente?->getKey())->where('ativo', true)->orderBy('nome')->get();
+    }
+
+    #[Computed]
+    public function cavalos(): Collection
+    {
+        return Veiculo::where('emitente_id', $this->emitente?->getKey())->where('ativo', true)->where('tipo', 'tracao')->orderBy('placa')->get();
+    }
+
+    #[Computed]
+    public function carretas(): Collection
+    {
+        return Veiculo::where('emitente_id', $this->emitente?->getKey())->where('ativo', true)->where('tipo', 'reboque')->orderBy('placa')->get();
+    }
+
+    #[Computed]
+    public function pendenciasMdfe(): array
+    {
+        return app(TransmissorMdfe::class)->pendencias($this->viagem);
+    }
+
+    /** Frete total que vai ser cobrado: a soma dos CT-e que ainda valem. */
+    #[Computed]
+    public function freteTotal(): int
+    {
+        return (int) $this->viagem->ctes->reject(fn (Cte $c): bool => $c->status === CteStatus::Cancelado)->sum('valor_total_centavos');
+    }
+
+    public function updatedArquivos(Viagens $viagens): void
+    {
+        $this->authorize('transporte.operar');
+        $this->validate(['arquivos.*' => ['file', 'max:20480', 'extensions:xml']], attributes: ['arquivos.*' => 'arquivo']);
+
+        $this->falhas = [];
+        $incluidas = 0;
+        foreach ($this->arquivos as $arquivo) {
+            try {
+                $viagens->adicionarNota($this->viagem, (string) file_get_contents($arquivo->getRealPath()));
+                $incluidas++;
+            } catch (TransporteException $e) {
+                $this->falhas[] = ['arquivo' => $arquivo->getClientOriginalName(), 'erro' => $e->getMessage()];
+            }
+            unset($this->viagem);
+        }
+        $this->reset('arquivos');
+        $this->preencherPesos();
+
+        if ($incluidas > 0) {
+            session()->flash('sucesso', $incluidas === 1 ? 'NF-e incluída.' : "{$incluidas} NF-e incluídas.");
+        }
+    }
+
+    public function removerNota(int $notaId, Viagens $viagens): void
+    {
+        $this->authorize('transporte.operar');
+        $nota = $this->viagem->notas->firstWhere('id', $notaId);
+        abort_if($nota === null, 404);
+        $this->executar(fn () => $viagens->removerNota($this->viagem, $nota));
+        $this->preencherPesos();
+    }
+
+    public function salvarPeso(int $notaId, Viagens $viagens): void
+    {
+        $this->authorize('transporte.operar');
+        $nota = $this->viagem->notas->firstWhere('id', $notaId);
+        abort_if($nota === null, 404);
+        $peso = (float) str_replace(['.', ','], ['', '.'], (string) ($this->pesos[$notaId] ?? '0'));
+        $this->executar(fn () => $viagens->definirPeso($this->viagem, $nota, $peso));
+        $this->preencherPesos();
+    }
+
+    public function salvarViagem(MontadorCtes $montador): void
+    {
+        $this->authorize('transporte.operar');
+        $viagem = $this->viagem;
+        $ids = fn (Collection $c): string => $c->pluck('id')->implode(',') ?: '0';
+
+        $this->validate([
+            'motoristaId' => ['nullable', 'integer', 'in:'.$ids($this->motoristas)],
+            'veiculoId' => ['nullable', 'integer', 'in:'.$ids($this->cavalos)],
+            'reboqueId' => ['nullable', 'integer', 'in:'.$ids($this->carretas)],
+            'reboque2Id' => ['nullable', 'integer', 'in:'.$ids($this->carretas), 'different:reboqueId'],
+            'dataCarregamento' => ['required', 'date'],
+            'freteModo' => ['required', 'in:tonelada,fechado'],
+            'observacoes' => ['nullable', 'string', 'max:1000'],
+        ], ['reboque2Id.different' => 'Escolha carretas diferentes.'], [
+            'motoristaId' => 'motorista', 'veiculoId' => 'cavalo', 'reboqueId' => 'carreta', 'reboque2Id' => 'segunda carreta',
+            'dataCarregamento' => 'data de carregamento',
+        ]);
+
+        $mdfeEmitido = in_array($viagem->mdfe?->status, [MdfeStatus::Autorizado, MdfeStatus::Encerrado], true);
+        if ($mdfeEmitido) {
+            $this->addError('viagem', 'O MDF-e já foi emitido: motorista e veículo não mudam mais nesta viagem.');
+
+            return;
+        }
+
+        $dados = [
+            'motorista_id' => $this->motoristaId,
+            'veiculo_id' => $this->veiculoId,
+            'reboque_id' => $this->reboqueId,
+            'reboque2_id' => $this->reboque2Id,
+            'data_carregamento' => $this->dataCarregamento,
+            'observacoes' => trim($this->observacoes) ?: null,
+        ];
+        // O frete está dentro do CT-e: depois de autorizado ele não muda.
+        if (! $viagem->travada()) {
+            $valor = Dinheiro::emCentavos($this->freteValor);
+            $dados += [
+                'frete_modo' => $this->freteModo,
+                'frete_tonelada_centavos' => $this->freteModo === 'tonelada' ? $valor : 0,
+                'frete_fechado_centavos' => $this->freteModo === 'fechado' ? $valor : 0,
+                'pedagio_centavos' => Dinheiro::emCentavos($this->pedagio),
+            ];
+        }
+        $viagem->update($dados);
+        if (! $viagem->travada()) {
+            $montador->montar($viagem);
+        }
+        unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal);
+        session()->flash('sucesso', 'Viagem salva.');
+    }
+
+    public function definirTomador(int $cteId, string $tipo): void
+    {
+        $this->authorize('transporte.operar');
+        $cte = $this->viagem->ctes->firstWhere('id', $cteId);
+        abort_if($cte === null || ! in_array($tipo, array_map('strval', array_keys(Cte::TOMADORES)), true), 404);
+        if (! $cte->status->transmissivel()) {
+            $this->addError('documentos', 'Este CT-e já está na SEFAZ e o tomador não muda mais.');
+
+            return;
+        }
+        $cte->update(['tomador_tipo' => $tipo]);
+        unset($this->viagem);
+    }
+
+    public function emitir(EmissaoViagem $emissao): void
+    {
+        $this->authorize('transporte.operar');
+        $this->salvarViagem(app(MontadorCtes::class));
+        if ($this->getErrorBag()->isNotEmpty()) {
+            return;
+        }
+        $this->salvarMdfeRascunho();
+        $this->resultado = $emissao->emitir($this->viagem, Auth::user());
+        unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal);
+        session()->forget('sucesso');
+    }
+
+    public function salvarMdfeRascunho(): void
+    {
+        $this->authorize('transporte.operar');
+        $mdfe = $this->viagem->mdfe;
+        if ($mdfe === null && $this->viagem->ctes->contains(fn (Cte $c): bool => $c->status === CteStatus::Autorizado)) {
+            try {
+                $mdfe = app(TransmissorMdfe::class)->preparar($this->viagem);
+            } catch (TransporteException) {
+                return;
+            }
+        }
+        if ($mdfe === null || ! $mdfe->status->transmissivel()) {
+            return;
+        }
+        $ufs = collect(preg_split('/[\s,;]+/', mb_strtoupper($this->percurso)))->filter(fn ($uf): bool => preg_match('/^[A-Z]{2}$/', (string) $uf) === 1)->values()->all();
+        $averbacoes = collect(preg_split('/[\s,;]+/', $this->averbacoes))->map(fn ($a): string => mb_substr(trim((string) $a), 0, 40))->filter()->values()->all();
+        $seguro = $mdfe->seguro;
+        if (is_array($seguro)) {
+            $seguro['averbacoes'] = $averbacoes;
+        }
+        $mdfe->update(['percurso_ufs' => $ufs, 'seguro' => $seguro]);
+        unset($this->viagem);
+    }
+
+    public function consultarCte(int $cteId, TransmissorCte $transmissor): void
+    {
+        $this->authorize('transporte.operar');
+        $cte = $this->viagem->ctes->firstWhere('id', $cteId);
+        abort_if($cte === null, 404);
+        $this->executar(fn () => $transmissor->consultar($cte));
+    }
+
+    public function consultarMdfe(TransmissorMdfe $transmissor): void
+    {
+        $this->authorize('transporte.operar');
+        abort_if($this->viagem->mdfe === null, 404);
+        $this->executar(fn () => $transmissor->consultar($this->viagem->mdfe));
+    }
+
+    public function abrirCancelamento(int $cteId): void
+    {
+        $this->resetErrorBag();
+        $this->reset('justificativa', 'cteCorrigirId');
+        $this->cteCancelarId = $cteId;
+    }
+
+    public function cancelarCte(EventosCte $eventos): void
+    {
+        $this->authorize('transporte.cancelar');
+        $cte = $this->viagem->ctes->firstWhere('id', $this->cteCancelarId);
+        abort_if($cte === null, 404);
+        if ($this->executar(fn () => $eventos->cancelar($cte, $this->justificativa, Auth::user()), 'justificativa')) {
+            $this->reset('cteCancelarId', 'justificativa');
+            session()->flash('sucesso', "CT-e {$cte->numeroFormatado()} cancelado.");
+        }
+    }
+
+    public function abrirCorrecao(int $cteId): void
+    {
+        $this->resetErrorBag();
+        $this->reset('valorCorrecao', 'cteCancelarId');
+        $this->cteCorrigirId = $cteId;
+    }
+
+    public function corrigirCte(EventosCte $eventos): void
+    {
+        $this->authorize('transporte.operar');
+        $cte = $this->viagem->ctes->firstWhere('id', $this->cteCorrigirId);
+        abort_if($cte === null, 404);
+        if ($this->executar(fn () => $eventos->cartaCorrecao($cte, $this->campoCorrecao, $this->valorCorrecao, Auth::user()), 'valorCorrecao')) {
+            $this->reset('cteCorrigirId', 'valorCorrecao');
+            session()->flash('sucesso', 'Carta de correção registrada.');
+        }
+    }
+
+    public function cancelarMdfe(EventosMdfe $eventos): void
+    {
+        $this->authorize('transporte.cancelar');
+        abort_if($this->viagem->mdfe === null, 404);
+        if ($this->executar(fn () => $eventos->cancelar($this->viagem->mdfe, $this->justificativa, Auth::user()), 'justificativa')) {
+            $this->reset('cancelarMdfeAberto', 'justificativa');
+            session()->flash('sucesso', 'MDF-e cancelado.');
+        }
+    }
+
+    public function encerrarMdfe(EventosMdfe $eventos): void
+    {
+        $this->authorize('transporte.operar');
+        abort_if($this->viagem->mdfe === null, 404);
+        if ($this->executar(fn () => $eventos->encerrar($this->viagem->mdfe, $this->municipioEncerramento ?: null, $this->dataEncerramento ?: null, Auth::user()), 'encerramento')) {
+            $this->reset('encerrarAberto');
+            session()->flash('sucesso', 'MDF-e encerrado. Viagem concluída.');
+        }
+    }
+
+    public function faturar(FaturamentoViagem $faturamento): void
+    {
+        $this->authorize('transporte.operar');
+        $faturas = null;
+        if ($this->executar(function () use ($faturamento, &$faturas): void {
+            $faturas = $faturamento->faturar($this->viagem, $this->vencimentoFatura ?: null, Auth::user());
+        }, 'faturamento')) {
+            session()->flash('sucesso', $faturas->count() === 1 ? 'Fatura lançada.' : "{$faturas->count()} faturas lançadas, uma por tomador.");
+        }
+    }
+
+    public function salvarNovoMotorista(): void
+    {
+        $this->authorize('transporte.operar');
+        $this->novoMotoristaCpf = preg_replace('/\D/', '', $this->novoMotoristaCpf);
+        $this->validate([
+            'novoMotoristaNome' => ['required', 'string', 'min:3', 'max:60'],
+            'novoMotoristaCpf' => ['required', 'digits:11', fn ($a, $v, $falhar) => Documento::cpfValido((string) $v) ? null : $falhar('CPF inválido.')],
+        ], attributes: ['novoMotoristaNome' => 'nome', 'novoMotoristaCpf' => 'CPF']);
+        if (Motorista::where('emitente_id', $this->emitente->getKey())->where('cpf', $this->novoMotoristaCpf)->exists()) {
+            $this->addError('novoMotoristaCpf', 'Já existe motorista com este CPF.');
+
+            return;
+        }
+        $motorista = (new Motorista(['nome' => mb_strtoupper(trim($this->novoMotoristaNome)), 'cpf' => $this->novoMotoristaCpf]))
+            ->forceFill(['emitente_id' => $this->emitente->getKey()]);
+        $motorista->save();
+        $this->motoristaId = $motorista->getKey();
+        $this->reset('novoMotoristaAberto', 'novoMotoristaNome', 'novoMotoristaCpf');
+        unset($this->motoristas);
+    }
+
+    public function salvarNovoVeiculo(): void
+    {
+        $this->authorize('transporte.operar');
+        $this->novoVeiculoPlaca = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $this->novoVeiculoPlaca));
+        $this->validate([
+            'novoVeiculoPlaca' => ['required', 'regex:/^[A-Z]{3}[0-9][A-Z0-9][0-9]{2}$/'],
+            'novoVeiculoTipo' => ['required', 'in:tracao,reboque'],
+            'novoVeiculoUf' => ['required', 'size:2'],
+            'novoVeiculoTara' => ['required', 'integer', 'min:1', 'max:99999'],
+            'novoVeiculoRodado' => ['nullable', 'in:'.implode(',', array_keys(Veiculo::TIPOS_RODADO))],
+            'novoVeiculoCarroceria' => ['required', 'in:'.implode(',', array_keys(Veiculo::TIPOS_CARROCERIA))],
+        ], ['novoVeiculoPlaca.regex' => 'Placa no formato ABC1D23 ou ABC1234.'], [
+            'novoVeiculoPlaca' => 'placa', 'novoVeiculoTara' => 'tara', 'novoVeiculoCarroceria' => 'carroceria',
+        ]);
+        if (Veiculo::where('emitente_id', $this->emitente->getKey())->where('placa', $this->novoVeiculoPlaca)->exists()) {
+            $this->addError('novoVeiculoPlaca', 'Já existe veículo com esta placa.');
+
+            return;
+        }
+        $veiculo = (new Veiculo([
+            'tipo' => $this->novoVeiculoTipo,
+            'placa' => $this->novoVeiculoPlaca,
+            'uf' => strtoupper($this->novoVeiculoUf),
+            'tara_kg' => (int) $this->novoVeiculoTara,
+            'tipo_rodado' => $this->novoVeiculoTipo === 'tracao' ? $this->novoVeiculoRodado : null,
+            'tipo_carroceria' => $this->novoVeiculoCarroceria,
+        ]))->forceFill(['emitente_id' => $this->emitente->getKey()]);
+        $veiculo->save();
+        if ($veiculo->eTracao()) {
+            $this->veiculoId = $veiculo->getKey();
+        } elseif ($this->reboqueId === null) {
+            $this->reboqueId = $veiculo->getKey();
+        } else {
+            $this->reboque2Id = $veiculo->getKey();
+        }
+        $this->reset('novoVeiculoAberto', 'novoVeiculoPlaca', 'novoVeiculoTara');
+        unset($this->cavalos, $this->carretas);
+    }
+
+    public function render()
+    {
+        return view('livewire.transporte.viagem-detalhe')
+            ->title('Viagem '.$this->viagem?->numeroFormatado());
+    }
+
+    /**
+     * Roda a ação e mostra o erro do serviço no campo certo. As mensagens do
+     * módulo já são escritas para quem opera.
+     */
+    private function executar(callable $acao, string $campo = 'documentos'): bool
+    {
+        // O Livewire guarda a bolsa de erros entre requisições: sem limpar,
+        // o erro da tentativa anterior continua na tela depois do acerto.
+        $this->resetErrorBag($campo);
+        try {
+            $acao();
+        } catch (TransporteException $e) {
+            $this->addError($campo, $e->getMessage());
+
+            return false;
+        } finally {
+            unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal);
+        }
+
+        return true;
+    }
+
+    private function preencher(): void
+    {
+        $viagem = $this->viagem;
+        $this->motoristaId = $viagem->motorista_id;
+        $this->veiculoId = $viagem->veiculo_id;
+        $this->reboqueId = $viagem->reboque_id;
+        $this->reboque2Id = $viagem->reboque2_id;
+        $this->dataCarregamento = $viagem->data_carregamento?->toDateString() ?? today()->toDateString();
+        $this->freteModo = $viagem->frete_modo;
+        $valor = $viagem->frete_modo === 'fechado' ? $viagem->frete_fechado_centavos : $viagem->frete_tonelada_centavos;
+        $this->freteValor = $valor > 0 ? Dinheiro::formatar($valor) : '';
+        $this->pedagio = $viagem->pedagio_centavos > 0 ? Dinheiro::formatar($viagem->pedagio_centavos) : '';
+        $this->observacoes = (string) $viagem->observacoes;
+        $this->percurso = implode(', ', (array) $viagem->mdfe?->percurso_ufs);
+        $this->averbacoes = implode(', ', (array) ($viagem->mdfe?->seguro['averbacoes'] ?? []));
+        $this->dataEncerramento = today()->toDateString();
+        $this->municipioEncerramento = (string) $viagem->ctes->last()?->municipio_fim_codigo;
+        $this->preencherPesos();
+    }
+
+    private function preencherPesos(): void
+    {
+        $this->pesos = $this->viagem->notas
+            ->mapWithKeys(fn (ViagemNota $n): array => [$n->id => number_format((float) $n->peso_kg, 3, ',', '.')])
+            ->all();
+    }
+}

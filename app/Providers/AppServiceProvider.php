@@ -14,6 +14,10 @@ use App\Services\Integrations\MetaConversoesGateway;
 use App\Services\Integrations\UazapiGateway;
 use App\Services\Nfse\GatewayNfse;
 use App\Services\Nfse\SigissGateway;
+use App\Services\Transporte\GatewayCte;
+use App\Services\Transporte\GatewayMdfe;
+use App\Services\Transporte\NfephpCteGateway;
+use App\Services\Transporte\NfephpMdfeGateway;
 use App\Support\ApresentacaoTokens;
 use App\Support\TenantAtual;
 use Carbon\CarbonImmutable;
@@ -39,6 +43,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(GatewayDeConversoes::class, MetaConversoesGateway::class);
         $this->app->bind(GatewayDeWhatsapp::class, UazapiGateway::class);
         $this->app->bind(GatewayNfse::class, SigissGateway::class);
+        $this->app->bind(GatewayCte::class, NfephpCteGateway::class);
+        $this->app->bind(GatewayMdfe::class, NfephpMdfeGateway::class);
         $this->app->singleton(TenantAtual::class);
 
         //

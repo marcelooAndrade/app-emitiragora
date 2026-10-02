@@ -22,7 +22,7 @@
     //
     // Painel fica sem grupo, solto no topo: é o único destino que todo
     // mundo sempre usa, e não precisa de rótulo para ser encontrado.
-    $grupos = ['', 'Fiscal', 'Financeiro', 'Estoque e cadastros', 'Configuração'];
+    $grupos = ['', 'Fiscal', 'Transporte', 'Financeiro', 'Estoque e cadastros', 'Configuração'];
 
     $navegacao = collect([
         ['Painel', 'dashboard', 'relatorio.ver', '', 'M3 12h18M3 6h18M3 18h18'],
@@ -31,6 +31,9 @@
         ['Notas de serviço', 'notas-servico', 'nfse.ver', 'Fiscal', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
         ['Contabilidade', 'contabilidade', 'contador.exportar', 'Fiscal', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
 
+        ['Viagens', 'viagens', 'transporte.ver', 'Transporte', 'M8 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0'],
+        ['Veículos', 'veiculos', 'transporte.ver', 'Transporte', 'M12 21a9 9 0 100-18 9 9 0 000 18zm0-6a3 3 0 100-6 3 3 0 000 6zm0-6V3m0 18v-6m-3-3H3m18 0h-6'],
+        ['Motoristas', 'motoristas', 'transporte.ver', 'Transporte', 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'],
         ['Financeiro', 'financeiro', 'financeiro.ver', 'Financeiro', 'M3 3v16a2 2 0 002 2h16M7 15l3.5-4 3 3L20 7'],
         ['Faturas', 'faturas', 'financeiro.ver', 'Financeiro', 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z'],
         ['Contas a pagar', 'contas-a-pagar', 'financeiro.ver', 'Financeiro', 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z'],
@@ -45,6 +48,7 @@
         ['Produtos', 'produtos', 'produto.ver', 'Estoque e cadastros', 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'],
 
         ['Regras fiscais', 'regras-fiscais', 'tributacao.gerenciar', 'Configuração', 'M9 12h6m-6 4h4m4-11V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V9l-4-4z'],
+        ['Transporte', 'transporte.configuracao', 'transporte.ver', 'Configuração', 'M8 17a2 2 0 11-4 0 2 2 0 014 0zm10 0a2 2 0 11-4 0 2 2 0 014 0zM13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0'],
         ['Certificado', 'certificados', 'certificado.ver', 'Configuração', 'M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z'],
         ['Emitente', 'emitente', 'emitente.gerenciar', 'Configuração', 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'],
         ['Marca', 'marca', 'emitente.gerenciar', 'Configuração', 'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343'],
@@ -105,7 +109,7 @@
 
                         @foreach ($navegacao[$grupo] as [$rotulo, $rota, $permissao, $secao, $icone])
                             @php
-                                $ativo = $rota && request()->routeIs($rota);
+                                $ativo = $rota && request()->routeIs($rota, $rota.".*");
                                 $disponivel = $rota !== null;
                             @endphp
                             <a @if($disponivel) href="{{ route($rota) }}" @else aria-disabled="true" @endif

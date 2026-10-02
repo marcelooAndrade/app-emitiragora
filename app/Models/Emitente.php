@@ -85,6 +85,22 @@ class Emitente extends Model
         return $this->hasMany(EmitenteCertificado::class)->latest('id');
     }
 
+    /** @return HasOne<EmitenteTransporte, $this> */
+    public function transporte(): HasOne
+    {
+        return $this->hasOne(EmitenteTransporte::class);
+    }
+
+    /**
+     * Configuração de transporte, criada com os padrões na primeira leitura:
+     * o emitente que nunca abriu a tela de transporte ainda assim emite CT-e
+     * com CFOP e série padrão, e só o RNTRC e o seguro ficam pendentes.
+     */
+    public function configuracaoTransporte(): EmitenteTransporte
+    {
+        return $this->transporte()->firstOrCreate([]);
+    }
+
     /** @return HasOne<EmitenteNfse, $this> */
     public function nfse(): HasOne
     {

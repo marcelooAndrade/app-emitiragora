@@ -58,6 +58,7 @@ use App\Models\Emitente;
 use App\Models\EmitenteNfse;
 use App\Models\Fatura;
 use App\Models\FaturaParcela;
+use App\Models\Motorista;
 use App\Models\NaturezaOperacao;
 use App\Models\Nota;
 use App\Models\NotaItem;
@@ -65,13 +66,22 @@ use App\Models\PerfilFiscal;
 use App\Models\PerfilFiscalRegra;
 use App\Models\Pessoa;
 use App\Models\Produto;
+use App\Models\RegraIcmsTransporte;
 use App\Models\User;
+use App\Models\Veiculo;
+use App\Models\Viagem;
+use App\Services\Fiscal\CertificateService;
 use App\Services\Fiscal\RespostaSefaz;
 use App\Services\Fiscal\SefazGateway;
 use App\Services\Nfse\GatewayNfse;
 use App\Services\Nfse\RespostaNfse;
 use App\Services\Stock\StockService;
+use App\Services\Transporte\GatewayCte;
+use App\Services\Transporte\GatewayMdfe;
+use App\Services\Transporte\Viagens;
 use App\Support\TenantAtual;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 function produtoDe(Emitente $emitente, array $extra = []): Produto
 {
@@ -382,4 +392,193 @@ function nfseAutorizada(string $numero = '700'): RespostaNfse
         codigoVerificacao: 'ABC123',
         bruto: "<notafiscal><numero_nf>{$numero}</numero_nf><serie>NFE</serie><codigo>ABC123</codigo></notafiscal>",
     );
+}
+
+/*
+ | Transporte (CT-e e MDF-e).
+ |
+ | O roteiro aceita uma resposta por método ou uma lista, consumida na ordem
+ | (para "rejeitado, depois autorizado"). `assinar` devolve o XML como veio:
+ | quem quer o XML assinado de verdade usa o gateway real com o certificado
+ | de teste, como em CteXmlTest.
+ */
+function gatewayTransporteFake(string $interface, array $roteiro): object
+{
+    $base = new class($roteiro)
+    {
+        public array $chamadas = [];
+
+        public function __construct(public array $roteiro) {}
+
+        public function responder(string $metodo, ?RespostaSefaz $padrao = null): RespostaSefaz
+        {
+            $this->chamadas[] = $metodo;
+            $r = $this->roteiro[$metodo] ?? $padrao ?? new RespostaSefaz('999', "Sem roteiro para {$metodo}");
+            if (is_array($r)) {
+                $r = count($this->roteiro[$metodo]) > 1 ? array_shift($this->roteiro[$metodo]) : $this->roteiro[$metodo][0];
+            }
+            if ($r instanceof Throwable) {
+                throw $r;
+            }
+
+            return $r;
+        }
+    };
+
+    if ($interface === GatewayCte::class) {
+        return new class($base) implements GatewayCte
+        {
+            public function __construct(public object $base) {}
+
+            public function assinar(Emitente $e, string $xml): string
+            {
+                return $xml;
+            }
+
+            public function enviar(Emitente $e, string $xmlAssinado): RespostaSefaz
+            {
+                return $this->base->responder('enviar');
+            }
+
+            public function consultar(Emitente $e, string $chave, ?string $xmlAssinado = null): RespostaSefaz
+            {
+                return $this->base->responder('consultar');
+            }
+
+            public function cancelar(Emitente $e, string $chave, string $protocolo, string $justificativa): RespostaSefaz
+            {
+                return $this->base->responder('cancelar');
+            }
+
+            public function cartaCorrecao(Emitente $e, string $chave, array $correcoes, int $sequencia): RespostaSefaz
+            {
+                return $this->base->responder('cartaCorrecao');
+            }
+        };
+    }
+
+    return new class($base) implements GatewayMdfe
+    {
+        public function __construct(public object $base) {}
+
+        public function assinar(Emitente $e, string $xml): string
+        {
+            return $xml;
+        }
+
+        public function enviar(Emitente $e, string $xmlAssinado): RespostaSefaz
+        {
+            return $this->base->responder('enviar');
+        }
+
+        public function consultar(Emitente $e, string $chave, ?string $xmlAssinado = null): RespostaSefaz
+        {
+            return $this->base->responder('consultar');
+        }
+
+        public function encerrar(Emitente $e, string $chave, string $protocolo, string $uf, string $municipioCodigo, string $data): RespostaSefaz
+        {
+            return $this->base->responder('encerrar');
+        }
+
+        public function cancelar(Emitente $e, string $chave, string $protocolo, string $justificativa): RespostaSefaz
+        {
+            return $this->base->responder('cancelar');
+        }
+    };
+}
+
+function comGatewayCte(array $roteiro): object
+{
+    $fake = gatewayTransporteFake(GatewayCte::class, $roteiro);
+    app()->instance(GatewayCte::class, $fake);
+
+    return $fake->base;
+}
+
+function comGatewayMdfe(array $roteiro): object
+{
+    $fake = gatewayTransporteFake(GatewayMdfe::class, $roteiro);
+    app()->instance(GatewayMdfe::class, $fake);
+
+    return $fake->base;
+}
+
+function cteAutorizado(string $protocolo = '135260000999001'): RespostaSefaz
+{
+    return new RespostaSefaz('100', 'Autorizado o uso do CT-e', $protocolo, null, '<cteProc/>');
+}
+
+function mdfeAutorizado(string $protocolo = '958260000999001'): RespostaSefaz
+{
+    return new RespostaSefaz('100', 'Autorizado o uso do MDF-e', $protocolo, null, '<mdfeProc/>');
+}
+
+function eventoRegistrado(string $protocolo = '135260000888001'): RespostaSefaz
+{
+    return new RespostaSefaz('135', 'Evento registrado e vinculado', $protocolo);
+}
+
+function comCertificadoDeTeste(Emitente $emitente): void
+{
+    app(CertificateService::class)->enviar(
+        $emitente,
+        UploadedFile::fake()->createWithContent(
+            'valido.pfx',
+            (string) file_get_contents(base_path('tests/Fixtures/certificados/valido.pfx')),
+        ),
+        'teste123',
+        User::factory()->create(),
+    );
+}
+
+/**
+ * Emitente pronto para transportar: RNTRC, seguro, regra de ICMS SP → SP a
+ * 12% e certificado de teste (CNPJ 11222333000181, o mesmo do valido.pfx).
+ */
+function transportadora(array $extra = [], bool $certificado = true): Emitente
+{
+    $emitente = emitenteCompleto($extra);
+    $emitente->configuracaoTransporte()->update([
+        'rntrc' => '12345678',
+        'seguradora_nome' => 'SEGURADORA TESTE',
+        'seguradora_cnpj' => '11444777000161',
+        'apolice' => 'AP-123456',
+    ]);
+    (new RegraIcmsTransporte(['nome' => 'SP interno', 'uf_origem' => 'SP', 'uf_destino' => 'SP', 'cst' => '00', 'aliquota' => 12]))
+        ->forceFill(['emitente_id' => $emitente->id])->save();
+    if ($certificado) {
+        comCertificadoDeTeste($emitente);
+    }
+
+    return $emitente->fresh();
+}
+
+/**
+ * Viagem com a NF-e da fixture (500 kg), motorista, cavalo e frete de
+ * R$ 150,00 por tonelada: um CT-e de R$ 75,00.
+ */
+function viagemPronta(?Emitente $emitente = null, array $dadosViagem = []): Viagem
+{
+    Storage::fake('fiscal');
+    $emitente ??= transportadora();
+    $motorista = (new Motorista(['nome' => 'JOAO DA SILVA', 'cpf' => '52998224725']))->forceFill(['emitente_id' => $emitente->id]);
+    $motorista->save();
+    $veiculo = (new Veiculo([
+        'tipo' => 'tracao', 'placa' => 'ABC1D23', 'renavam' => '12345678901', 'uf' => 'SP',
+        'tara_kg' => 8000, 'capacidade_kg' => 30000, 'tipo_rodado' => '03', 'tipo_carroceria' => '02',
+    ]))->forceFill(['emitente_id' => $emitente->id]);
+    $veiculo->save();
+
+    $viagens = app(Viagens::class);
+    $viagem = $viagens->criar($emitente, [
+        'motorista_id' => $motorista->id,
+        'veiculo_id' => $veiculo->id,
+        'frete_tonelada_centavos' => 15000,
+        ...$dadosViagem,
+    ]);
+    $nota = $viagens->adicionarNota($viagem, (string) file_get_contents(base_path('tests/Fixtures/xml/nfe-autorizada.xml')));
+    $viagens->definirPeso($viagem, $nota, 500);
+
+    return $viagem->fresh();
 }

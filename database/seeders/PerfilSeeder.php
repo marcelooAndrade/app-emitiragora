@@ -27,6 +27,7 @@ class PerfilSeeder extends Seeder
         'relatorio.ver', 'contador.exportar',
         'financeiro.ver', 'financeiro.gerenciar',
         'nfse.ver', 'nfse.emitir', 'nfse.cancelar', 'nfse.configurar',
+        'transporte.ver', 'transporte.operar', 'transporte.cancelar', 'transporte.configurar',
     ];
 
     public function run(): void
@@ -54,6 +55,7 @@ class PerfilSeeder extends Seeder
                 'importacao.ver', 'relatorio.ver', 'contador.exportar',
                 'financeiro.ver',
                 'nfse.ver', 'nfse.emitir', 'nfse.cancelar',
+                'transporte.ver', 'transporte.operar', 'transporte.cancelar',
             ],
 
             Perfil::Estoque->value => [
@@ -74,6 +76,7 @@ class PerfilSeeder extends Seeder
                 'financeiro.ver', 'financeiro.gerenciar',
                 'nfse.ver',
                 'auditoria.ver',
+                'transporte.ver',
             ],
 
             Perfil::Consulta->value => $somenteLeitura,
