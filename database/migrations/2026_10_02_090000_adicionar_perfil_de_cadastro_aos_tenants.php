@@ -10,8 +10,12 @@ return new class extends Migration
     {
         // Respostas do modal do site (ver App\Support\PerfilDeCadastro).
         // Nulo para quem se cadastrou direto pelo app, sem passar pelo modal.
+        //
+        // Sem `after()`: a primeira versão pedia `after('situacao_comercial')`,
+        // coluna que a migração de 15/09 já tinha removido. O SQLite dos testes
+        // ignora `after()` e passou; o MySQL de produção recusou o deploy.
         Schema::table('tenants', function (Blueprint $table) {
-            $table->json('perfil_cadastro')->nullable()->after('situacao_comercial');
+            $table->json('perfil_cadastro')->nullable();
         });
     }
 
