@@ -142,3 +142,57 @@ it('recusa razao social maior que o destino aceita', function () {
 
     expect(Tenant::count())->toBe(0);
 });
+
+/**
+ * O modal do site (site-emitiragora) pergunta nome, e-mail e WhatsApp antes
+ * de mandar a pessoa pra cá. Ela não deveria ter que digitar tudo de novo.
+ */
+it('preenche nome, e-mail e telefone vindos do site', function () {
+    $this->get('http://vendaredonda.com.br/register?nome=Marcelo%20Andrade&email=marcelo%40exemplo.com.br&telefone=19971351777')
+        ->assertOk()
+        ->assertSee('value="Marcelo Andrade"', false)
+        ->assertSee('value="marcelo@exemplo.com.br"', false)
+        ->assertSee('value="19971351777"', false);
+});
+
+it('nao quebra quando o site manda parametro em formato de lista', function () {
+    $this->get('http://vendaredonda.com.br/register?nome[]=x&tipo[]=transportadora')->assertOk();
+});
+
+it('repassa as respostas do site em campos escondidos', function () {
+    $this->get('http://vendaredonda.com.br/register?tipo=transportadora&frota=6-20&volume=11-30')
+        ->assertOk()
+        ->assertSee('name="perfil_tipo" value="transportadora"', false)
+        ->assertSee('name="perfil_frota" value="6-20"', false)
+        ->assertSee('name="perfil_volume" value="11-30"', false);
+});
+
+it('guarda as respostas do site na empresa', function () {
+    $this->post('http://vendaredonda.com.br/register', dadosDeCadastro([
+        'perfil_tipo' => 'transportadora',
+        'perfil_frota' => '6-20',
+        'perfil_volume' => '11-30',
+    ]));
+
+    expect(Tenant::first()->perfil_cadastro)
+        ->toBe(['tipo' => 'transportadora', 'frota' => '6-20', 'volume' => '11-30']);
+});
+
+/**
+ * A resposta chega por campo escondido: se virasse erro de validação, a
+ * pessoa não teria como corrigir e o cadastro travaria.
+ */
+it('ignora resposta fora da lista sem barrar o cadastro', function () {
+    $this->post('http://vendaredonda.com.br/register', dadosDeCadastro([
+        'perfil_tipo' => 'transportadora',
+        'perfil_frota' => 'mil-caminhoes',
+    ]))->assertSessionHasNoErrors();
+
+    expect(Tenant::first()->perfil_cadastro)->toBe(['tipo' => 'transportadora']);
+});
+
+it('deixa o perfil vazio pra quem se cadastra direto pelo app', function () {
+    $this->post('http://vendaredonda.com.br/register', dadosDeCadastro());
+
+    expect(Tenant::first()->perfil_cadastro)->toBeNull();
+});

@@ -14,6 +14,7 @@ use App\Services\Integrations\MontadorDeConversoesMeta;
 use App\Services\Integrations\MontadorDeLeads;
 use App\Support\Documento;
 use App\Support\HostDoProduto;
+use App\Support\PerfilDeCadastro;
 use App\Support\TenantAtual;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -77,6 +78,7 @@ class CreateNewUser implements CreatesNewUsers
                 'nome' => $input['razao_social'],
                 'slug' => $this->slugLivre($input['razao_social']),
                 'plano' => PlanoTenant::Gratuito,
+                'perfil_cadastro' => PerfilDeCadastro::doCadastro($input),
             ]);
 
             // O escopo de tenant é resolvido do contêiner, e a empresa acabou

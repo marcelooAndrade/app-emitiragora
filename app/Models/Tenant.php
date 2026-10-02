@@ -24,11 +24,11 @@ class Tenant extends Model
         'plano' => PlanoTenant::Gratuito->value,
     ];
 
-    protected $fillable = ['nome', 'nome_curto', 'slug', 'dominio', 'logo_path', 'tema', 'ativo', 'plano'];
+    protected $fillable = ['nome', 'nome_curto', 'slug', 'dominio', 'logo_path', 'tema', 'ativo', 'plano', 'perfil_cadastro'];
 
     protected function casts(): array
     {
-        return ['tema' => 'array', 'ativo' => 'boolean', 'plano' => PlanoTenant::class];
+        return ['tema' => 'array', 'ativo' => 'boolean', 'plano' => PlanoTenant::class, 'perfil_cadastro' => 'array'];
     }
 
     /**

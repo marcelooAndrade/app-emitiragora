@@ -50,6 +50,8 @@ class MontadorDeLeads
             'email' => (string) $primeiro?->email,
             'telefone' => $emitente?->telefone,
             'plano' => $tenant->plano->value,
+            // Respostas do modal do site; nulo pra quem se cadastrou direto pelo app.
+            'perfil_cadastro' => $tenant->perfil_cadastro,
             'cadastrado_em' => $tenant->created_at?->toIso8601String(),
             'ultimo_acesso_em' => $ultimoAcesso ? Carbon::parse($ultimoAcesso)->toIso8601String() : null,
         ];

@@ -49,6 +49,17 @@ it('monta o lead a partir do tenant', function () {
         ->and($lead['ultimo_acesso_em'])->toStartWith('2026-09-10T18:30:00');
 });
 
+it('leva as respostas do modal do site no lead', function () {
+    emitenteCompleto();
+    $tenant = app(TenantAtual::class)->obter();
+    $tenant->update(['perfil_cadastro' => ['tipo' => 'transportadora', 'frota' => '6-20']]);
+    User::factory()->create(['tenant_id' => $tenant->id]);
+
+    $lead = app(MontadorDeLeads::class)->paraTenant($tenant->fresh());
+
+    expect($lead['perfil_cadastro'])->toBe(['tipo' => 'transportadora', 'frota' => '6-20']);
+});
+
 /** O último acesso do tenant é o mais recente entre as pessoas dele. */
 it('usa o acesso mais recente entre os usuarios do tenant', function () {
     emitenteCompleto();

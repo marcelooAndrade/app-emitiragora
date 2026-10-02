@@ -1,4 +1,12 @@
 <x-layouts::auth :title="__('Register')">
+    @php
+        // O modal do site manda nome, e-mail, telefone e as três respostas do
+        // perfil pela URL. `is_string` barra `?nome[]=x`, que viraria array e
+        // quebraria o campo. O `old()` vem antes: depois de um erro de
+        // validação, vale o que a pessoa digitou, não o que veio do site.
+        $doSite = fn (string $chave): ?string => is_string($valor = request()->query($chave)) ? mb_substr($valor, 0, 254) : null;
+    @endphp
+
     <div class="flex flex-col gap-6">
         <x-auth-header :title="__('Create an account')" :description="__('Enter your details below to create your account')" />
 
@@ -11,7 +19,7 @@
             <flux:input
                 name="name"
                 :label="__('Name')"
-                :value="old('name')"
+                :value="old('name', $doSite('nome'))"
                 type="text"
                 required
                 autofocus
@@ -23,7 +31,7 @@
             <flux:input
                 name="email"
                 :label="__('Email address')"
-                :value="old('email')"
+                :value="old('email', $doSite('email'))"
                 type="email"
                 required
                 autocomplete="email"
@@ -101,7 +109,7 @@
             <flux:input
                 name="telefone"
                 label="Telefone"
-                :value="old('telefone')"
+                :value="old('telefone', $doSite('telefone'))"
                 type="text"
                 required
                 inputmode="tel"
@@ -109,6 +117,13 @@
                 placeholder="(19) 99999-8888"
                 description="É por onde a gente fala com você sobre a sua conta."
             />
+
+            {{-- Respostas do modal do site, só repassadas. Ver PerfilDeCadastro. --}}
+            @foreach (array_keys(\App\Support\PerfilDeCadastro::OPCOES) as $pergunta)
+                @if (filled($valor = old("perfil_{$pergunta}", $doSite($pergunta))))
+                    <input type="hidden" name="perfil_{{ $pergunta }}" value="{{ $valor }}" />
+                @endif
+            @endforeach
 
             <div class="flex items-center justify-end">
                 <flux:button type="submit" variant="primary" class="w-full" data-test="register-user-button">
