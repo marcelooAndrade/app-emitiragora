@@ -41,7 +41,11 @@ use Spatie\Permission\Traits\HasRoles;
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use Auditavel, HasFactory, HasRoles, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use Auditavel, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    use HasRoles {
+        hasPermissionTo as protected temPermissaoPeloPapel;
+    }
 
     /**
      * Default também em memória, não só no banco: coluna booleana vem `null`
@@ -119,6 +123,31 @@ class User extends Authenticatable implements PasskeyUser
     public function podeAcessar(Emitente $emitente): bool
     {
         return $this->emitentes()->withoutGlobalScope('tenant')->whereKey($emitente->getKey())->exists();
+    }
+
+    /**
+     * O plano corta antes do papel: na Pequena Empresa ninguém tem
+     * `transporte.*`, nem o Administrador.
+     *
+     * Fica aqui, e não num `Gate::before`, porque o spatie registra o dele
+     * primeiro e responde `true` pelo papel antes de qualquer outro ser
+     * ouvido. Todo caminho do spatie (`can`, `checkPermissionTo`,
+     * `hasAnyPermission`) passa por este método.
+     */
+    public function hasPermissionTo($permission, $guardName = null): bool
+    {
+        $nome = $permission instanceof \BackedEnum ? $permission->value : $permission;
+        $nome = is_object($nome) && isset($nome->name) ? $nome->name : $nome;
+
+        if (is_string($nome) && str_starts_with($nome, 'transporte.')) {
+            $tenant = app(TenantAtual::class)->obter();
+
+            if ($tenant !== null && ! $tenant->plano->permiteTransporte()) {
+                return false;
+            }
+        }
+
+        return $this->temPermissaoPeloPapel($permission, $guardName);
     }
 
     /**

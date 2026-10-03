@@ -74,11 +74,13 @@ class CreateNewUser implements CreatesNewUsers
 
         /** @var array{0: User, 1: Tenant} $criados */
         $criados = DB::transaction(function () use ($input): array {
+            $perfil = PerfilDeCadastro::doCadastro($input);
+
             $tenant = Tenant::create([
                 'nome' => $input['razao_social'],
                 'slug' => $this->slugLivre($input['razao_social']),
-                'plano' => PlanoTenant::Gratuito,
-                'perfil_cadastro' => PerfilDeCadastro::doCadastro($input),
+                'plano' => PlanoTenant::paraPerfil($perfil),
+                'perfil_cadastro' => $perfil,
             ]);
 
             // O escopo de tenant é resolvido do contêiner, e a empresa acabou

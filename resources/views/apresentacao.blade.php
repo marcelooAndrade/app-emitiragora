@@ -682,7 +682,7 @@
                         ['escudo', 'Meu contador consegue mexer na regra fiscal sozinho?', 'Sim. Tela própria, permissão própria, sem depender de programador para mudar alíquota ou CST.'],
                         ['predio', 'Serve para matriz e filial?', 'Sim. Um tenant pode ter mais de um emitente, cada um com CNPJ e certificado próprios.'],
                         ['relogio', 'O que ainda falta no sistema?', 'Está listado na seção acima, sem esconder.'],
-                        ['dinheiro', 'O plano gratuito cobra alguma coisa?', 'Não. Emite NF-e até 10 notas por mês, sem cartão e sem contrato. Para NFS-e e mais notas, é só subir de plano quando precisar.'],
+                        ['dinheiro', 'Dá pra testar antes de pagar?', 'Dá. Você cria a conta e testa o sistema antes de assinar, sem cartão e sem contrato.'],
                         ['pasta', 'Onde ficam os meus dados?', 'No disco privado da conta, isolado por emitente. Certificado e senha nunca são logados.'],
                     ] as [$icone, $pergunta, $resposta])
                         <details class="group rounded-[1.5rem] border border-white bg-white/72 px-5 py-4 shadow-[0_8px_22px_-18px_rgba(14,27,31,0.3),inset_0_1px_0_white] transition-colors duration-300 open:bg-white/90">

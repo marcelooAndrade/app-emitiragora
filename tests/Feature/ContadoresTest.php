@@ -24,8 +24,12 @@ it('mostra os tres niveis de comissao com o percentual do config', function () {
 it('mostra os planos reais dentro da pagina', function () {
     $this->get('/contadores')
         ->assertOk()
-        ->assertSee('R$49')
-        ->assertSee('R$99');
+        ->assertSee('Transporte')
+        ->assertSee('Pequena Empresa')
+        ->assertSee('R$499')
+        ->assertSee('R$99')
+        ->assertDontSee('Essencial')
+        ->assertDontSee('Completo');
 });
 
 it('avisa que o formulario de parceiro ainda nao tem backend, enquanto a config estiver vazia', function () {

@@ -105,7 +105,7 @@ class PrepararDemonstracao extends Command
         $tenant = Tenant::create([
             'nome' => 'RCM do Brasil', 'nome_curto' => 'RCM',
             // Plano avançado: domínio próprio e marca já na tela de login.
-            'slug' => 'rcm', 'dominio' => 'rcm.localhost', 'plano' => PlanoTenant::Avancado,
+            'slug' => 'rcm', 'dominio' => 'rcm.localhost', 'plano' => PlanoTenant::Transporte,
             'tema' => ['primaria' => '#E8192C', 'neutra' => '#1A1A1A'],
         ]);
 

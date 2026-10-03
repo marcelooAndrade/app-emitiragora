@@ -36,7 +36,7 @@ abstract class TestCase extends BaseTestCase
         $tenant = Tenant::query()->firstOrCreate(
             ['slug' => 'teste'],
             // Tem domínio, então precisa do plano que permite domínio próprio.
-            ['nome' => 'Tenant de teste', 'dominio' => 'localhost', 'plano' => PlanoTenant::Avancado],
+            ['nome' => 'Tenant de teste', 'dominio' => 'localhost', 'plano' => PlanoTenant::Transporte],
         );
 
         app(TenantAtual::class)->definir($tenant);

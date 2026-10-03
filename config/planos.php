@@ -21,52 +21,39 @@ return [
     | Planos
     |--------------------------------------------------------------------------
     |
-    | `notasPorMes` é o limite mostrado ao cliente. `destaque` marca o plano
-    | recomendado nos cartões.
+    | Os dois planos do site (site-emitiragora): o `slug` é o valor do caso
+    | em App\Enums\PlanoTenant, que é quem decide o que cada plano libera.
+    | Preço fixo por plano, decidido em 03/10/2026. `destaque` marca o plano
+    | recomendado nos cartões. `recursos` é só o texto do cartão, na ordem em
+    | que a tabela de comparação lista as linhas.
     */
     'planos' => [
         [
-            'slug' => 'gratis',
-            'nome' => 'Grátis',
-            'precoCentavos' => 0,
-            'notasPorMes' => 10,
-            'nfse' => false,
-            'financeiro' => null,
-            'dre' => false,
+            'slug' => 'pequena_empresa',
+            'nome' => 'Pequena Empresa',
+            'precoCentavos' => 9_900,
+            'descricao' => 'Pra empresa que compra, vende e emite nota, sem operar frota.',
             'destaque' => false,
             'recursos' => [
-                'Emissão de NF-e (nota de produto)',
-                'Até 10 notas por mês',
+                'Nota fiscal de produto (NF-e)',
+                'Nota fiscal de serviço (NFS-e)',
+                'Financeiro com DRE',
             ],
         ],
         [
-            'slug' => 'essencial',
-            'nome' => 'Essencial',
-            'precoCentavos' => 4_900,
-            'notasPorMes' => 30,
-            'nfse' => true,
-            'financeiro' => 'basico',
-            'dre' => false,
+            'slug' => 'transporte',
+            'nome' => 'Transporte',
+            'precoCentavos' => 49_900,
+            'descricao' => 'Pra transportadora que opera frota e precisa dos documentos de transporte, não só de nota fiscal.',
             'destaque' => true,
             'recursos' => [
-                'NF-e e NFS-e',
-                'Até 30 notas por mês',
-                'Financeiro básico',
-            ],
-        ],
-        [
-            'slug' => 'completo',
-            'nome' => 'Completo',
-            'precoCentavos' => 9_900,
-            'notasPorMes' => 90,
-            'nfse' => true,
-            'financeiro' => 'completo',
-            'dre' => true,
-            'destaque' => false,
-            'recursos' => [
-                'Tudo do Essencial',
-                'Até 90 notas por mês',
-                'DRE',
+                'Nota fiscal de produto (NF-e)',
+                'Nota fiscal de serviço (NFS-e)',
+                'Financeiro com DRE',
+                'CT-e e MDF-e',
+                'CIOT',
+                'Averbação de seguro',
+                'Contrato do motorista',
             ],
         ],
     ],
@@ -76,8 +63,8 @@ return [
     | Acesso do contador
     |--------------------------------------------------------------------------
     |
-    | true: aparece como benefício nos planos Essencial e Completo.
-    | false: aparece só no Completo.
+    | true: aparece como benefício nos dois planos.
+    | false: aparece só no Transporte.
     */
     'acessoDoContadorEmTodosOsPlanosPagos' => true,
 
@@ -121,7 +108,6 @@ return [
     'pendencias' => [
         'diaPagamentoComissao' => '',
         'canalSuporteContador' => '',
-        'linkAssinatura' => '',
         'linkCadastroParceiro' => '',
     ],
 

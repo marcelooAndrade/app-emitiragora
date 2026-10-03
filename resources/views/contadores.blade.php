@@ -33,8 +33,8 @@
     $acessoContadorEmTodos = config('planos.acessoDoContadorEmTodosOsPlanosPagos');
     $pendencias = config('planos.pendencias');
 
-    $essencial = collect($planosConfig)->firstWhere('slug', 'essencial');
-    $completo = collect($planosConfig)->firstWhere('slug', 'completo');
+    $pequenaEmpresa = collect($planosConfig)->firstWhere('slug', 'pequena_empresa');
+    $transporte = collect($planosConfig)->firstWhere('slug', 'transporte');
 @endphp
 
 {{-- Fundo fixo, igual ao da apresentação. --}}
@@ -145,16 +145,16 @@
                 <h3 class="mt-4 text-base font-normal tracking-tight text-graphite-900">Painel dos seus clientes</h3>
                 <p class="mt-2 text-sm font-light leading-7 text-graphite-600">
                     @if ($acessoContadorEmTodos)
-                        Acompanha os clientes do Essencial e do Completo.
+                        Acompanha os clientes dos dois planos.
                     @else
-                        Acompanha os clientes do plano Completo.
+                        Acompanha os clientes do plano Transporte.
                     @endif
                 </p>
             </div>
 
             <div class="{{ $cartao }}">
                 {!! $chip('painel') !!}
-                <h3 class="mt-4 text-base font-normal tracking-tight text-graphite-900">DRE dos clientes do Completo</h3>
+                <h3 class="mt-4 text-base font-normal tracking-tight text-graphite-900">DRE dos seus clientes</h3>
                 <p class="mt-2 text-sm font-light leading-7 text-graphite-600">Resultado pronto, sem montar planilha.</p>
             </div>
 
@@ -181,17 +181,17 @@
 
             <div class="mt-8 grid gap-6 sm:grid-cols-2">
                 <label class="block">
-                    <span class="fonte-mono text-xs font-medium tracking-[-0.04em] text-graphite-600">CLIENTES NO ESSENCIAL (R${{ number_format($essencial['precoCentavos'] / 100, 0, ',', '.') }}/mês)</span>
+                    <span class="fonte-mono text-xs font-medium tracking-[-0.04em] text-graphite-600">CLIENTES NO TRANSPORTE (R${{ number_format($transporte['precoCentavos'] / 100, 0, ',', '.') }}/mês)</span>
                     <input
-                        type="number" min="0" x-model.number="clientesEssencial"
+                        type="number" min="0" x-model.number="clientesTransporte"
                         class="mt-2 w-full rounded-xl border border-graphite-200 bg-white px-4 py-3 text-sm text-graphite-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
                     >
                 </label>
 
                 <label class="block">
-                    <span class="fonte-mono text-xs font-medium tracking-[-0.04em] text-graphite-600">CLIENTES NO COMPLETO (R${{ number_format($completo['precoCentavos'] / 100, 0, ',', '.') }}/mês)</span>
+                    <span class="fonte-mono text-xs font-medium tracking-[-0.04em] text-graphite-600">CLIENTES NO PEQUENA EMPRESA (R${{ number_format($pequenaEmpresa['precoCentavos'] / 100, 0, ',', '.') }}/mês)</span>
                     <input
-                        type="number" min="0" x-model.number="clientesCompleto"
+                        type="number" min="0" x-model.number="clientesPequenaEmpresa"
                         class="mt-2 w-full rounded-xl border border-graphite-200 bg-white px-4 py-3 text-sm text-graphite-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
                     >
                 </label>
@@ -301,15 +301,15 @@
 <script>
     function simuladorDeComissao() {
         const niveis = @json($niveis);
-        const precoEssencialCentavos = {{ $essencial['precoCentavos'] }};
-        const precoCompletoCentavos = {{ $completo['precoCentavos'] }};
+        const precoTransporteCentavos = {{ $transporte['precoCentavos'] }};
+        const precoPequenaEmpresaCentavos = {{ $pequenaEmpresa['precoCentavos'] }};
 
         return {
-            clientesEssencial: 5,
-            clientesCompleto: 3,
+            clientesTransporte: 5,
+            clientesPequenaEmpresa: 3,
 
             get totalClientes() {
-                return (this.clientesEssencial || 0) + (this.clientesCompleto || 0);
+                return (this.clientesTransporte || 0) + (this.clientesPequenaEmpresa || 0);
             },
 
             get nivel() {
@@ -318,7 +318,7 @@
             },
 
             get receitaMensalCentavos() {
-                return (this.clientesEssencial || 0) * precoEssencialCentavos + (this.clientesCompleto || 0) * precoCompletoCentavos;
+                return (this.clientesTransporte || 0) * precoTransporteCentavos + (this.clientesPequenaEmpresa || 0) * precoPequenaEmpresaCentavos;
             },
 
             get comissaoMensalCentavos() {

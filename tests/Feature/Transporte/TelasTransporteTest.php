@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\Perfil;
+use App\Enums\PlanoTenant;
 use App\Enums\Transporte\CteStatus;
 use App\Enums\Transporte\MdfeStatus;
 use App\Livewire\Transporte\Configuracao;
@@ -16,6 +17,7 @@ use App\Models\User;
 use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Services\Transporte\TransmissorCte;
+use App\Support\TenantAtual;
 use Database\Seeders\PerfilSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -216,4 +218,21 @@ it('baixa o XML autorizado só da própria empresa', function () {
     $this->user->emitentes()->attach($filial);
     session(['emitente_atual_id' => $filial->id]);
     $this->get(route('transporte.cte.xml', $cte))->assertNotFound();
+});
+
+it('no plano Pequena Empresa o transporte some do menu e as telas recusam, até pro Administrador', function () {
+    app(TenantAtual::class)->obter()->update(['plano' => PlanoTenant::PequenaEmpresa]);
+
+    $this->get('/dashboard')->assertOk()->assertDontSee('Motoristas');
+    $this->get('/viagens')->assertForbidden();
+    $this->get('/veiculos')->assertForbidden();
+    $this->get('/transporte')->assertForbidden();
+});
+
+it('voltar pro plano Transporte devolve o módulo', function () {
+    $tenant = app(TenantAtual::class)->obter();
+    $tenant->update(['plano' => PlanoTenant::PequenaEmpresa]);
+    $tenant->update(['plano' => PlanoTenant::Transporte]);
+
+    $this->get('/viagens')->assertOk();
 });

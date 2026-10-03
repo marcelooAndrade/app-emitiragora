@@ -7,7 +7,7 @@ use App\Models\User;
 function tenantHost(string $slug, string $host): Tenant
 {
     return Tenant::create(['nome' => ucfirst($slug), 'slug' => $slug, 'dominio' => $host,
-        'plano' => PlanoTenant::Avancado]);
+        'plano' => PlanoTenant::Transporte]);
 }
 
 it('guarda o tenant do usuario', function () {

@@ -35,7 +35,7 @@ it('resolve o tenant pelo subdominio', function () {
 
 it('resolve o tenant por dominio proprio', function () {
     // Domínio próprio é benefício de plano, então vem com o plano junto.
-    $this->rcm->update(['plano' => PlanoTenant::Avancado, 'dominio' => 'sistema.rcmdobrasil.com.br']);
+    $this->rcm->update(['plano' => PlanoTenant::Transporte, 'dominio' => 'sistema.rcmdobrasil.com.br']);
 
     app(TenantAtual::class)->definirPorHost('sistema.rcmdobrasil.com.br');
 

@@ -21,7 +21,7 @@ class Tenant extends Model
      */
     protected $attributes = [
         'ativo' => true,
-        'plano' => PlanoTenant::Gratuito->value,
+        'plano' => PlanoTenant::Transporte->value,
     ];
 
     protected $fillable = ['nome', 'nome_curto', 'slug', 'dominio', 'logo_path', 'tema', 'ativo', 'plano', 'perfil_cadastro'];
@@ -55,7 +55,7 @@ class Tenant extends Model
             // ele deixou de pagar.
             if (filled($tenant->dominio) && ! $tenant->plano->permiteMarcaPropria()) {
                 throw new InvalidArgumentException(
-                    'Domínio próprio exige o plano avançado. Retire o domínio antes de rebaixar o plano.'
+                    'O plano desta empresa não permite domínio próprio. Retire o domínio antes de trocar o plano.'
                 );
             }
         });

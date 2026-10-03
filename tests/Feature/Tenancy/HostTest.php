@@ -35,13 +35,13 @@ it('o dominio nu do produto nao tem tenant, porque e a apresentacao', function (
 });
 
 it('casa o dominio proprio do cliente antes de mexer no prefixo', function () {
-    $rcm = Tenant::create(['nome' => 'RCM', 'slug' => 'rcm', 'dominio' => 'app.rcmdobrasil.com.br', 'plano' => PlanoTenant::Avancado]);
+    $rcm = Tenant::create(['nome' => 'RCM', 'slug' => 'rcm', 'dominio' => 'app.rcmdobrasil.com.br', 'plano' => PlanoTenant::Transporte]);
 
     expect(resolver('app.rcmdobrasil.com.br')?->getKey())->toBe($rcm->getKey());
 })->skip('Domínio próprio de cliente desativado em 14/09/2026, ver TenantAtual::resolverHost');
 
 it('aceita o dominio do cliente cadastrado sem o prefixo', function () {
-    $rcm = Tenant::create(['nome' => 'RCM', 'slug' => 'rcm', 'dominio' => 'rcmdobrasil.com.br', 'plano' => PlanoTenant::Avancado]);
+    $rcm = Tenant::create(['nome' => 'RCM', 'slug' => 'rcm', 'dominio' => 'rcmdobrasil.com.br', 'plano' => PlanoTenant::Transporte]);
 
     expect(resolver('app.rcmdobrasil.com.br')?->getKey())->toBe($rcm->getKey());
 })->skip('Domínio próprio de cliente desativado em 14/09/2026, ver TenantAtual::resolverHost');

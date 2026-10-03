@@ -67,17 +67,16 @@ it('o link ver o que ele faz aponta para a secao de recursos', function () {
         ->and($html)->not->toContain('id="o-que-faz"');
 });
 
-it('mostra os tres planos reais, com notas por mes e preco de config/planos.php', function () {
+it('mostra os dois planos do site, com preco de config/planos.php', function () {
     $html = $this->get('http://vendaredonda.com.br/')->assertOk()->getContent();
 
-    expect($html)->toContain('>Grátis<')
-        ->and($html)->toContain('>Essencial<')
-        ->and($html)->toContain('>Completo<')
-        ->and($html)->toContain('Até 10 notas por mês')
-        ->and($html)->toContain('Até 30 notas por mês')
-        ->and($html)->toContain('Até 90 notas por mês')
-        ->and($html)->toContain('R$49')
-        ->and($html)->toContain('R$99');
+    expect($html)->toContain('>Transporte<')
+        ->and($html)->toContain('>Pequena Empresa<')
+        ->and($html)->toContain('R$499')
+        ->and($html)->toContain('R$99')
+        ->and($html)->toContain('Criar conta e testar grátis')
+        ->and($html)->not->toContain('>Essencial<')
+        ->and($html)->not->toContain('notas por mês');
 });
 
 it('a lista do que falta cita tesouraria em vez de fluxo de caixa projetado', function () {

@@ -38,7 +38,7 @@ function dadosDeCadastro(array $extra = []): array
 it('nao existe em dominio de cliente', function () {
     Tenant::create([
         'nome' => 'RCM', 'slug' => 'rcm',
-        'plano' => PlanoTenant::Avancado, 'dominio' => 'app.rcmdobrasil.com.br',
+        'plano' => PlanoTenant::Transporte, 'dominio' => 'app.rcmdobrasil.com.br',
     ]);
 
     $this->get('http://app.rcmdobrasil.com.br/register')->assertNotFound();
@@ -58,7 +58,7 @@ it('cria empresa, emitente, usuario e papel de uma vez', function () {
     $tenant = Tenant::firstWhere('nome', 'DISTRIBUIDORA RIO CLARO LTDA');
 
     expect($tenant)->not->toBeNull()
-        ->and($tenant->plano)->toBe(PlanoTenant::Gratuito)
+        ->and($tenant->plano)->toBe(PlanoTenant::Transporte)
         ->and($tenant->dominio)->toBeNull();
 
     app(TenantAtual::class)->definir($tenant);
@@ -195,4 +195,16 @@ it('deixa o perfil vazio pra quem se cadastra direto pelo app', function () {
     $this->post('http://vendaredonda.com.br/register', dadosDeCadastro());
 
     expect(Tenant::first()->perfil_cadastro)->toBeNull();
+});
+
+it('transportadora entra no plano Transporte', function () {
+    $this->post('http://vendaredonda.com.br/register', dadosDeCadastro(['perfil_tipo' => 'transportadora']));
+
+    expect(Tenant::first()->plano)->toBe(PlanoTenant::Transporte);
+});
+
+it('empresa sem frota entra no plano Pequena Empresa', function () {
+    $this->post('http://vendaredonda.com.br/register', dadosDeCadastro(['perfil_tipo' => 'empresa']));
+
+    expect(Tenant::first()->plano)->toBe(PlanoTenant::PequenaEmpresa);
 });

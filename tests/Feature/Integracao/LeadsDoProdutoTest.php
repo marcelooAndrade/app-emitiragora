@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\PlanoTenant;
 use App\Jobs\EnviarLeads;
 use App\Models\User;
 use App\Services\Integrations\AdminPessoalGateway;
@@ -42,10 +43,10 @@ it('monta o lead a partir do tenant', function () {
         ->and($lead['nome'])->toBe('Marcelo Andrade')
         ->and($lead['email'])->toBe('marcelo@exemplo.com.br')
         ->and($lead['telefone'])->toBe('1930960072')
-        // O "Tenant de teste" da TestCase tem domínio (localhost), e a regra
-        // do model exige plano avançado para quem tem domínio próprio: não dá
-        // para ser "gratuito" aqui sem violar essa regra.
+        // O admin pessoal ainda só conhece os nomes antigos: o Transporte vai
+        // como "avancado", e o plano de verdade em `plano_atual`.
         ->and($lead['plano'])->toBe('avancado')
+        ->and($lead['plano_atual'])->toBe('transporte')
         ->and($lead['ultimo_acesso_em'])->toStartWith('2026-09-10T18:30:00');
 });
 
@@ -133,3 +134,14 @@ it('nao chama a rede sem configuracao', function () {
     // da suíte derruba o teste. É essa a asserção.
     app(AdminPessoalGateway::class)->enviar([['tenant_id' => 7]]);
 })->throwsNoExceptions();
+
+it('Pequena Empresa vai pro admin pessoal como gratuito, que é o nome que ele aceita', function () {
+    emitenteCompleto();
+    $tenant = app(TenantAtual::class)->obter();
+    $tenant->update(['plano' => PlanoTenant::PequenaEmpresa]);
+
+    $lead = app(MontadorDeLeads::class)->paraTenant($tenant->fresh());
+
+    expect($lead['plano'])->toBe('gratuito')
+        ->and($lead['plano_atual'])->toBe('pequena_empresa');
+});
