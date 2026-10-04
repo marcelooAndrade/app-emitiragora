@@ -60,6 +60,32 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Contato comercial
+    |--------------------------------------------------------------------------
+    |
+    | O mesmo WhatsApp do site (site-emitiragora, src/lib/constantes.ts). É
+    | para onde vai quem quer assinar, no aviso do teste grátis.
+    */
+    'whatsapp' => '5519971351777',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Cobrança da assinatura
+    |--------------------------------------------------------------------------
+    |
+    | `cnpjEmissor`: o CNPJ da empresa que cobra o EmitirAgora dos clientes.
+    | Só ela vê a opção "Mensalidade do EmitirAgora" nas faturas. Vazio
+    | desliga a renovação automática inteira.
+    | `diasDeTolerancia`: depois do "pago até", quantos dias a empresa ainda
+    | emite antes de ficar só para consulta.
+    */
+    'cobranca' => [
+        'cnpjEmissor' => env('EMITIRAGORA_CNPJ_COBRANCA', ''),
+        'diasDeTolerancia' => 5,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Acesso do contador
     |--------------------------------------------------------------------------
     |

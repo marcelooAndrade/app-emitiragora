@@ -6,6 +6,7 @@ use App\Enums\PlanoTenant;
 use App\Models\Concerns\Auditavel;
 use App\Support\HostDoProduto;
 use App\Support\TemaMarca;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
@@ -24,11 +25,11 @@ class Tenant extends Model
         'plano' => PlanoTenant::Transporte->value,
     ];
 
-    protected $fillable = ['nome', 'nome_curto', 'slug', 'dominio', 'logo_path', 'tema', 'ativo', 'plano', 'perfil_cadastro'];
+    protected $fillable = ['nome', 'nome_curto', 'slug', 'dominio', 'logo_path', 'tema', 'ativo', 'plano', 'teste_ate', 'pago_ate', 'perfil_cadastro'];
 
     protected function casts(): array
     {
-        return ['tema' => 'array', 'ativo' => 'boolean', 'plano' => PlanoTenant::class, 'perfil_cadastro' => 'array'];
+        return ['tema' => 'array', 'ativo' => 'boolean', 'plano' => PlanoTenant::class, 'teste_ate' => 'datetime', 'pago_ate' => 'date', 'perfil_cadastro' => 'array'];
     }
 
     /**
@@ -59,6 +60,74 @@ class Tenant extends Model
                 );
             }
         });
+    }
+
+    /** Dias de teste grátis de quem se cadastra. */
+    public const DIAS_DE_TESTE = 14;
+
+    /**
+     * O teste vai até o fim do 14º dia no horário de Brasília, não até a
+     * mesma hora do cadastro: quem entrou às 22h não perde o último dia.
+     */
+    public static function fimDoTeste(): CarbonInterface
+    {
+        return now('America/Sao_Paulo')->addDays(self::DIAS_DE_TESTE)->endOfDay()->utc();
+    }
+
+    /**
+     * Paga até `pago_ate`, mais os dias de tolerância. Dia de calendário em
+     * Brasília: quem paga até o dia 10 emite o dia 10 inteiro.
+     */
+    public function assinante(): bool
+    {
+        return $this->pago_ate !== null && $this->hoje() <= $this->ultimoDiaDeTolerancia();
+    }
+
+    /** Venceu o "pago até", mas ainda está nos dias de tolerância. */
+    public function pagamentoVencido(): bool
+    {
+        return $this->assinante() && $this->hoje() > $this->pago_ate->toDateString();
+    }
+
+    /** Último dia em que a empresa com pagamento vencido ainda emite. */
+    public function ultimoDiaDeTolerancia(): ?string
+    {
+        return $this->pago_ate?->addDays((int) config('planos.cobranca.diasDeTolerancia'))->toDateString();
+    }
+
+    public function emTeste(): bool
+    {
+        return ! $this->assinante() && $this->teste_ate !== null && now()->lessThanOrEqualTo($this->teste_ate);
+    }
+
+    /**
+     * Teste acabado ou mensalidade vencida além da tolerância: a empresa só
+     * consulta, não emite nem altera. Empresa sem `teste_ate` e sem
+     * `pago_ate` (as que já existiam antes da cobrança) nunca cai aqui.
+     */
+    public function somenteConsulta(): bool
+    {
+        return ($this->teste_ate !== null || $this->pago_ate !== null)
+            && ! $this->assinante()
+            && ! $this->emTeste();
+    }
+
+    private function hoje(): string
+    {
+        return now('America/Sao_Paulo')->toDateString();
+    }
+
+    /** Dias de calendário que faltam no teste, contando em Brasília. 0 é o último dia. */
+    public function diasDeTesteRestantes(): int
+    {
+        if ($this->teste_ate === null) {
+            return 0;
+        }
+
+        $hoje = now('America/Sao_Paulo')->startOfDay();
+        $fim = $this->teste_ate->setTimezone('America/Sao_Paulo')->startOfDay();
+
+        return max(0, (int) $hoje->diffInDays($fim, false));
     }
 
     public function emitentes(): HasMany

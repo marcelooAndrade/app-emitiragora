@@ -72,6 +72,7 @@
         @if ($emitente)
             <x-ui.env-banner :ambiente="$emitente->ambiente" class="shrink-0" />
         @endif
+        <x-ui.aviso-assinatura :tenant="$tenant" class="shrink-0" />
 
         <div class="flex min-h-0 flex-1">
         {{-- Sidebar. A barra vermelha de 3px no item ativo herda o motivo do

@@ -13,7 +13,7 @@
     </nav>
 
     <x-ui.page-header
-        eyebrow="Fatura"
+        :eyebrow="$fatura->mensalidade ? 'Fatura · Mensalidade do EmitirAgora' : 'Fatura'"
         :title="$fatura->titulo"
         :description="collect([$fatura->destinatario?->razao_social, $fatura->centroCusto ? $fatura->centroCusto->codigo.' · '.$fatura->centroCusto->nome : null])->filter()->implode(' · ') ?: 'Sem cliente vinculado'">
         <x-slot:actions>

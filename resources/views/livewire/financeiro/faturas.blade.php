@@ -74,6 +74,16 @@
                         @endif
                     </div>
 
+                    @if ($this->cobraEmitirAgora)
+                        <label class="flex items-start gap-2.5 rounded-md border border-graphite-200 bg-graphite-50 px-3 py-2.5">
+                            <input type="checkbox" wire:model="mensalidade" class="mt-0.5 size-4 rounded border-graphite-300 text-graphite-900 focus:ring-primary-600/25">
+                            <span>
+                                <span class="font-medium text-graphite-900">Mensalidade do EmitirAgora</span>
+                                <span class="block text-graphite-600">Cada parcela paga libera mais um mês na conta do cliente, achada pelo CNPJ dele.</span>
+                            </span>
+                        </label>
+                    @endif
+
                     <x-ui.field label="Observações para o cliente" for="ft-obs" :error="$errors->first('observacoes')" hint="Aparecem na página pública da fatura.">
                         <x-ui.textarea id="ft-obs" wire:model="observacoes" rows="2" maxlength="1000" />
                     </x-ui.field>

@@ -28,6 +28,11 @@ class Fatura extends Model
 
     protected $attributes = ['status' => 'ativa'];
 
+    protected function casts(): array
+    {
+        return ['mensalidade' => 'boolean'];
+    }
+
     protected static function booted(): void
     {
         // O link público nasce com a fatura. Sorteado, nunca derivado do id.

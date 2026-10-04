@@ -7,6 +7,7 @@ use App\Models\Emitente;
 use App\Models\Fatura;
 use App\Models\FaturaParcela;
 use App\Models\Pessoa;
+use App\Services\Assinatura\RenovacaoDeAssinatura;
 use App\Support\Dinheiro;
 use App\Support\EmitenteAtual;
 use Illuminate\Support\Carbon;
@@ -32,6 +33,9 @@ class Faturas extends Component
     public ?int $pessoaId = null;
 
     public ?int $centroCustoId = null;
+
+    /** Fatura de mensalidade do EmitirAgora: só a empresa que cobra o EmitirAgora vê a opção. */
+    public bool $mensalidade = false;
 
     public string $observacoes = '';
 
@@ -64,6 +68,12 @@ class Faturas extends Component
     public function emitente(): ?Emitente
     {
         return app(EmitenteAtual::class)->resolver();
+    }
+
+    #[Computed]
+    public function cobraEmitirAgora(): bool
+    {
+        return RenovacaoDeAssinatura::emiteCobranca($this->emitente);
     }
 
     #[Computed]
@@ -158,6 +168,18 @@ class Faturas extends Component
             $this->gerarLinhas();
         }
 
+        // Mensalidade sem conta do EmitirAgora com o CNPJ do cliente seria
+        // cobrada e não liberaria nada: melhor avisar agora.
+        if ($this->mensalidade && $this->cobraEmitirAgora) {
+            $documento = $this->pessoaId === null ? null : $this->clientes->firstWhere('id', $this->pessoaId)?->documento;
+
+            if ($documento === null || RenovacaoDeAssinatura::contaDoCnpj($documento, (int) $this->emitente->tenant_id) === null) {
+                $this->addError('pessoaId', 'Nenhuma conta do EmitirAgora usa o CNPJ deste cliente. Escolha o cliente que tem a conta.');
+
+                return;
+            }
+        }
+
         $parcelas = $this->parcelasValidadas();
 
         if ($parcelas === null) {
@@ -170,6 +192,7 @@ class Faturas extends Component
                 'pessoa_id' => $this->pessoaId,
                 'centro_custo_id' => $this->centroCustoId,
                 'titulo' => $this->titulo,
+                'mensalidade' => $this->mensalidade && $this->cobraEmitirAgora,
                 'observacoes' => trim($this->observacoes) ?: null,
             ]);
 

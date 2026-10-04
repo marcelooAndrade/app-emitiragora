@@ -80,6 +80,7 @@ class CreateNewUser implements CreatesNewUsers
                 'nome' => $input['razao_social'],
                 'slug' => $this->slugLivre($input['razao_social']),
                 'plano' => PlanoTenant::paraPerfil($perfil),
+                'teste_ate' => Tenant::fimDoTeste(),
                 'perfil_cadastro' => $perfil,
             ]);
 

@@ -6,6 +6,7 @@ use App\Models\ContaFinanceira;
 use App\Models\ContaPagar;
 use App\Models\FaturaParcela;
 use App\Models\MovimentoCaixa;
+use App\Services\Assinatura\RenovacaoDeAssinatura;
 use DateTimeInterface;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -27,6 +28,8 @@ use RuntimeException;
  */
 class BaixaService
 {
+    public function __construct(private readonly RenovacaoDeAssinatura $assinatura) {}
+
     public function pagar(ContaPagar $titulo, ?ContaFinanceira $conta, ?DateTimeInterface $quando = null): ContaPagar
     {
         return $this->baixar(
@@ -42,15 +45,23 @@ class BaixaService
 
     public function receber(FaturaParcela $parcela, ?ContaFinanceira $conta, ?DateTimeInterface $quando = null): FaturaParcela
     {
-        return $this->baixar(
-            titulo: $parcela,
-            conta: $conta,
-            quando: $quando,
-            emitenteId: (int) $parcela->fatura->emitente_id,
-            sentido: 'credito',
-            origemTipo: 'fatura_parcela',
-            descricao: $parcela->descricao,
-        );
+        // Parcela de mensalidade paga libera mais um mês para o cliente, na
+        // mesma transação: baixa sem renovação, ou o contrário, não existe.
+        return DB::transaction(function () use ($parcela, $conta, $quando): FaturaParcela {
+            $paga = $this->baixar(
+                titulo: $parcela,
+                conta: $conta,
+                quando: $quando,
+                emitenteId: (int) $parcela->fatura->emitente_id,
+                sentido: 'credito',
+                origemTipo: 'fatura_parcela',
+                descricao: $parcela->descricao,
+            );
+
+            $this->assinatura->aoReceber($paga);
+
+            return $paga;
+        });
     }
 
     /**
@@ -95,6 +106,10 @@ class BaixaService
             }
 
             $titulo->forceFill(['status' => 'pendente', 'pago_em' => null, 'conta_financeira_id' => null])->save();
+
+            if ($titulo instanceof FaturaParcela) {
+                $this->assinatura->aoEstornar($titulo);
+            }
 
             return $titulo;
         });
