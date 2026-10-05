@@ -8,7 +8,7 @@
 @php
     // A ação primária é grafite, nunca o vermelho da marca: primary-600 e
     // danger-600 têm contraste de apenas 1,43 entre si, e num emissor fiscal
-    // "Transmitir" e "Cancelar NF-e" convivem na mesma tela.
+    // "Transmitir" e "Cancelar CT-e" convivem na mesma tela.
     $variants = [
         'primary' => 'bg-graphite-900 text-white border border-graphite-900 shadow-sm hover:bg-graphite-700 hover:border-graphite-700',
         'secondary' => 'bg-white text-graphite-900 border border-graphite-300 shadow-sm hover:bg-graphite-50',

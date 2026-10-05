@@ -21,31 +21,41 @@ function usuarioNav(string $perfil): User
 
 it('o contador nao ve certificado na navegacao', function () {
     $this->actingAs(usuarioNav(Perfil::Contador->value))
-        ->get('/regras-fiscais')
+        ->get('/contabilidade')
         ->assertOk()
         ->assertDontSee('Certificado');
 });
 
-it('o contador ve regras fiscais na navegacao', function () {
+it('o contador ve a contabilidade na navegacao', function () {
     $this->actingAs(usuarioNav(Perfil::Contador->value))
-        ->get('/regras-fiscais')
-        ->assertSee('Regras fiscais');
+        ->get('/destinatarios')
+        ->assertSee('Contabilidade');
 });
 
-it('faturamento nao ve regras fiscais na navegacao', function () {
+it('faturamento nao ve item so de administrador', function () {
     $this->actingAs(usuarioNav(Perfil::Faturamento->value))
         ->get('/destinatarios')
         ->assertOk()
-        ->assertDontSee('Regras fiscais');
+        ->assertDontSee('Usuários')
+        ->assertDontSee('Marca');
 });
 
-it('o administrador ve tudo', function () {
+it('o administrador ve tudo o que e da transportadora', function () {
     $this->actingAs(usuarioNav(Perfil::Administrador->value))
         ->get('/certificados')
         ->assertOk()
+        ->assertSee('Viagens')
+        ->assertSee('Contabilidade')
         ->assertSee('Certificado')
-        ->assertSee('Regras fiscais')
         ->assertSee('Marca');
+});
+
+it('ninguem ve nota fiscal, NFS-e, estoque ou produtos na navegacao', function () {
+    $html = $this->actingAs(usuarioNav(Perfil::Administrador->value))->get('/certificados')->getContent();
+
+    foreach (['/notas"', '/notas-servico', '/nfse', '/estoque', '/produtos', '/regras-fiscais', '/importacao'] as $caminho) {
+        expect($html)->not->toContain($caminho);
+    }
 });
 
 it('consulta nao ve item so de administrador', function () {

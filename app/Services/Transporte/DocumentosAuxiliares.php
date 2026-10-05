@@ -7,6 +7,7 @@ use App\Enums\Transporte\CteStatus;
 use App\Enums\Transporte\MdfeStatus;
 use App\Models\ContratoFrete;
 use App\Models\Cte;
+use App\Models\Emitente;
 use App\Models\Mdfe;
 use App\Support\TemaMarca;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -27,7 +28,7 @@ class DocumentosAuxiliares
             throw new TransporteException('O DACTE sai depois que o CT-e é autorizado pela SEFAZ.');
         }
 
-        return $this->gerar(fn (): string => (new Dacte(Storage::disk('fiscal')->get($cte->xml_autorizado_path)))->render(), 'DACTE');
+        return $this->gerar(fn (): string => (new Dacte(Storage::disk('fiscal')->get($cte->xml_autorizado_path)))->render($this->logo($cte->emitente)), 'DACTE');
     }
 
     public function damdfe(Mdfe $mdfe): string
@@ -36,7 +37,22 @@ class DocumentosAuxiliares
             throw new TransporteException('O DAMDFE sai depois que o MDF-e é autorizado pela SEFAZ.');
         }
 
-        return $this->gerar(fn (): string => (new Damdfe(Storage::disk('fiscal')->get($mdfe->xml_autorizado_path)))->render(), 'DAMDFE');
+        return $this->gerar(fn (): string => (new Damdfe(Storage::disk('fiscal')->get($mdfe->xml_autorizado_path)))->render($this->logo($mdfe->emitente)), 'DAMDFE');
+    }
+
+    /**
+     * Logo que o emitente subiu em Marca para os documentos impressos. Sem
+     * logo, o DACTE e o DAMDFE saem só com os dados do emitente.
+     */
+    private function logo(?Emitente $emitente): string
+    {
+        $path = $emitente?->logo_path;
+
+        if (blank($path) || ! Storage::disk('fiscal')->exists($path)) {
+            return '';
+        }
+
+        return 'data://text/plain;base64,'.base64_encode((string) Storage::disk('fiscal')->get($path));
     }
 
     /** Contrato e recibo do adiantamento, nas cores da marca do cliente. */

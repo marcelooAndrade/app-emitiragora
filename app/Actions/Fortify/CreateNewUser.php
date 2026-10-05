@@ -95,7 +95,7 @@ class CreateNewUser implements CreatesNewUsers
             $tenant = Tenant::create([
                 'nome' => $input['razao_social'],
                 'slug' => $this->slugLivre($input['razao_social']),
-                'plano' => PlanoTenant::paraPerfil($perfil),
+                'plano' => PlanoTenant::Transporte,
                 'teste_ate' => Tenant::fimDoTeste(),
                 'perfil_cadastro' => $perfil,
             ]);

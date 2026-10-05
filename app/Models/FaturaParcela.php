@@ -7,7 +7,6 @@ use App\Support\Pix;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use InvalidArgumentException;
 
 /**
@@ -125,10 +124,5 @@ class FaturaParcela extends Model
     public function conta(): BelongsTo
     {
         return $this->belongsTo(ContaFinanceira::class, 'conta_financeira_id');
-    }
-
-    public function notasServico(): HasMany
-    {
-        return $this->hasMany(NotaServico::class, 'fatura_parcela_id');
     }
 }

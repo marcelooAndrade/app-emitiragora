@@ -33,7 +33,6 @@
     $acessoContadorEmTodos = config('planos.acessoDoContadorEmTodosOsPlanosPagos');
     $pendencias = config('planos.pendencias');
 
-    $pequenaEmpresa = collect($planosConfig)->firstWhere('slug', 'pequena_empresa');
     $transporte = collect($planosConfig)->firstWhere('slug', 'transporte');
 @endphp
 
@@ -179,22 +178,15 @@
             <h2 class="text-3xl font-normal tracking-tight text-graphite-900 md:text-4xl">Quanto você receberia por mês</h2>
             <p class="mt-3 text-sm font-light text-graphite-600">Valores ilustrativos, calculados com os preços dos planos atuais.</p>
 
-            <div class="mt-8 grid gap-6 sm:grid-cols-2">
+            <div class="mt-8 grid gap-6 sm:max-w-sm">
                 <label class="block">
-                    <span class="fonte-mono text-xs font-medium tracking-[-0.04em] text-graphite-600">CLIENTES NO TRANSPORTE (R${{ number_format($transporte['precoCentavos'] / 100, 0, ',', '.') }}/mês)</span>
+                    <span class="fonte-mono text-xs font-medium tracking-[-0.04em] text-graphite-600">TRANSPORTADORAS INDICADAS (R${{ number_format($transporte['precoCentavos'] / 100, 0, ',', '.') }}/mês)</span>
                     <input
                         type="number" min="0" x-model.number="clientesTransporte"
                         class="mt-2 w-full rounded-xl border border-graphite-200 bg-white px-4 py-3 text-sm text-graphite-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
                     >
                 </label>
 
-                <label class="block">
-                    <span class="fonte-mono text-xs font-medium tracking-[-0.04em] text-graphite-600">CLIENTES NO PEQUENA EMPRESA (R${{ number_format($pequenaEmpresa['precoCentavos'] / 100, 0, ',', '.') }}/mês)</span>
-                    <input
-                        type="number" min="0" x-model.number="clientesPequenaEmpresa"
-                        class="mt-2 w-full rounded-xl border border-graphite-200 bg-white px-4 py-3 text-sm text-graphite-900 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200"
-                    >
-                </label>
             </div>
 
             <div class="mt-8 grid gap-6 border-t border-graphite-200/70 pt-8 sm:grid-cols-3">
@@ -302,14 +294,12 @@
     function simuladorDeComissao() {
         const niveis = @json($niveis);
         const precoTransporteCentavos = {{ $transporte['precoCentavos'] }};
-        const precoPequenaEmpresaCentavos = {{ $pequenaEmpresa['precoCentavos'] }};
 
         return {
-            clientesTransporte: 5,
-            clientesPequenaEmpresa: 3,
+            clientesTransporte: 8,
 
             get totalClientes() {
-                return (this.clientesTransporte || 0) + (this.clientesPequenaEmpresa || 0);
+                return this.clientesTransporte || 0;
             },
 
             get nivel() {
@@ -318,7 +308,7 @@
             },
 
             get receitaMensalCentavos() {
-                return (this.clientesTransporte || 0) * precoTransporteCentavos + (this.clientesPequenaEmpresa || 0) * precoPequenaEmpresaCentavos;
+                return (this.clientesTransporte || 0) * precoTransporteCentavos;
             },
 
             get comissaoMensalCentavos() {

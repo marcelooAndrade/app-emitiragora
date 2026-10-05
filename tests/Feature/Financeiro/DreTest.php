@@ -24,7 +24,6 @@ it('quem nao tem permissao nao abre a tela', function () {
     $consulta = User::factory()->create(['tenant_id' => $this->emitente->tenant_id]);
     $consulta->emitentes()->attach($this->emitente);
     setPermissionsTeamId($this->emitente->id);
-    $consulta->assignRole(Perfil::Estoque->value);
 
     $this->actingAs($consulta)->get('/dre')->assertForbidden();
 });

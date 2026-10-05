@@ -117,7 +117,7 @@ it('com a mensalidade vencida, segue emitindo nos dias de tolerância e avisa', 
 
     expect($tenant->assinante())->toBeTrue()
         ->and($tenant->pagamentoVencido())->toBeTrue()
-        ->and($this->admin->can('nota.emitir'))->toBeTrue();
+        ->and($this->admin->can('transporte.operar'))->toBeTrue();
 
     $this->get('/dashboard')->assertOk()
         ->assertSee('A mensalidade venceu em 03/10/2026')
@@ -129,8 +129,8 @@ it('passada a tolerância, a conta fica só para consulta', function () {
     $tenant->update(['pago_ate' => '2026-09-29']); // tolerância até 04/10
 
     expect($tenant->somenteConsulta())->toBeTrue()
-        ->and($this->admin->can('nota.emitir'))->toBeFalse()
-        ->and($this->admin->can('nota.ver'))->toBeTrue();
+        ->and($this->admin->can('transporte.operar'))->toBeFalse()
+        ->and($this->admin->can('transporte.ver'))->toBeTrue();
 
     $this->get('/dashboard')->assertOk()->assertSee('A mensalidade está em aberto');
 });

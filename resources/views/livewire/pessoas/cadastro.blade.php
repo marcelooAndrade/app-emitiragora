@@ -189,7 +189,7 @@
                 </x-ui.field>
 
                 <x-ui.field label="Código IBGE" for="p-ibge" required
-                    hint="Obrigatório na NF-e. Vem do CEP, ou do município e da UF. Pode digitar."
+                    hint="Obrigatório no CT-e. Vem do CEP, ou do município e da UF. Pode digitar."
                     :error="$errors->first('codigo_municipio')">
                     <x-ui.input id="p-ibge" wire:model="form.codigo_municipio" numeric maxlength="7" />
                 </x-ui.field>
@@ -203,7 +203,7 @@
                 </x-ui.field>
 
                 <x-ui.field label="Observações" for="p-obs" class="sm:col-span-2" :error="$errors->first('observacoes')"
-                    hint="Uso interno. Não sai na nota nem na fatura.">
+                    hint="Uso interno. Não sai no CT-e nem na fatura.">
                     <x-ui.textarea id="p-obs" wire:model="form.observacoes" rows="3" maxlength="2000" />
                 </x-ui.field>
             </div>

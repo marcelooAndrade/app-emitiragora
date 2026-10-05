@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Financeiro;
 
-use App\Livewire\Financeiro\Concerns\EmiteNfseDaParcela;
 use App\Models\CentroCusto;
 use App\Models\ContaFinanceira;
 use App\Models\Emitente;
@@ -29,8 +28,6 @@ use RuntimeException;
 #[Title('Fatura')]
 class FaturaDetalhe extends Component
 {
-    use EmiteNfseDaParcela;
-
     public int $faturaId;
 
     public ?int $contaBaixaId = null;

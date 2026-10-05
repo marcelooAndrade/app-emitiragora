@@ -1,7 +1,9 @@
 <?php
 
 use App\Enums\Fiscal\Ambiente;
-use App\Enums\Fiscal\NFeStatus;
+use App\Enums\Transporte\CteStatus;
+use App\Enums\Transporte\MdfeStatus;
+use App\Enums\Transporte\ViagemStatus;
 use Illuminate\Support\Facades\Blade;
 
 it('exibe a faixa de ambiente em homologacao', function () {
@@ -17,22 +19,20 @@ it('nao exibe faixa alguma em producao', function () {
 });
 
 it('usa tonalidade para status recuperavel e solido para terminal', function () {
-    $rejeitada = Blade::render('<x-ui.badge-status :status="$s" />', ['s' => NFeStatus::Rejeitada]);
-    $cancelada = Blade::render('<x-ui.badge-status :status="$s" />', ['s' => NFeStatus::Cancelada]);
+    $rejeitado = Blade::render('<x-ui.badge-status :status="$s" />', ['s' => CteStatus::Rejeitado]);
+    $cancelado = Blade::render('<x-ui.badge-status :status="$s" />', ['s' => CteStatus::Cancelado]);
 
-    // Rejeitada é recuperável: fundo claro, texto escuro.
-    expect($rejeitada)->toContain('bg-danger-100');
-    // Cancelada é terminal: preenchimento sólido.
-    expect($cancelada)->toContain('bg-graphite-800');
+    // Rejeitado é recuperável: fundo claro, texto escuro.
+    expect($rejeitado)->toContain('bg-danger-100');
+    // Cancelado é terminal: preenchimento sólido.
+    expect($cancelado)->toContain('bg-graphite-800');
 });
 
-it('cobre os oito status da nf-e sem cair no padrao', function () {
-    foreach (NFeStatus::cases() as $status) {
-        expect($status->classesBadge())->not->toBe('');
-        expect($status->rotulo())->not->toBe('');
+it('cobre todo status de CT-e, MDF-e e viagem sem cair no padrao', function () {
+    foreach ([...CteStatus::cases(), ...MdfeStatus::cases(), ...ViagemStatus::cases()] as $status) {
+        expect($status->classesBadge())->not->toBe('')
+            ->and($status->rotulo())->not->toBe('');
     }
-
-    expect(NFeStatus::cases())->toHaveCount(8);
 });
 
 it('renderiza botao primario em grafite, nunca no vermelho da marca', function () {

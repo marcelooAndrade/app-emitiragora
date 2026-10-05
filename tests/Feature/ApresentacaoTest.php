@@ -67,13 +67,12 @@ it('o link ver o que ele faz aponta para a secao de recursos', function () {
         ->and($html)->not->toContain('id="o-que-faz"');
 });
 
-it('mostra os dois planos do site, com preco de config/planos.php', function () {
+it('mostra o plano do site, com preco de config/planos.php', function () {
     $html = $this->get('http://vendaredonda.com.br/')->assertOk()->getContent();
 
     expect($html)->toContain('>Transporte<')
-        ->and($html)->toContain('>Pequena Empresa<')
+        ->and($html)->not->toContain('>Pequena Empresa<')
         ->and($html)->toContain('R$499')
-        ->and($html)->toContain('R$99')
         ->and($html)->toContain('Criar conta e testar grátis')
         ->and($html)->not->toContain('>Essencial<')
         ->and($html)->not->toContain('notas por mês');

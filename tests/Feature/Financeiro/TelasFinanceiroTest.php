@@ -34,7 +34,6 @@ it('quem nao tem permissao nao abre o financeiro', function (string $rota) {
     $consulta = User::factory()->create(['tenant_id' => $this->emitente->tenant_id]);
     $consulta->emitentes()->attach($this->emitente);
     setPermissionsTeamId($this->emitente->id);
-    $consulta->assignRole(Perfil::Estoque->value);
 
     $this->actingAs($consulta)->get($rota)->assertForbidden();
 })->with(['/financeiro', '/contas-a-pagar', '/contas-a-receber']);

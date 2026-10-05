@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * O que o emitente precisa a mais para emitir CT-e e MDF-e. 1:1 com
- * `Emitente`, como `EmitenteNfse`: quem não transporta não carrega nada disso.
+ * `Emitente`: o que é só de transporte não pesa no cadastro do emitente.
  */
 class EmitenteTransporte extends Model
 {

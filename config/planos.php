@@ -29,31 +29,18 @@ return [
     */
     'planos' => [
         [
-            'slug' => 'pequena_empresa',
-            'nome' => 'Pequena Empresa',
-            'precoCentavos' => 9_900,
-            'descricao' => 'Pra empresa que compra, vende e emite nota, sem operar frota.',
-            'destaque' => false,
-            'recursos' => [
-                'Nota fiscal de produto (NF-e)',
-                'Nota fiscal de serviço (NFS-e)',
-                'Financeiro com DRE',
-            ],
-        ],
-        [
             'slug' => 'transporte',
             'nome' => 'Transporte',
             'precoCentavos' => 49_900,
-            'descricao' => 'Pra transportadora que opera frota e precisa dos documentos de transporte, não só de nota fiscal.',
+            'descricao' => 'Pra transportadora que opera frota, própria ou de terceiros, e precisa dos documentos de transporte em dia.',
             'destaque' => true,
             'recursos' => [
-                'Nota fiscal de produto (NF-e)',
-                'Nota fiscal de serviço (NFS-e)',
-                'Financeiro com DRE',
                 'CT-e e MDF-e',
                 'CIOT',
                 'Averbação de seguro',
                 'Contrato do motorista',
+                'Financeiro com DRE',
+                'Pacote do mês pro contador',
             ],
         ],
     ],
@@ -93,18 +80,6 @@ return [
     | false: aparece só no Transporte.
     */
     'acessoDoContadorEmTodosOsPlanosPagos' => true,
-
-    /*
-    |--------------------------------------------------------------------------
-    | NFS-e por cidade
-    |--------------------------------------------------------------------------
-    |
-    | NFS-e só funciona nas cidades já homologadas. Lista vazia faz a tela
-    | mostrar "lista de cidades em breve" em vez do texto fixo.
-    */
-    'nfse' => [
-        'cidades' => ['Araras'],
-    ],
 
     /*
     |--------------------------------------------------------------------------

@@ -21,7 +21,7 @@ function contextoComDoisUsuarios(): array
     $alvo = User::factory()->create(['tenant_id' => $emitente->tenant_id]);
     $alvo->emitentes()->attach($emitente);
     app(PermissionRegistrar::class)->setPermissionsTeamId($emitente->getKey());
-    $alvo->assignRole(Perfil::Estoque->value);
+    $alvo->assignRole(Perfil::Consulta->value);
 
     test()->actingAs($admin);
 
@@ -33,14 +33,14 @@ it('troca o perfil de um usuario existente', function () {
 
     Livewire::test(Cadastro::class)
         ->call('editar', $alvo->id)
-        ->assertSet("papeis.{$emitente->id}", Perfil::Estoque->value)
+        ->assertSet("papeis.{$emitente->id}", Perfil::Consulta->value)
         ->set("papeis.{$emitente->id}", Perfil::Faturamento->value)
         ->call('salvar')
         ->assertHasNoErrors();
 
     app(PermissionRegistrar::class)->setPermissionsTeamId($emitente->getKey());
     expect($alvo->fresh()->hasRole(Perfil::Faturamento->value))->toBeTrue()
-        ->and($alvo->fresh()->hasRole(Perfil::Estoque->value))->toBeFalse();
+        ->and($alvo->fresh()->hasRole(Perfil::Consulta->value))->toBeFalse();
 });
 
 it('remove o vinculo ao escolher sem acesso', function () {

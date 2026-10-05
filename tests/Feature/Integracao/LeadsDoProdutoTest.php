@@ -1,6 +1,5 @@
 <?php
 
-use App\Enums\PlanoTenant;
 use App\Jobs\EnviarLeads;
 use App\Models\User;
 use App\Services\Integrations\AdminPessoalGateway;
@@ -53,12 +52,12 @@ it('monta o lead a partir do tenant', function () {
 it('leva as respostas do modal do site no lead', function () {
     emitenteCompleto();
     $tenant = app(TenantAtual::class)->obter();
-    $tenant->update(['perfil_cadastro' => ['tipo' => 'transportadora', 'frota' => '6-20']]);
+    $tenant->update(['perfil_cadastro' => ['frota' => '6-20', 'volume' => '11-30']]);
     User::factory()->create(['tenant_id' => $tenant->id]);
 
     $lead = app(MontadorDeLeads::class)->paraTenant($tenant->fresh());
 
-    expect($lead['perfil_cadastro'])->toBe(['tipo' => 'transportadora', 'frota' => '6-20']);
+    expect($lead['perfil_cadastro'])->toBe(['frota' => '6-20', 'volume' => '11-30']);
 });
 
 /** O último acesso do tenant é o mais recente entre as pessoas dele. */
@@ -134,14 +133,3 @@ it('nao chama a rede sem configuracao', function () {
     // da suíte derruba o teste. É essa a asserção.
     app(AdminPessoalGateway::class)->enviar([['tenant_id' => 7]]);
 })->throwsNoExceptions();
-
-it('Pequena Empresa vai pro admin pessoal como gratuito, que é o nome que ele aceita', function () {
-    emitenteCompleto();
-    $tenant = app(TenantAtual::class)->obter();
-    $tenant->update(['plano' => PlanoTenant::PequenaEmpresa]);
-
-    $lead = app(MontadorDeLeads::class)->paraTenant($tenant->fresh());
-
-    expect($lead['plano'])->toBe('gratuito')
-        ->and($lead['plano_atual'])->toBe('pequena_empresa');
-});

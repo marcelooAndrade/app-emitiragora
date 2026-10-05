@@ -2,10 +2,8 @@
 
 namespace App\Livewire\Contador;
 
-use App\Enums\Fiscal\NFeStatus;
+use App\Enums\Transporte\CteStatus;
 use App\Models\Emitente;
-use App\Models\Nota;
-use App\Models\NotaEntrada;
 use App\Services\Export\PacoteContadorService;
 use App\Support\EmitenteAtual;
 use Illuminate\Support\Carbon;
@@ -43,17 +41,16 @@ class Exportacao extends Component
     public function previa(): array
     {
         [$de, $ate] = $this->periodo();
+        $pacote = app(PacoteContadorService::class);
 
-        $saidas = Nota::query()
-            ->whereBetween('data_emissao', [$de, $ate])
-            ->whereIn('status', [NFeStatus::Autorizada->value, NFeStatus::Cancelada->value])
-            ->get();
+        $ctes = $pacote->ctesDoPeriodo($this->emitente, $de, $ate);
+        $autorizados = $ctes->where('status', CteStatus::Autorizado);
 
         return [
-            'autorizadas' => $saidas->where('status', NFeStatus::Autorizada)->count(),
-            'canceladas' => $saidas->where('status', NFeStatus::Cancelada)->count(),
-            'entradas' => NotaEntrada::query()->whereBetween('data_emissao', [$de, $ate])->count(),
-            'valor' => (int) round($saidas->where('status', NFeStatus::Autorizada)->sum('valor_nota')),
+            'autorizados' => $autorizados->count(),
+            'cancelados' => $ctes->where('status', CteStatus::Cancelado)->count(),
+            'mdfes' => $pacote->mdfesDoPeriodo($this->emitente, $de, $ate)->count(),
+            'frete_centavos' => (int) $autorizados->sum('valor_total_centavos'),
         ];
     }
 

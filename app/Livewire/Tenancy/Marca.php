@@ -29,14 +29,14 @@ class Marca extends Component
 
     /**
      * As duas logos aceitam o mesmo tipo de arquivo, e não podem divergir.
-     * Sem SVG: o `sped-da` não desenha SVG no PDF do DANFE, e SVG servido da
+     * Sem SVG: o `sped-da` não desenha SVG no PDF do DACTE e do DAMDFE, e SVG servido da
      * mesma origem que o sistema é vetor de script.
      */
     private const REGRAS_LOGO = ['required', 'image', 'mimes:png,jpg,jpeg', 'max:1024'];
 
     public $logoSistema = null;
 
-    public $logoDanfe = null;
+    public $logoDocumento = null;
 
     public string $primaria = '';
 
@@ -184,28 +184,28 @@ class Marca extends Component
         unset($this->tenant);
     }
 
-    public function salvarLogoDanfe(): void
+    public function salvarLogoDocumento(): void
     {
         $this->authorize('emitente.gerenciar');
 
         $this->validate([
-            'logoDanfe' => self::REGRAS_LOGO,
+            'logoDocumento' => self::REGRAS_LOGO,
         ]);
 
         $emitente = $this->emitente;
         abort_if($emitente === null, 404);
 
         $anterior = $emitente->logo_path;
-        $path = $this->logoDanfe->store('marca/emitente/'.$emitente->getKey(), 'fiscal');
+        $path = $this->logoDocumento->store('marca/emitente/'.$emitente->getKey(), 'fiscal');
 
         $emitente->update(['logo_path' => $path]);
         $this->apagar($anterior);
 
-        $this->logoDanfe = null;
+        $this->logoDocumento = null;
         unset($this->emitente);
     }
 
-    public function removerLogoDanfe(): void
+    public function removerLogoDocumento(): void
     {
         $this->authorize('emitente.gerenciar');
 

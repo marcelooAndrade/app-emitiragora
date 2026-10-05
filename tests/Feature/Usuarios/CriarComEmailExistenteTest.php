@@ -102,7 +102,7 @@ it('e-mail ja vinculado a esta mesma empresa segue para editar, sem duplicar', f
     $jaVinculado = User::factory()->create(['tenant_id' => $emitente->tenant_id]);
     $jaVinculado->emitentes()->attach($emitente);
     app(PermissionRegistrar::class)->setPermissionsTeamId($emitente->getKey());
-    $jaVinculado->assignRole(Perfil::Estoque->value);
+    $jaVinculado->assignRole(Perfil::Consulta->value);
 
     test()->actingAs($admin);
 

@@ -19,14 +19,8 @@ class PerfilSeeder extends Seeder
         'certificado.ver', 'certificado.gerenciar',
         'usuario.gerenciar', 'auditoria.ver',
         'pessoa.ver', 'pessoa.gerenciar',
-        'produto.ver', 'produto.gerenciar', 'tributacao.gerenciar',
-        'estoque.ver', 'estoque.movimentar', 'estoque.inventariar',
-        'nota.ver', 'nota.criar', 'nota.emitir', 'nota.cancelar',
-        'nota.inutilizar', 'nota.carta-correcao',
-        'importacao.ver', 'importacao.processar',
         'relatorio.ver', 'contador.exportar',
         'financeiro.ver', 'financeiro.gerenciar',
-        'nfse.ver', 'nfse.emitir', 'nfse.cancelar', 'nfse.configurar',
         'transporte.ver', 'transporte.operar', 'transporte.cancelar', 'transporte.configurar',
     ];
 
@@ -46,35 +40,22 @@ class PerfilSeeder extends Seeder
         $mapa = [
             Perfil::Administrador->value => self::PERMISSOES,
 
+            // Quem opera a viagem: lança a carga, emite CT-e e MDF-e,
+            // cancela e cuida dos clientes. Vê o financeiro, não mexe nele.
             Perfil::Faturamento->value => [
                 'emitente.ver', 'certificado.ver',
                 'pessoa.ver', 'pessoa.gerenciar',
-                'produto.ver', 'estoque.ver',
-                'nota.ver', 'nota.criar', 'nota.emitir', 'nota.cancelar',
-                'nota.inutilizar', 'nota.carta-correcao',
-                'importacao.ver', 'relatorio.ver', 'contador.exportar',
+                'relatorio.ver', 'contador.exportar',
                 'financeiro.ver',
-                'nfse.ver', 'nfse.emitir', 'nfse.cancelar',
                 'transporte.ver', 'transporte.operar', 'transporte.cancelar',
             ],
 
-            Perfil::Estoque->value => [
-                'emitente.ver',
-                'produto.ver', 'produto.gerenciar',
-                'estoque.ver', 'estoque.movimentar', 'estoque.inventariar',
-                'importacao.ver', 'importacao.processar',
-                'nota.ver', 'relatorio.ver',
-            ],
-
-            // O contador costuma ser externo à empresa. Escreve a regra
-            // fiscal e leva os arquivos, mas não opera o faturamento.
+            // O contador costuma ser externo à empresa. Leva os arquivos e
+            // cuida do financeiro, mas não opera a viagem.
             Perfil::Contador->value => [
-                'emitente.ver', 'pessoa.ver', 'produto.ver', 'estoque.ver',
-                'tributacao.gerenciar',
-                'nota.ver', 'importacao.ver',
+                'emitente.ver', 'pessoa.ver',
                 'relatorio.ver', 'contador.exportar',
                 'financeiro.ver', 'financeiro.gerenciar',
-                'nfse.ver',
                 'auditoria.ver',
                 'transporte.ver',
             ],

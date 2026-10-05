@@ -16,7 +16,7 @@ use App\Support\TenantAtual;
 function clienteCom(string $slug, ?string $host = null): Tenant
 {
     return Tenant::create(['nome' => ucfirst($slug), 'slug' => $slug, 'dominio' => $host,
-        'plano' => $host === null ? PlanoTenant::PequenaEmpresa : PlanoTenant::Transporte]);
+        'plano' => PlanoTenant::Transporte]);
 }
 
 function usuarioDe(Tenant $t, string $email): User

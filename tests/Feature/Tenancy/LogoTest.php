@@ -3,8 +3,8 @@
 use App\Enums\Perfil;
 use App\Livewire\Tenancy\Marca;
 use App\Models\Tenant;
-use App\Models\User;
-use App\Services\Fiscal\DanfeService;
+use App\Services\Transporte\DocumentosAuxiliares;
+use App\Services\Transporte\TransmissorCte;
 use App\Support\TenantAtual;
 use Database\Seeders\PerfilSeeder;
 use Illuminate\Http\UploadedFile;
@@ -190,13 +190,13 @@ it('a sidebar aponta para a rota da logo, nunca para o caminho no bucket', funct
         ->assertDontSee('marca/tenant/');
 });
 
-it('grava a logo do danfe no emitente em foco', function () {
+it('grava a logo dos documentos no emitente em foco', function () {
     $user = usuarioMarca(Perfil::Administrador->value);
     $emitente = $user->emitentes()->first();
 
     Livewire::actingAs($user)->test(Marca::class)
-        ->set('logoDanfe', UploadedFile::fake()->image('marca.png'))
-        ->call('salvarLogoDanfe')
+        ->set('logoDocumento', UploadedFile::fake()->image('marca.png'))
+        ->call('salvarLogoDocumento')
         ->assertHasNoErrors();
 
     $path = $emitente->fresh()->logo_path;
@@ -205,45 +205,47 @@ it('grava a logo do danfe no emitente em foco', function () {
     Storage::disk('fiscal')->assertExists($path);
 });
 
-it('a logo do danfe e separada da logo do sistema', function () {
+it('a logo dos documentos e separada da logo do sistema', function () {
     $user = usuarioMarca(Perfil::Administrador->value);
     $emitente = $user->emitentes()->first();
 
     Livewire::actingAs($user)->test(Marca::class)
         ->set('logoSistema', UploadedFile::fake()->image('sistema.png'))
         ->call('salvarLogoSistema')
-        ->set('logoDanfe', UploadedFile::fake()->image('danfe.png'))
-        ->call('salvarLogoDanfe');
+        ->set('logoDocumento', UploadedFile::fake()->image('documento.png'))
+        ->call('salvarLogoDocumento');
 
-    $doDanfe = $emitente->fresh()->logo_path;
+    $doDocumento = $emitente->fresh()->logo_path;
     $doSistema = Tenant::find($user->tenant_id)->logo_path;
 
-    expect($doDanfe)->not->toBeNull()
+    expect($doDocumento)->not->toBeNull()
         ->and($doSistema)->not->toBeNull()
-        ->and($doDanfe)->not->toBe($doSistema)
-        ->and($doDanfe)->toStartWith('marca/emitente/')
+        ->and($doDocumento)->not->toBe($doSistema)
+        ->and($doDocumento)->toStartWith('marca/emitente/')
         ->and($doSistema)->toStartWith('marca/tenant/');
 });
 
-it('o danfe sai maior com a logo do emitente do que sem ela', function () {
-    $nota = notaPronta();
+it('o dacte sai maior com a logo do emitente do que sem ela', function () {
+    comGatewayCte(['enviar' => cteAutorizado()]);
+    $cte = app(TransmissorCte::class)->transmitir(viagemPronta()->ctes->sole());
 
-    // O usuário é montado em volta do emitente da nota, e sem outro vínculo,
-    // para que o `EmitenteAtual` resolva justamente esse.
-    $user = User::factory()->create(['tenant_id' => app(TenantAtual::class)->obter()->id]);
-    $user->emitentes()->attach($nota->emitente_id);
-    setPermissionsTeamId($nota->emitente_id);
-    $user->assignRole(Perfil::Administrador->value);
+    // O gateway falso devolve um `cteProc` vazio. Para o DACTE ter o que
+    // desenhar, o XML autorizado é o que o sistema gerou, com o protocolo.
+    $gerado = preg_replace('/^<\?xml[^>]*>\s*/', '', (string) Storage::disk('fiscal')->get($cte->xml_path));
+    Storage::disk('fiscal')->put($cte->xml_autorizado_path, '<?xml version="1.0" encoding="UTF-8"?>'
+        .'<cteProc xmlns="http://www.portalfiscal.inf.br/cte" versao="4.00">'.$gerado
+        .'<protCTe versao="4.00"><infProt><tpAmb>2</tpAmb><verAplic>TESTE</verAplic><chCTe>'.$cte->chave.'</chCTe>'
+        .'<dhRecbto>2026-10-05T10:00:00-03:00</dhRecbto><nProt>135260000999001</nProt><digVal>dGVzdGU=</digVal>'
+        .'<cStat>100</cStat><xMotivo>Autorizado o uso do CT-e</xMotivo></infProt></protCTe></cteProc>');
 
-    $servico = app(DanfeService::class);
-    $semLogo = strlen($servico->previa($nota, xmlAutorizado()));
+    $documentos = app(DocumentosAuxiliares::class);
+    $semLogo = strlen($documentos->dacte($cte));
 
-    Livewire::actingAs($user)->test(Marca::class)
-        ->set('logoDanfe', UploadedFile::fake()->image('marca.png', 400, 120))
-        ->call('salvarLogoDanfe')
-        ->assertHasNoErrors();
+    $cte->emitente->forceFill([
+        'logo_path' => UploadedFile::fake()->image('marca.png', 400, 120)->store('marca/emitente/'.$cte->emitente_id, 'fiscal'),
+    ])->save();
 
-    $comLogo = strlen($servico->previa($nota->fresh(['emitente', 'itens', 'destinatario']), xmlAutorizado()));
+    $comLogo = strlen($documentos->dacte($cte->fresh('emitente')));
 
     expect($comLogo)->toBeGreaterThan($semLogo);
 });
@@ -251,5 +253,5 @@ it('o danfe sai maior com a logo do emitente do que sem ela', function () {
 it('a tela de marca oferece as duas logos, com a diferenca explicada', function () {
     $this->actingAs(usuarioMarca(Perfil::Administrador->value))->get('/marca')
         ->assertSee('Logo do sistema')
-        ->assertSee('Logo do DANFE');
+        ->assertSee('Logo dos documentos');
 });

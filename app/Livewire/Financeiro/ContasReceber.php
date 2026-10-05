@@ -2,7 +2,6 @@
 
 namespace App\Livewire\Financeiro;
 
-use App\Livewire\Financeiro\Concerns\EmiteNfseDaParcela;
 use App\Models\ContaFinanceira;
 use App\Models\Emitente;
 use App\Models\FaturaParcela;
@@ -23,8 +22,6 @@ use RuntimeException;
 #[Title('Contas a receber')]
 class ContasReceber extends Component
 {
-    use EmiteNfseDaParcela;
-
     public string $situacao = 'pendentes';
 
     public ?int $contaBaixaId = null;
@@ -103,6 +100,18 @@ class ContasReceber extends Component
         $this->esquecerTotais();
 
         session()->flash('sucesso', 'Recebimento registrado.');
+    }
+
+    /**
+     * Parcela de fatura do emitente em foco. O escopo global já garante o
+     * tenant, mas matriz e filial dividem o tenant: sem este filtro, uma
+     * filial daria baixa em parcela da matriz.
+     */
+    private function parcelaDoEmitente(int $id): FaturaParcela
+    {
+        return FaturaParcela::query()
+            ->whereHas('fatura', fn ($q) => $q->where('emitente_id', $this->emitente->getKey()))
+            ->findOrFail($id);
     }
 
     public function render()

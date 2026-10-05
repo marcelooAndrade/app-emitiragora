@@ -2,12 +2,14 @@
 
 namespace App\Livewire\Painel;
 
-use App\Enums\Fiscal\NFeStatus;
+use App\Enums\Transporte\CteStatus;
+use App\Enums\Transporte\MdfeStatus;
+use App\Enums\Transporte\ViagemStatus;
+use App\Models\Cte;
 use App\Models\Emitente;
 use App\Models\EmitenteCertificado;
-use App\Models\EstoqueSaldo;
-use App\Models\Nota;
-use App\Models\PerfilFiscalRegra;
+use App\Models\Mdfe;
+use App\Models\Viagem;
 use App\Support\EmitenteAtual;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
@@ -16,29 +18,36 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 
 /**
- * Painel de entrada.
+ * Painel de entrada da transportadora.
  *
  * A ordem da tela é deliberada: primeiro o que exige ação, depois o que
- * aconteceu. Quem abre o sistema de manhã precisa saber o que travou ontem
- * antes de saber quanto faturou no mês.
+ * aconteceu. Quem abre o sistema de manhã precisa saber qual CT-e travou e
+ * qual MDF-e ficou aberto antes de saber quanto de frete saiu no mês.
  */
 #[Layout('components.layouts.fiscal')]
 #[Title('Painel')]
 class Inicio extends Component
 {
     /**
+     * MDF-e autorizado há mais que isso sem encerrar vira aviso. A SEFAZ
+     * recusa MDF-e novo enquanto houver um esquecido aberto há mais de 30
+     * dias; 7 dá tempo de encerrar bem antes disso.
+     */
+    public const DIAS_PARA_ENCERRAR_MDFE = 7;
+
+    /**
      * Números do mês corrente.
      *
-     * Propriedade e não computed: são quatro contagens que a tela sempre
-     * mostra, e deixá-las públicas permite asserção direta no teste.
+     * Propriedade e não computed: são contagens que a tela sempre mostra, e
+     * deixá-las públicas permite asserção direta no teste.
      *
-     * @var array{autorizadas:int, faturado:float, canceladas:int, rascunhos:int}
+     * @var array{ctes:int, frete_centavos:int, cancelados:int, viagens_abertas:int}
      */
     public array $mes = [
-        'autorizadas' => 0,
-        'faturado' => 0.0,
-        'canceladas' => 0,
-        'rascunhos' => 0,
+        'ctes' => 0,
+        'frete_centavos' => 0,
+        'cancelados' => 0,
+        'viagens_abertas' => 0,
     ];
 
     public function mount(): void
@@ -56,59 +65,71 @@ class Inicio extends Component
     }
 
     /**
-     * @return array{autorizadas:int, faturado:float, canceladas:int, rascunhos:int}
+     * @return array{ctes:int, frete_centavos:int, cancelados:int, viagens_abertas:int}
      */
     private function apurarMes(): array
     {
-        $doMes = fn () => Nota::query()->whereBetween('data_emissao', [
-            now()->startOfMonth(),
-            now()->endOfMonth(),
-        ]);
+        $doMes = fn () => Cte::query()->whereBetween('autorizado_em', [now()->startOfMonth(), now()->endOfMonth()]);
 
-        // Cancelada não fatura: ela existiu e foi desfeita. Somá-la infla o
-        // faturamento e é o tipo de número que ninguém confere depois.
-        $autorizadas = $doMes()->where('status', NFeStatus::Autorizada->value);
+        // Cancelado não conta como frete: existiu e foi desfeito. Somá-lo
+        // infla o mês e é o tipo de número que ninguém confere depois.
+        $autorizados = $doMes()->where('status', CteStatus::Autorizado->value);
 
         return [
-            'autorizadas' => (clone $autorizadas)->count(),
-            'faturado' => round((float) (clone $autorizadas)->sum('valor_nota'), 2),
-            'canceladas' => $doMes()->where('status', NFeStatus::Cancelada->value)->count(),
-            'rascunhos' => Nota::query()->where('status', NFeStatus::Rascunho->value)->count(),
+            'ctes' => (clone $autorizados)->count(),
+            'frete_centavos' => (int) (clone $autorizados)->sum('valor_total_centavos'),
+            'cancelados' => $doMes()->where('status', CteStatus::Cancelado->value)->count(),
+            'viagens_abertas' => Viagem::query()
+                ->whereIn('status', [ViagemStatus::Rascunho->value, ViagemStatus::Pendente->value])
+                ->count(),
         ];
     }
 
     /**
-     * Notas que pararam no meio do caminho.
+     * CT-e e MDF-e que pararam no meio do caminho.
      *
-     * Em processamento é a mais urgente: a SEFAZ pode já ter autorizado sem
-     * que a resposta tenha voltado, então reemitir criaria duplicidade.
+     * Em processamento é o mais urgente: a SEFAZ pode já ter autorizado sem
+     * que a resposta tenha voltado, então transmitir de novo duplicaria.
      *
-     * @return Collection<int, Nota>
+     * @return Collection<int, Cte|Mdfe>
      */
     #[Computed]
     public function pendentes(): Collection
     {
-        return Nota::query()
-            ->with('destinatario')
-            ->whereIn('status', [
-                NFeStatus::EmProcessamento->value,
-                NFeStatus::Rejeitada->value,
-                NFeStatus::Contingencia->value,
-            ])
-            ->orderByDesc('data_emissao')
-            ->limit(10)
+        $travados = [CteStatus::EmProcessamento->value, CteStatus::Rejeitado->value];
+
+        return Cte::query()->with('viagem')->whereIn('status', $travados)->latest('updated_at')->limit(10)->get()
+            ->concat(Mdfe::query()->with('viagem')->whereIn('status', $travados)->latest('updated_at')->limit(10)->get())
+            ->sortByDesc('updated_at')
+            ->values();
+    }
+
+    /**
+     * MDF-e em viagem há mais de uma semana. Quase sempre é viagem que já
+     * terminou e ninguém encerrou.
+     *
+     * @return Collection<int, Mdfe>
+     */
+    #[Computed]
+    public function mdfesParaEncerrar(): Collection
+    {
+        return Mdfe::query()
+            ->with('viagem')
+            ->where('status', MdfeStatus::Autorizado->value)
+            ->where('autorizado_em', '<', now()->subDays(self::DIAS_PARA_ENCERRAR_MDFE))
+            ->orderBy('autorizado_em')
             ->get();
     }
 
     /**
-     * @return Collection<int, Nota>
+     * @return Collection<int, Viagem>
      */
     #[Computed]
     public function ultimas(): Collection
     {
-        return Nota::query()
-            ->with('destinatario')
-            ->orderByDesc('data_emissao')
+        return Viagem::query()
+            ->with(['motorista', 'veiculo'])
+            ->orderByDesc('data_carregamento')
             ->orderByDesc('id')
             ->limit(8)
             ->get();
@@ -133,30 +154,6 @@ class Inicio extends Component
         return $this->certificado === null
             ? null
             : (int) now()->startOfDay()->diffInDays($this->certificado->valido_ate->startOfDay(), false);
-    }
-
-    /**
-     * Sem regra vigente hoje, toda emissão para. É pendência do contador, e
-     * quem descobre isso na hora de faturar já perdeu a manhã.
-     */
-    #[Computed]
-    public function semRegraVigente(): bool
-    {
-        $hoje = now()->toDateString();
-
-        return ! PerfilFiscalRegra::query()
-            ->whereDate('vigente_de', '<=', $hoje)
-            ->where(fn ($q) => $q->whereNull('vigente_ate')->orWhereDate('vigente_ate', '>=', $hoje))
-            ->exists();
-    }
-
-    /**
-     * @return Collection<int, EstoqueSaldo>
-     */
-    #[Computed]
-    public function abaixoDoMinimo(): Collection
-    {
-        return EstoqueSaldo::query()->with('produto')->get()->filter->abaixoDoMinimo();
     }
 
     public function render()

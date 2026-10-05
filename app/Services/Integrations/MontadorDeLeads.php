@@ -2,7 +2,6 @@
 
 namespace App\Services\Integrations;
 
-use App\Enums\PlanoTenant;
 use App\Models\Emitente;
 use App\Models\Tenant;
 use App\Models\User;
@@ -51,10 +50,9 @@ class MontadorDeLeads
             'email' => (string) $primeiro?->email,
             'telefone' => $emitente?->telefone,
             // O admin pessoal (omarceloandrade) ainda só aceita os nomes antigos
-            // e recusa o lead inteiro com outro valor. Até ele aprender os
-            // planos do site, o Transporte vai como "avancado" e a Pequena
-            // Empresa como "gratuito"; o plano de verdade segue em `plano_atual`.
-            'plano' => $tenant->plano === PlanoTenant::Transporte ? 'avancado' : 'gratuito',
+            // e recusa o lead inteiro com outro valor. O único plano, o
+            // Transporte, vai como "avancado"; o de verdade segue em `plano_atual`.
+            'plano' => 'avancado',
             'plano_atual' => $tenant->plano->value,
             // Respostas do modal do site; nulo pra quem se cadastrou direto pelo app.
             'perfil_cadastro' => $tenant->perfil_cadastro,

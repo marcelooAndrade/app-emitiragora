@@ -21,13 +21,12 @@ it('mostra os tres niveis de comissao com o percentual do config', function () {
         ->assertSee('30%');
 });
 
-it('mostra os planos reais dentro da pagina', function () {
+it('mostra o plano real dentro da pagina', function () {
     $this->get('/contadores')
         ->assertOk()
         ->assertSee('Transporte')
-        ->assertSee('Pequena Empresa')
         ->assertSee('R$499')
-        ->assertSee('R$99')
+        ->assertDontSee('Pequena Empresa')
         ->assertDontSee('Essencial')
         ->assertDontSee('Completo');
 });

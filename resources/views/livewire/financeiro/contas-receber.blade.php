@@ -37,34 +37,6 @@
         </x-ui.card>
     </div>
 
-    @if ($nfseParcelaId !== null)
-        @php($parcelaNfse = $this->titulos->firstWhere('id', $nfseParcelaId))
-        <x-ui.card title="Emitir NFS-e" subtitle="{{ $parcelaNfse?->fatura?->titulo }}, parcela {{ $parcelaNfse?->numero }}, R$ {{ App\Support\Dinheiro::formatar((int) $parcelaNfse?->valor_centavos) }}">
-            <form wire:submit="emitirNfse" class="grid gap-4">
-                <div class="grid gap-4 sm:grid-cols-3">
-                    <x-ui.field label="Serviço fiscal" for="nfse-servico" required>
-                        <x-ui.select id="nfse-servico" wire:model.live="nfseServicoId">
-                            <option value="">Escolha</option>
-                            @foreach ($this->servicosNfse as $servico)
-                                <option value="{{ $servico->id }}">{{ $servico->nome }} · {{ $servico->codigo_servico }}</option>
-                            @endforeach
-                        </x-ui.select>
-                    </x-ui.field>
-                    <x-ui.field label="Descrição que sai na nota" for="nfse-descricao" required class="sm:col-span-2"
-                        :error="$errors->first('nfse')">
-                        <x-ui.textarea id="nfse-descricao" wire:model="nfseDescricao" rows="4" maxlength="1000" />
-                    </x-ui.field>
-                </div>
-                <p class="text-xs text-graphite-500">
-                    A nota sai pelo valor integral da parcela, em {{ mb_strtolower($this->emitente->nfse->ambiente->rotulo()) }}. Confira antes de emitir.
-                </p>
-                <div class="flex gap-2">
-                    <x-ui.button type="submit">Emitir NFS-e</x-ui.button>
-                    <x-ui.button type="button" variant="ghost" wire:click="fecharNfse">Cancelar</x-ui.button>
-                </div>
-            </form>
-        </x-ui.card>
-    @endif
 
     <x-ui.card>
         <div class="mb-4 flex flex-wrap items-end justify-between gap-4">
@@ -108,9 +80,6 @@
                         <th class="etiqueta px-2 py-2 text-right text-graphite-500">Parcela</th>
                         <th class="etiqueta px-2 py-2 text-right text-graphite-500">Valor</th>
                         <th class="etiqueta px-2 py-2 text-center text-graphite-500">Cobrança</th>
-                        @if ($this->nfseHabilitada)
-                            <th class="etiqueta px-2 py-2 text-left text-graphite-500">NFS-e</th>
-                        @endif
                         <th class="etiqueta px-2 py-2 text-right text-graphite-500">Situação</th>
                     </tr>
                 </thead>
@@ -146,28 +115,6 @@
                                     <span class="text-xs text-graphite-400">—</span>
                                 @endif
                             </td>
-                            @if ($this->nfseHabilitada)
-                                @php($nota = $this->notasServico->get($parcela->id))
-                                <td class="px-2 py-2">
-                                    @if ($nota)
-                                        <div class="flex flex-wrap items-center gap-2">
-                                            <span class="num text-xs text-graphite-700">{{ $nota->documento() }}</span>
-                                            <x-ui.badge-status :status="$nota->status" />
-                                            @if ($nota->temDocumento())
-                                                <a href="{{ route('notas-servico.pdf', $nota) }}" target="_blank" rel="noreferrer" class="text-xs font-semibold text-graphite-700 underline">PDF</a>
-                                                <a href="{{ route('notas-servico.xml', $nota) }}" class="text-xs font-semibold text-graphite-700 underline">XML</a>
-                                            @endif
-                                        </div>
-                                    @endif
-                                    @can('nfse.emitir')
-                                        @if ($parcela->status !== 'cancelado' && ($nota === null || $nota->status->permiteNovaTentativa()))
-                                            <x-ui.button size="sm" variant="secondary" class="mt-1" wire:click="abrirNfse({{ $parcela->id }})">
-                                                {{ $nota === null ? 'Emitir NFS-e' : 'Tentar de novo' }}
-                                            </x-ui.button>
-                                        @endif
-                                    @endcan
-                                </td>
-                            @endif
                             <td class="px-2 py-2 text-right">
                                 @if ($parcela->status === 'pago')
                                     <span class="etiqueta bg-success-100 px-2 py-1 text-success-800">Recebido</span>

@@ -3,7 +3,7 @@
     <x-ui.page-header
         eyebrow="Configuração"
         title="Emitente"
-        description="Dados cadastrais de quem assina a nota. Ambiente, série e certificado ficam nas telas próprias." />
+        description="Dados cadastrais de quem assina o CT-e e o MDF-e. Ambiente, série e certificado ficam nas telas próprias." />
 
     @if (session('sucesso'))
         <x-ui.alert variant="success">{{ session('sucesso') }}</x-ui.alert>

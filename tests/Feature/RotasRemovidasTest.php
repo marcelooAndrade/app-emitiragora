@@ -24,3 +24,18 @@ it('nao serve mais a vitrine do design system, nem para administrador', function
 
     $this->actingAs($user)->get('/design-system')->assertNotFound();
 });
+
+/**
+ * Desde 05/10/2026 o EmitirAgora é só de transportadora: nota fiscal, NFS-e,
+ * estoque, produtos, regras fiscais e importação de nota de compra saíram.
+ */
+it('nao serve mais as telas do que nao e de transportadora', function (string $caminho) {
+    $user = User::factory()->create();
+    $emitente = Emitente::factory()->create();
+    $user->emitentes()->attach($emitente);
+
+    setPermissionsTeamId($emitente->id);
+    $user->assignRole(Perfil::Administrador->value);
+
+    $this->actingAs($user)->get($caminho)->assertNotFound();
+})->with(['/notas', '/notas-servico', '/nfse', '/estoque', '/produtos', '/regras-fiscais', '/importacao']);

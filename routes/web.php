@@ -4,13 +4,11 @@ use App\Http\Controllers\CadastroController;
 use App\Http\Controllers\EscolherEmitenteController;
 use App\Http\Controllers\FaturaPublicaController;
 use App\Http\Controllers\LogoTenantController;
-use App\Http\Controllers\NotaServicoArquivoController;
 use App\Http\Controllers\RaizController;
 use App\Http\Controllers\TransporteArquivoController;
 use App\Http\Middleware\ExigirOrigemDoSite;
 use App\Livewire\Certificados\Gerenciar;
 use App\Livewire\Contador\Exportacao;
-use App\Livewire\Estoque\Painel;
 use App\Livewire\Financeiro\CentrosCusto;
 use App\Livewire\Financeiro\ContasBancarias;
 use App\Livewire\Financeiro\ContasPagar;
@@ -18,14 +16,11 @@ use App\Livewire\Financeiro\ContasReceber;
 use App\Livewire\Financeiro\Dre;
 use App\Livewire\Financeiro\FaturaDetalhe;
 use App\Livewire\Financeiro\Faturas;
-use App\Livewire\Nfse\Configuracao;
-use App\Livewire\Nfse\Notas;
-use App\Livewire\Notas\Emissao;
+use App\Livewire\Financeiro\Painel;
 use App\Livewire\Painel\Inicio;
 use App\Livewire\Pessoas\Cadastro;
 use App\Livewire\Tenancy\Marca;
 use App\Livewire\Transporte;
-use App\Livewire\Tributacao\Regras;
 use App\Livewire\Usuarios\Cadastro as UsuariosCadastro;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
@@ -65,12 +60,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', Inicio::class)->name('dashboard');
 
     Route::get('contabilidade', Exportacao::class)->name('contabilidade');
-    Route::get('notas', Emissao::class)->name('notas');
-    Route::get('importacao', App\Livewire\Importacao\Painel::class)->name('importacao');
-    Route::get('estoque', Painel::class)->name('estoque');
-    // `Painel` já nomeia o do estoque neste arquivo, então este vai pelo
-    // nome completo em vez de um alias que confundiria os dois.
-    Route::get('financeiro', App\Livewire\Financeiro\Painel::class)->name('financeiro');
+    Route::get('financeiro', Painel::class)->name('financeiro');
     Route::get('contas-a-pagar', ContasPagar::class)->name('contas-a-pagar');
     Route::get('contas-a-receber', ContasReceber::class)->name('contas-a-receber');
     Route::get('faturas', Faturas::class)->name('faturas');
@@ -79,18 +69,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('centros-de-custo', CentrosCusto::class)->name('centros-de-custo');
     Route::get('dre', Dre::class)->name('dre');
     Route::get('marca', Marca::class)->name('marca');
-    Route::get('produtos', App\Livewire\Produtos\Cadastro::class)->name('produtos');
-    Route::get('regras-fiscais', Regras::class)->name('regras-fiscais');
     Route::get('destinatarios', Cadastro::class)->name('destinatarios');
     Route::get('certificados', Gerenciar::class)->name('certificados');
     // `Cadastro` já nomeia o de pessoas neste arquivo, então este vai pelo
     // nome completo.
     Route::get('emitente', App\Livewire\Emitentes\Cadastro::class)->name('emitente');
     Route::get('usuarios', UsuariosCadastro::class)->name('usuarios');
-    Route::get('nfse', Configuracao::class)->name('nfse');
-    Route::get('notas-servico', Notas::class)->name('notas-servico');
-    Route::get('notas-servico/{nota}/pdf', [NotaServicoArquivoController::class, 'pdf'])->name('notas-servico.pdf');
-    Route::get('notas-servico/{nota}/xml', [NotaServicoArquivoController::class, 'xml'])->name('notas-servico.xml');
 
     // Transporte: viagem, CT-e e MDF-e (portado do app-transm).
     Route::get('viagens', Transporte\Viagens::class)->name('viagens');

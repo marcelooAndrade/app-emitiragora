@@ -45,13 +45,13 @@
 
             @if (! $this->ativo->vencido() && $dias <= 30)
                 <x-ui.alert variant="warning" class="mt-4" title="Renovação necessária">
-                    Sem certificado válido o sistema não assina nem transmite NF-e. Procure sua certificadora.
+                    Sem certificado válido o sistema não assina nem transmite CT-e e MDF-e. Procure sua certificadora.
                 </x-ui.alert>
             @endif
         @else
             <x-ui.empty-state
                 title="Nenhum certificado cadastrado"
-                description="Envie o arquivo A1 (.pfx ou .p12) para que o sistema possa assinar e transmitir notas." />
+                description="Envie o arquivo A1 (.pfx ou .p12) para que o sistema possa assinar e transmitir CT-e e MDF-e." />
         @endif
     </x-ui.card>
 
@@ -86,7 +86,7 @@
 
             @if ($this->emitente->ambiente === \App\Enums\Fiscal\Ambiente::Homologacao)
                 <p class="text-sm text-graphite-600">
-                    Este emitente está em <strong>homologação</strong>. As notas não têm valor fiscal.
+                    Este emitente está em <strong>homologação</strong>. Os documentos não têm valor fiscal.
                     A virada exige certificado válido e responsável técnico configurado.
                 </p>
 
@@ -94,7 +94,7 @@
                     <x-ui.field
                         label="Digite PRODUCAO para confirmar"
                         for="conf-prod"
-                        hint="A partir daqui toda nota emitida tem valor fiscal."
+                        hint="A partir daqui todo CT-e e MDF-e emitido tem valor fiscal."
                         :error="$errors->first('confirmacaoProducao')">
                         <x-ui.input id="conf-prod" wire:model="confirmacaoProducao" autocomplete="off" placeholder="PRODUCAO" />
                     </x-ui.field>
@@ -103,7 +103,7 @@
             @else
                 <x-ui.alert variant="warning" title="Emitente em produção">
                     Ativado em {{ $this->emitente->producao_ativada_em?->format('d/m/Y H:i') }}.
-                    Toda nota emitida tem valor fiscal.
+                    Todo CT-e e MDF-e emitido tem valor fiscal.
                 </x-ui.alert>
                 <div class="mt-4">
                     <x-ui.button variant="secondary" wire:click="voltarParaHomologacao">Voltar para homologação</x-ui.button>

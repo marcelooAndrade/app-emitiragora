@@ -1,11 +1,7 @@
 <?php
 
 use App\Models\Emitente;
-use App\Models\NaturezaOperacao;
-use App\Models\PerfilFiscal;
 use App\Models\Pessoa;
-use App\Models\Produto;
-use App\Models\ServicoNfse;
 use App\Models\Tenant;
 use App\Models\User;
 
@@ -26,12 +22,5 @@ it('reflete em memoria todo default booleano verdadeiro do banco', function (str
     [Tenant::class, 'ativo'],
     [Pessoa::class, 'ativo'],
     [Pessoa::class, 'consumidor_final'],
-    [Produto::class, 'ativo'],
-    [Produto::class, 'controla_estoque'],
-    [PerfilFiscal::class, 'ativo'],
-    [NaturezaOperacao::class, 'ativo'],
-    [NaturezaOperacao::class, 'movimenta_estoque'],
-    [NaturezaOperacao::class, 'gera_financeiro'],
-    [ServicoNfse::class, 'ativo'],
     [User::class, 'ativo'],
 ]);

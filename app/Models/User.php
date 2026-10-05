@@ -126,9 +126,8 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
-     * O plano e a assinatura cortam antes do papel: na Pequena Empresa
-     * ninguém tem `transporte.*`, e com o teste acabado ninguém tem nada além
-     * de consulta, nem o Administrador.
+     * A assinatura corta antes do papel: com o teste acabado ninguém tem nada
+     * além de consulta, nem o Administrador.
      *
      * Fica aqui, e não num `Gate::before`, porque o spatie registra o dele
      * primeiro e responde `true` pelo papel antes de qualquer outro ser
@@ -143,10 +142,6 @@ class User extends Authenticatable implements PasskeyUser
         $tenant = app(TenantAtual::class)->obter();
 
         if ($tenant !== null && is_string($nome)) {
-            if (str_starts_with($nome, 'transporte.') && ! $tenant->plano->permiteTransporte()) {
-                return false;
-            }
-
             // Teste acabado sem assinatura: sobra só o que é consulta. A
             // exportação do contador fica, porque os dados são da empresa.
             if ($tenant->somenteConsulta() && ! str_ends_with($nome, '.ver') && $nome !== 'contador.exportar') {

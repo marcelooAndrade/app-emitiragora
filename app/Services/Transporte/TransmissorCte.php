@@ -225,7 +225,6 @@ class TransmissorCte
     {
         SefazLog::create([
             'emitente_id' => $cte->emitente_id,
-            'nota_id' => null,
             'operacao' => $operacao,
             'ambiente' => $cte->ambiente->value,
             'c_stat' => $cStat,

@@ -270,7 +270,6 @@ class TransmissorMdfe
     {
         SefazLog::create([
             'emitente_id' => $mdfe->emitente_id,
-            'nota_id' => null,
             'operacao' => $operacao,
             'ambiente' => $mdfe->ambiente->value,
             'c_stat' => $cStat,

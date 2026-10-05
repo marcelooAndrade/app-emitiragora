@@ -13,9 +13,9 @@ use Illuminate\Database\Seeder;
  * deploy rodava só `migrate` e este arquivo ainda era o esqueleto do Laravel,
  * que criava um "Test User" e não semeava perfil nenhum.
  *
- * Os dois seeders são idempotentes, `findOrCreate` num e `upsert` no outro,
- * então rodar a cada deploy é seguro. Dado de demonstração vive em
- * `venda:demo`, que é outro comando e não entra em produção.
+ * O PerfilSeeder é idempotente (`findOrCreate` e `syncPermissions`), então
+ * rodar a cada deploy é seguro. As tabelas fiscais da NF-e (CST, unidades de
+ * medida) saíram em 05/10/2026, com a NF-e.
  */
 class DatabaseSeeder extends Seeder
 {
@@ -29,7 +29,6 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             PerfilSeeder::class,
-            TabelasFiscaisSeeder::class,
         ]);
     }
 }

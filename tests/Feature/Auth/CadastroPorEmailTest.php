@@ -30,7 +30,6 @@ function contatoDoSite(array $extra = []): array
         'nome' => 'Marcelo Andrade',
         'email' => 'Marcelo@Exemplo.com.br',
         'telefone' => '(19) 97135-1777',
-        'tipo' => 'transportadora',
         'frota' => '6-20',
         'volume' => '11-30',
         'origem' => 'https://emitiragora.com.br/teste-gratis?utm_source=meta&fbclid=abc',
@@ -65,7 +64,7 @@ it('o modal do site guarda o contato e manda o link pro e-mail', function () {
 
     $cadastro = CadastroIniciado::sole();
     expect($cadastro->email)->toBe('marcelo@exemplo.com.br')
-        ->and($cadastro->perfil)->toBe(['tipo' => 'transportadora', 'frota' => '6-20', 'volume' => '11-30'])
+        ->and($cadastro->perfil)->toBe(['frota' => '6-20', 'volume' => '11-30'])
         ->and($cadastro->origem)->toContain('utm_source=meta')
         ->and($cadastro->fbp)->toBe('fb.1.111.222')
         ->and($cadastro->convertido_em)->toBeNull()
@@ -198,7 +197,7 @@ it('so com o link a conta nasce, com o e-mail do convite e ja verificado', funct
     $user = User::withoutGlobalScopes()->sole();
     expect($user->email)->toBe('marcelo@exemplo.com.br')
         ->and($user->email_verified_at)->not->toBeNull()
-        ->and(Tenant::sole()->perfil_cadastro)->toBe(['tipo' => 'transportadora', 'frota' => '6-20', 'volume' => '11-30']);
+        ->and(Tenant::sole()->perfil_cadastro)->toBe(['frota' => '6-20', 'volume' => '11-30']);
     $this->assertAuthenticatedAs($user);
 
     $cadastro = CadastroIniciado::sole();

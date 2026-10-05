@@ -53,20 +53,10 @@ expect()->extend('toBeOne', function () {
  * só é carregado quando ele mesmo entra na execução.
  */
 
-use App\Enums\Fiscal\Ambiente;
 use App\Models\CadastroIniciado;
 use App\Models\Emitente;
-use App\Models\EmitenteNfse;
-use App\Models\Fatura;
-use App\Models\FaturaParcela;
 use App\Models\Motorista;
-use App\Models\NaturezaOperacao;
-use App\Models\Nota;
-use App\Models\NotaItem;
-use App\Models\PerfilFiscal;
-use App\Models\PerfilFiscalRegra;
 use App\Models\Pessoa;
-use App\Models\Produto;
 use App\Models\RegraIcmsTransporte;
 use App\Models\User;
 use App\Models\Veiculo;
@@ -74,29 +64,12 @@ use App\Models\Viagem;
 use App\Services\Fiscal\CertificateService;
 use App\Services\Fiscal\RespostaSefaz;
 use App\Services\Fiscal\SefazGateway;
-use App\Services\Nfse\GatewayNfse;
-use App\Services\Nfse\RespostaNfse;
-use App\Services\Stock\StockService;
 use App\Services\Transporte\GatewayCte;
 use App\Services\Transporte\GatewayMdfe;
 use App\Services\Transporte\Viagens;
 use App\Support\TenantAtual;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
-
-function produtoDe(Emitente $emitente, array $extra = []): Produto
-{
-    return Produto::create(array_merge([
-        'emitente_id' => $emitente->id,
-        'codigo' => 'PC-'.fake()->unique()->numerify('###'),
-        'descricao' => 'Peça microfundida',
-        'ncm' => '73259910',
-        'unidade_comercial' => 'PC',
-        'unidade_tributavel' => 'PC',
-        'fator_conversao' => 1,
-        'origem' => '0',
-    ], $extra));
-}
 
 function xmlAutorizado(): string
 {
@@ -133,71 +106,11 @@ function destinatarioCompleto(Emitente $e, array $extra = []): Pessoa
     ], $extra));
 }
 
-function notaPronta(array $extraNota = [], array $extraRegra = []): Nota
-{
-    $emitente = emitenteCompleto();
-    $dest = destinatarioCompleto($emitente);
-
-    $perfil = PerfilFiscal::create(['emitente_id' => $emitente->id, 'nome' => 'Peças']);
-    PerfilFiscalRegra::create(array_merge([
-        'perfil_fiscal_id' => $perfil->id, 'ambito' => 'interna', 'vigente_de' => '2026-01-01',
-        'cst_icms' => '00', 'aliquota_icms' => 18,
-        'cst_pis' => '01', 'aliquota_pis' => 1.65,
-        'cst_cofins' => '01', 'aliquota_cofins' => 7.6,
-    ], $extraRegra));
-
-    $natureza = NaturezaOperacao::create([
-        'emitente_id' => $emitente->id, 'perfil_fiscal_id' => $perfil->id,
-        'descricao' => 'Venda de producao propria',
-        'cfop_interno' => '5101', 'cfop_interestadual' => '6101',
-    ]);
-
-    $produto = Produto::create([
-        'emitente_id' => $emitente->id, 'perfil_fiscal_id' => $perfil->id,
-        'codigo' => 'PC-001', 'descricao' => 'Peca microfundida em aco inox 316L',
-        'ncm' => '73259910', 'unidade_comercial' => 'PC', 'unidade_tributavel' => 'PC',
-        'fator_conversao' => 1, 'origem' => '0', 'preco_venda' => 145.90,
-        'peso_liquido' => 0.45, 'peso_bruto' => 0.48,
-    ]);
-
-    $nota = Nota::create(array_merge([
-        'emitente_id' => $emitente->id,
-        'pessoa_id' => $dest->id,
-        'natureza_operacao_id' => $natureza->id,
-        'natureza_operacao' => $natureza->descricao,
-        'serie' => 1, 'numero' => 1480,
-        'ambiente' => 'homologacao',
-        'data_emissao' => now(),
-        'id_dest' => '1', 'mod_frete' => '9',
-        'valor_produtos' => 1459.00, 'valor_nota' => 1459.00,
-        'base_icms' => 1459.00, 'valor_icms' => 262.62,
-        'valor_pis' => 24.07, 'valor_cofins' => 110.88,
-    ], $extraNota));
-
-    // Produto com saldo, como numa fundição de verdade. Sem isso a
-    // transmissão é barrada antes de chegar na SEFAZ, e com razão.
-    app(StockService::class)->entrada($produto, 1000, 60.00, 'Saldo inicial');
-
-    NotaItem::create([
-        'nota_id' => $nota->id, 'produto_id' => $produto->id, 'numero' => 1,
-        'codigo' => 'PC-001', 'descricao' => 'Peca microfundida em aco inox 316L',
-        'ncm' => '73259910', 'cfop' => '5101', 'unidade' => 'PC', 'unidade_tributavel' => 'PC',
-        'origem' => '0', 'quantidade' => 10, 'quantidade_tributavel' => 10,
-        'valor_unitario' => 145.90, 'valor_produto' => 1459.00,
-        'cst_icms' => '00', 'mod_bc' => '3', 'base_icms' => 1459.00,
-        'aliquota_icms' => 18, 'valor_icms' => 262.62,
-        'cst_pis' => '01', 'valor_pis' => 24.07,
-        'cst_cofins' => '01', 'valor_cofins' => 110.88,
-    ]);
-
-    return $nota->fresh(['itens', 'destinatario', 'emitente']);
-}
-
 /*
  * Gateway falso da SEFAZ, roteirizado.
  *
- * Fica aqui porque três suítes precisam dele: transmissão, eventos e a tela
- * de emissão. Guarda o que foi chamado, para as asserções de idempotência.
+ * Só o status do serviço sobrou na interface (ver SefazGateway); o monitor e o
+ * indicador da SEFAZ usam. Guarda o que foi chamado.
  */
 function gatewayFake(array $roteiro): SefazGateway
 {
@@ -219,41 +132,11 @@ function gatewayFake(array $roteiro): SefazGateway
             return $r;
         }
 
-        public function enviar(Emitente $e, string $xml): RespostaSefaz
-        {
-            return $this->responder('enviar');
-        }
-
-        public function consultarRecibo(Emitente $e, string $recibo): RespostaSefaz
-        {
-            return $this->responder('consultarRecibo');
-        }
-
-        public function consultarChave(Emitente $e, string $chave): RespostaSefaz
-        {
-            return $this->responder('consultarChave');
-        }
-
         // Sem roteiro, a SEFAZ está no ar. Passa por `responder` para que o
         // roteiro possa mandar uma exceção, como faz com os outros métodos.
         public function statusServico(Emitente $e): RespostaSefaz
         {
             return $this->responder('statusServico', new RespostaSefaz('107', 'Servico em Operacao'));
-        }
-
-        public function cancelar(Emitente $e, string $chave, string $protocolo, string $justificativa): RespostaSefaz
-        {
-            return $this->responder('cancelar');
-        }
-
-        public function cartaCorrecao(Emitente $e, string $chave, string $correcao, int $sequencia): RespostaSefaz
-        {
-            return $this->responder('cartaCorrecao');
-        }
-
-        public function inutilizar(Emitente $e, int $ano, int $serie, int $inicial, int $final, string $justificativa): RespostaSefaz
-        {
-            return $this->responder('inutilizar');
         }
     };
 }
@@ -264,11 +147,6 @@ function comGateway(array $roteiro): object
     app()->instance(SefazGateway::class, $fake);
 
     return $fake;
-}
-
-function autorizada(string $chave = '35260911222333000181550010000014801033717992'): RespostaSefaz
-{
-    return new RespostaSefaz('100', 'Autorizado o uso da NF-e', '135260000123456', null, '<nfeProc/>', $chave);
 }
 
 /*
@@ -287,112 +165,6 @@ function usuarioMarca(string $perfil): User
     $user->assignRole($perfil);
 
     return $user;
-}
-
-/*
- * Uma parcela pronta para virar NFS-e: fatura ativa, com cliente completo
- * e um título de R$ 1.500,00 vencendo hoje.
- */
-function parcelaParaNfse(Emitente $emitente, array $extraParcela = []): FaturaParcela
-{
-    // O mesmo cliente serve para várias parcelas de teste do mesmo emitente:
-    // destinatarioCompleto() usa um documento fixo, e criar de novo colidiria
-    // com a unicidade de emitente_id + documento.
-    $tomador = Pessoa::where('emitente_id', $emitente->id)->where('documento', '11444777000161')->first()
-        ?? destinatarioCompleto($emitente, ['telefone' => '1935551234', 'email' => 'fiscal@piracicaba.com.br']);
-
-    $fatura = Fatura::create([
-        'emitente_id' => $emitente->id,
-        'pessoa_id' => $tomador->id,
-        'titulo' => 'Consultoria de setembro',
-    ]);
-
-    return FaturaParcela::create(array_merge([
-        'fatura_id' => $fatura->id,
-        'numero' => 1,
-        'descricao' => 'Consultoria de setembro, parcela 1 de 1',
-        'valor_centavos' => 150000,
-        'vencimento' => today(),
-    ], $extraParcela));
-}
-
-/*
- * Emitente de Araras pronto para emitir NFS-e: inscrição municipal, NFS-e
- * habilitada em homologação com senha. `$config` sobrescreve a configuração,
- * `$emitente` sobrescreve o emitente.
- */
-function emitenteComNfse(array $config = [], array $emitente = []): Emitente
-{
-    $e = emitenteCompleto(array_merge(['inscricao_municipal' => '44307'], $emitente));
-
-    EmitenteNfse::create(array_merge([
-        'emitente_id' => $e->id,
-        'habilitado' => true,
-        'senha_homologacao' => 'segredo-hml',
-    ], $config));
-
-    return $e->fresh();
-}
-
-/*
- * Gateway falso de NFS-e, roteirizado como o `gatewayFake` da SEFAZ.
- * `emitir` e `cancelar` devolvem RespostaNfse; `pdf` devolve string. Um
- * Throwable no roteiro é lançado.
- */
-function gatewayNfseFake(array $roteiro): GatewayNfse
-{
-    return new class($roteiro) implements GatewayNfse
-    {
-        public array $chamadas = [];
-
-        public function __construct(private array $roteiro) {}
-
-        private function responder(string $metodo, array $args): mixed
-        {
-            $this->chamadas[] = ['metodo' => $metodo, 'args' => $args];
-            $r = $this->roteiro[$metodo] ?? new RespostaNfse(false, motivo: "Sem roteiro para {$metodo}");
-
-            if ($r instanceof Throwable) {
-                throw $r;
-            }
-
-            return $r;
-        }
-
-        public function emitir(Emitente $e, Ambiente $a, string $xml): RespostaNfse
-        {
-            return $this->responder('emitir', ['ambiente' => $a, 'xml' => $xml]);
-        }
-
-        public function cancelar(Emitente $e, Ambiente $a, string $numero, string $serie, string $motivo): RespostaNfse
-        {
-            return $this->responder('cancelar', ['ambiente' => $a, 'numero' => $numero, 'serie' => $serie, 'motivo' => $motivo]);
-        }
-
-        public function pdf(Emitente $e, Ambiente $a, string $numero, string $serie): string
-        {
-            return $this->responder('pdf', ['ambiente' => $a, 'numero' => $numero, 'serie' => $serie]);
-        }
-    };
-}
-
-function comGatewayNfse(array $roteiro): object
-{
-    $fake = gatewayNfseFake($roteiro);
-    app()->instance(GatewayNfse::class, $fake);
-
-    return $fake;
-}
-
-function nfseAutorizada(string $numero = '700'): RespostaNfse
-{
-    return new RespostaNfse(
-        sucesso: true,
-        numero: $numero,
-        serie: 'NFE',
-        codigoVerificacao: 'ABC123',
-        bruto: "<notafiscal><numero_nf>{$numero}</numero_nf><serie>NFE</serie><codigo>ABC123</codigo></notafiscal>",
-    );
 }
 
 /*

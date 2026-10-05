@@ -47,7 +47,7 @@ it('empresa que já existia não tem teste, não vê aviso e não é bloqueada',
         ->and($this->tenant->somenteConsulta())->toBeFalse();
 
     $this->get('/dashboard')->assertOk()->assertDontSee('Teste grátis')->assertDontSee('Seu teste grátis acabou');
-    expect($this->user->can('nota.emitir'))->toBeTrue();
+    expect($this->user->can('transporte.operar'))->toBeTrue();
 });
 
 it('durante o teste mostra quantos dias faltam e libera tudo', function () {
@@ -58,7 +58,7 @@ it('durante o teste mostra quantos dias faltam e libera tudo', function () {
         ->assertSee('faltam 14 dias')
         ->assertSee('wa.me/5519971351777', false);
 
-    expect($this->user->can('nota.emitir'))->toBeTrue()
+    expect($this->user->can('transporte.operar'))->toBeTrue()
         ->and($this->user->can('transporte.operar'))->toBeTrue();
 });
 
@@ -75,12 +75,9 @@ it('com o teste acabado a conta só consulta, até para o Administrador', functi
 
     $this->get('/dashboard')->assertOk()->assertSee('Seu teste grátis acabou');
 
-    expect($this->user->can('nota.ver'))->toBeTrue()
-        ->and($this->user->can('financeiro.ver'))->toBeTrue()
+    expect($this->user->can('financeiro.ver'))->toBeTrue()
         ->and($this->user->can('transporte.ver'))->toBeTrue()
         ->and($this->user->can('contador.exportar'))->toBeTrue()
-        ->and($this->user->can('nota.emitir'))->toBeFalse()
-        ->and($this->user->can('nfse.emitir'))->toBeFalse()
         ->and($this->user->can('transporte.operar'))->toBeFalse()
         ->and($this->user->can('financeiro.gerenciar'))->toBeFalse()
         ->and($this->user->can('usuario.gerenciar'))->toBeFalse();

@@ -49,10 +49,6 @@ class Emitente extends Model
         'email',
         'chave_pix',
         'logo_path',
-        'serie_padrao',
-        'aliquota_credito_simples',
-        'info_complementares_padrao',
-        'autxml_documento',
         'ativo',
     ];
 
@@ -61,8 +57,6 @@ class Emitente extends Model
         return [
             'ambiente' => Ambiente::class,
             'ativo' => 'boolean',
-            'serie_padrao' => 'integer',
-            'aliquota_credito_simples' => 'decimal:2',
             'producao_ativada_em' => 'datetime',
         ];
     }
@@ -99,17 +93,5 @@ class Emitente extends Model
     public function configuracaoTransporte(): EmitenteTransporte
     {
         return $this->transporte()->firstOrCreate([]);
-    }
-
-    /** @return HasOne<EmitenteNfse, $this> */
-    public function nfse(): HasOne
-    {
-        return $this->hasOne(EmitenteNfse::class);
-    }
-
-    /** @return HasMany<ServicoNfse, $this> */
-    public function servicosNfse(): HasMany
-    {
-        return $this->hasMany(ServicoNfse::class)->orderBy('nome');
     }
 }

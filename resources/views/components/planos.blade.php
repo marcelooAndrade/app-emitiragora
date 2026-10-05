@@ -98,14 +98,4 @@
         </table>
     </div>
 
-    @php
-        $cidades = config('planos.nfse.cidades');
-    @endphp
-    <p class="mx-auto mt-6 max-w-5xl text-center text-xs font-light text-graphite-500">
-        @if (count($cidades) > 0)
-            NFS-e disponível nas cidades: {{ implode(', ', $cidades) }}.
-        @else
-            NFS-e: lista de cidades em breve.
-        @endif
-    </p>
 </div>

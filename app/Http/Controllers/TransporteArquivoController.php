@@ -14,8 +14,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * DACTE, DAMDFE, XML autorizados e o contrato do frete. Mesma regra do NotaServicoArquivoController:
- * o escopo global garante o tenant, e matriz e filial dividem o tenant, então
+ * DACTE, DAMDFE, XML autorizados e o contrato do frete. O escopo global
+ * garante o tenant, e matriz e filial dividem o tenant, então
  * o documento ainda precisa ser do emitente em foco.
  */
 class TransporteArquivoController extends Controller

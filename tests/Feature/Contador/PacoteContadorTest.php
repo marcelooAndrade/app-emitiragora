@@ -1,12 +1,14 @@
 <?php
 
+use App\Enums\Perfil;
+use App\Enums\Transporte\CteStatus;
+use App\Livewire\Contador\Exportacao;
 use App\Models\User;
 use App\Services\Export\PacoteContadorService;
-use App\Services\Fiscal\NFeEventService;
-use App\Services\Fiscal\NFeTransmitter;
-use App\Services\Fiscal\RespostaSefaz;
-use App\Services\Import\NFeImportService;
-use Illuminate\Support\Facades\Storage;
+use App\Services\Transporte\EmissaoViagem;
+use Database\Seeders\PerfilSeeder;
+use Illuminate\Support\Facades\DB;
+use Livewire\Livewire;
 
 function conteudoDoZip(string $caminho): array
 {
@@ -21,72 +23,85 @@ function conteudoDoZip(string $caminho): array
     return $nomes;
 }
 
+function lerDoZip(string $caminho, string $nome): string
+{
+    $zip = new ZipArchive;
+    $zip->open($caminho);
+    $conteudo = (string) $zip->getFromName($nome);
+    $zip->close();
+
+    return $conteudo;
+}
+
 beforeEach(function () {
-    Storage::fake('fiscal');
-    $this->user = User::factory()->create();
+    $this->viagem = viagemPronta();
+    $this->emitente = $this->viagem->emitente;
+
+    comGatewayCte(['enviar' => cteAutorizado()]);
+    comGatewayMdfe(['enviar' => mdfeAutorizado()]);
+    app(EmissaoViagem::class)->emitir($this->viagem);
+
+    $this->cte = $this->viagem->ctes()->sole();
+    $this->mdfe = $this->viagem->mdfe()->sole();
 });
 
-it('inclui o xml das notas emitidas no periodo', function () {
-    comGateway(['enviar' => autorizada()]);
-    $nota = notaPronta(['numero' => null]);
-    app(NFeTransmitter::class)->transmitir($nota, $this->user);
+function pacoteDoMes($emitente): string
+{
+    return app(PacoteContadorService::class)->gerar($emitente, now()->startOfMonth(), now()->endOfMonth());
+}
 
-    $zip = app(PacoteContadorService::class)->gerar(
-        $nota->emitente, now()->startOfMonth(), now()->endOfMonth(),
-    );
+it('inclui o xml dos CT-e e do MDF-e autorizados no periodo', function () {
+    $nomes = conteudoDoZip(pacoteDoMes($this->emitente));
 
-    expect(conteudoDoZip($zip))->toContain('emitidas/'.$nota->fresh()->chave_acesso.'.xml');
+    expect($nomes)->toContain("cte/{$this->cte->chave}.xml")
+        ->toContain("mdfe/{$this->mdfe->chave}.xml");
 });
 
-it('separa as canceladas em pasta propria', function () {
-    comGateway(['enviar' => autorizada(), 'cancelar' => new RespostaSefaz('135', 'Evento registrado')]);
-    $nota = notaPronta(['numero' => null]);
-    app(NFeTransmitter::class)->transmitir($nota, $this->user);
-    app(NFeEventService::class)->cancelar($nota->fresh(), 'Erro na emissao identificado depois', $this->user);
+it('separa os CT-e cancelados em pasta propria', function () {
+    $this->cte->forceFill(['status' => CteStatus::Cancelado, 'protocolo_cancelamento' => '135260000888001'])->save();
 
-    $nomes = conteudoDoZip(app(PacoteContadorService::class)->gerar(
-        $nota->emitente, now()->startOfMonth(), now()->endOfMonth(),
-    ));
+    $caminho = pacoteDoMes($this->emitente);
 
-    expect(collect($nomes)->filter(fn ($n) => str_starts_with($n, 'canceladas/')))->not->toBeEmpty();
+    expect(conteudoDoZip($caminho))->toContain("cte-cancelados/{$this->cte->chave}.xml")
+        ->not->toContain("cte/{$this->cte->chave}.xml")
+        ->and(lerDoZip($caminho, 'resumo.csv'))->toContain('135260000888001');
 });
 
-it('inclui as notas de entrada importadas', function () {
-    $emitente = notaPronta()->emitente;
-    $emitente->forceFill(['cnpj' => '11222333000181'])->save();
-    app(NFeImportService::class)->importar(xmlAutorizado(), $emitente->fresh(), $this->user);
+it('resume os CT-e numa planilha, com o frete em reais', function () {
+    $caminho = pacoteDoMes($this->emitente);
 
-    $nomes = conteudoDoZip(app(PacoteContadorService::class)->gerar(
-        $emitente, now()->startOfYear(), now()->endOfYear(),
-    ));
+    $resumo = lerDoZip($caminho, 'resumo.csv');
 
-    expect(collect($nomes)->filter(fn ($n) => str_starts_with($n, 'entradas/')))->not->toBeEmpty();
+    expect(conteudoDoZip($caminho))->toContain('resumo.csv')->toContain('LEIA-ME.txt')
+        ->and($resumo)->toContain($this->cte->chave)
+        ->and($resumo)->toContain('75,00')
+        ->and(lerDoZip($caminho, 'LEIA-ME.txt'))->toContain('CT-e no período : 1');
 });
 
-it('inclui um resumo legivel do periodo', function () {
-    comGateway(['enviar' => autorizada()]);
-    $nota = notaPronta(['numero' => null]);
-    app(NFeTransmitter::class)->transmitir($nota, $this->user);
+it('ignora documento autorizado fora do periodo', function () {
+    DB::table('ctes')->update(['autorizado_em' => now()->subMonthsNoOverflow(2)]);
+    DB::table('mdfes')->update(['autorizado_em' => now()->subMonthsNoOverflow(2)]);
 
-    $nomes = conteudoDoZip(app(PacoteContadorService::class)->gerar(
-        $nota->emitente, now()->startOfMonth(), now()->endOfMonth(),
-    ));
+    $nomes = conteudoDoZip(pacoteDoMes($this->emitente));
 
-    expect($nomes)->toContain('resumo.csv')->toContain('LEIA-ME.txt');
-});
-
-it('ignora nota fora do periodo', function () {
-    comGateway(['enviar' => autorizada()]);
-    $nota = notaPronta(['numero' => null]);
-    app(NFeTransmitter::class)->transmitir($nota, $this->user);
-
-    $nomes = conteudoDoZip(app(PacoteContadorService::class)->gerar(
-        $nota->emitente, now()->subYear()->startOfMonth(), now()->subYear()->endOfMonth(),
-    ));
-
-    expect(collect($nomes)->filter(fn ($n) => str_starts_with($n, 'emitidas/')))->toBeEmpty();
+    expect(collect($nomes)->filter(fn ($n) => str_starts_with($n, 'cte/') || str_starts_with($n, 'mdfe/')))->toBeEmpty();
 });
 
 it('recusa periodo invertido', function () {
-    app(PacoteContadorService::class)->gerar(notaPronta()->emitente, now(), now()->subMonth());
-})->throws(RuntimeException::class, 'período');
+    app(PacoteContadorService::class)->gerar($this->emitente, now(), now()->subDay());
+})->throws(RuntimeException::class, 'invertido');
+
+it('a tela mostra a previa do periodo antes de baixar', function () {
+    $this->seed(PerfilSeeder::class);
+    $user = User::factory()->create(['tenant_id' => $this->emitente->tenant_id]);
+    $user->emitentes()->attach($this->emitente);
+    setPermissionsTeamId($this->emitente->id);
+    $user->assignRole(Perfil::Contador->value);
+
+    Livewire::actingAs($user)->test(Exportacao::class)
+        ->set('de', now()->startOfMonth()->toDateString())
+        ->set('ate', now()->endOfMonth()->toDateString())
+        ->assertSee('CT-e autorizados')
+        ->assertSee('MDF-e')
+        ->assertSee('cte-cancelados/');
+});

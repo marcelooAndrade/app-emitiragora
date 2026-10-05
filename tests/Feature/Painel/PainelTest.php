@@ -1,116 +1,131 @@
 <?php
 
-use App\Enums\Fiscal\NFeStatus;
 use App\Enums\Perfil;
+use App\Enums\Transporte\CteStatus;
 use App\Livewire\Painel\Inicio;
+use App\Models\Cte;
 use App\Models\EmitenteCertificado;
-use App\Models\Nota;
-use App\Models\PerfilFiscalRegra;
 use App\Models\User;
+use App\Services\Fiscal\RespostaSefaz;
+use App\Services\Transporte\EmissaoViagem;
+use App\Services\Transporte\TransmissorCte;
 use Database\Seeders\PerfilSeeder;
+use Illuminate\Support\Facades\DB;
 use Livewire\Livewire;
 
 beforeEach(function () {
     $this->seed(PerfilSeeder::class);
-    $this->nota = notaPronta();
-    $this->emitente = $this->nota->emitente;
+    $this->viagem = viagemPronta();
+    $this->emitente = $this->viagem->emitente;
 
-    $this->user = User::factory()->create();
+    $this->user = User::factory()->create(['tenant_id' => $this->emitente->tenant_id]);
     $this->user->emitentes()->attach($this->emitente);
     setPermissionsTeamId($this->emitente->id);
     $this->user->assignRole(Perfil::Administrador->value);
 });
 
-/**
- * Nota crua, só com o que o painel lê. Não usa `notaPronta` de propósito:
- * aqui não interessa item nem tributo, e sim status, valor e data.
- */
-function notaCom(array $atributos): Nota
+/** Emite CT-e e MDF-e da viagem com a SEFAZ falsa autorizando tudo. */
+function emitirViagem($viagem): void
 {
-    return Nota::create(array_merge([
-        'emitente_id' => test()->emitente->id,
-        'serie' => 1,
-        'ambiente' => 'homologacao',
-        'data_emissao' => now(),
-    ], $atributos));
+    comGatewayCte(['enviar' => cteAutorizado()]);
+    comGatewayMdfe(['enviar' => mdfeAutorizado()]);
+    app(EmissaoViagem::class)->emitir($viagem);
 }
 
-it('soma o autorizado do mes e nao conta a cancelada', function () {
-    notaCom(['status' => NFeStatus::Autorizada, 'valor_nota' => 1000]);
-    notaCom(['status' => NFeStatus::Autorizada, 'valor_nota' => 500]);
-    notaCom(['status' => NFeStatus::Cancelada, 'valor_nota' => 9999]);
+/** Outro CT-e da mesma viagem, copiado do autorizado, com chave própria. */
+function outroCte(Cte $base, array $atributos): Cte
+{
+    $copia = $base->replicate();
+    $copia->forceFill(['chave' => substr_replace($base->chave, '9', 34, 1), 'numero' => $base->numero + 1, ...$atributos])->save();
+
+    return $copia;
+}
+
+it('soma o frete dos CT-e autorizados no mes e nao conta o cancelado', function () {
+    emitirViagem($this->viagem);
+    outroCte($this->viagem->ctes()->sole(), ['status' => CteStatus::Cancelado, 'valor_total_centavos' => 999_900]);
 
     Livewire::actingAs($this->user)->test(Inicio::class)
-        ->assertSet('mes.autorizadas', 2)
-        ->assertSet('mes.faturado', 1500.0);
+        ->assertSet('mes.ctes', 1)
+        ->assertSet('mes.frete_centavos', 7500)
+        ->assertSet('mes.cancelados', 1);
 });
 
-it('ignora nota de mes anterior no total do mes', function () {
-    notaCom(['status' => NFeStatus::Autorizada, 'valor_nota' => 1000]);
-    notaCom([
-        'status' => NFeStatus::Autorizada,
-        'valor_nota' => 7777,
-        'data_emissao' => now()->subMonthNoOverflow()->startOfMonth(),
+it('ignora CT-e autorizado em mes anterior', function () {
+    emitirViagem($this->viagem);
+    outroCte($this->viagem->ctes()->sole(), [
+        'valor_total_centavos' => 777_700,
+        'autorizado_em' => now()->subMonthNoOverflow()->startOfMonth(),
     ]);
 
     Livewire::actingAs($this->user)->test(Inicio::class)
-        ->assertSet('mes.faturado', 1000.0);
+        ->assertSet('mes.ctes', 1)
+        ->assertSet('mes.frete_centavos', 7500);
 });
 
-it('mostra nota travada em processamento como pendencia', function () {
-    notaCom(['status' => NFeStatus::EmProcessamento, 'numero' => 42]);
+it('conta a viagem que ainda nao tem CT-e como em aberto', function () {
+    Livewire::actingAs($this->user)->test(Inicio::class)
+        ->assertSet('mes.viagens_abertas', 1);
+});
+
+it('mostra CT-e rejeitado como pendencia, com o motivo da SEFAZ', function () {
+    comGatewayCte(['enviar' => new RespostaSefaz('539', 'Rejeicao: Duplicidade com diferenca na chave')]);
+    app(TransmissorCte::class)->transmitir($this->viagem->ctes->sole());
+
+    Livewire::actingAs($this->user)->test(Inicio::class)
+        ->assertSee('Documentos que pararam no caminho')
+        ->assertSee('Rejeitado')
+        ->assertSee('Rejeicao: Duplicidade com diferenca na chave');
+});
+
+it('avisa que CT-e em processamento nao deve ser transmitido de novo', function () {
+    $this->viagem->ctes->sole()->forceFill(['status' => CteStatus::EmProcessamento])->save();
 
     Livewire::actingAs($this->user)->test(Inicio::class)
         ->assertSee('Em processamento')
-        ->assertSee('42')
-        // O alerta que importa: reemitir uma nota em processamento duplica.
-        ->assertSee('duplicidade');
+        // O alerta que importa: transmitir de novo um CT-e em processamento duplica.
+        ->assertSee('duplicaria');
 });
 
-it('mostra nota rejeitada como pendencia', function () {
-    notaCom(['status' => NFeStatus::Rejeitada, 'x_motivo' => 'Rejeicao 225 falha no schema']);
+it('avisa MDF-e em viagem ha mais de uma semana', function () {
+    emitirViagem($this->viagem);
+    DB::table('mdfes')->update(['autorizado_em' => now()->subDays(Inicio::DIAS_PARA_ENCERRAR_MDFE + 1)]);
 
     Livewire::actingAs($this->user)->test(Inicio::class)
-        ->assertSee('Rejeitada')
-        ->assertSee('Rejeicao 225 falha no schema');
+        ->assertSee('MDF-e em viagem há mais de')
+        ->assertSee('encerre');
 });
 
-it('avisa quando nenhuma regra fiscal vigora hoje', function () {
-    PerfilFiscalRegra::query()->update(['vigente_ate' => now()->subDay()->toDateString()]);
+it('nao avisa MDF-e que saiu esta semana', function () {
+    emitirViagem($this->viagem);
 
     Livewire::actingAs($this->user)->test(Inicio::class)
-        ->assertSee('regra fiscal');
+        ->assertDontSee('MDF-e em viagem há mais de');
 });
 
-it('nao avisa de regra quando ha uma vigente hoje', function () {
+it('lista as ultimas viagens', function () {
     Livewire::actingAs($this->user)->test(Inicio::class)
-        ->assertDontSee('Nenhuma regra fiscal vigora hoje');
+        ->assertSee('Últimas viagens')
+        ->assertSee($this->viagem->numeroFormatado())
+        ->assertSee('JOAO DA SILVA');
 });
 
 it('avisa certificado proximo do vencimento', function () {
-    EmitenteCertificado::create([
-        'emitente_id' => $this->emitente->id,
-        'arquivo_path' => 'certificados/x.pfx.enc',
-        'senha' => 'x',
-        'titular' => 'RCM DO BRASIL LTDA',
-        'cnpj' => '11222333000181',
-        'fingerprint' => str_repeat('a', 64),
-        'valido_de' => now()->subYear(),
-        'valido_ate' => now()->addDays(9),
-        'ativo' => true,
-    ]);
+    EmitenteCertificado::query()->update(['valido_ate' => now()->addDays(9)]);
 
     Livewire::actingAs($this->user)->test(Inicio::class)
-        ->assertSee('certificado');
+        ->assertSee('O certificado vence em 9 dia(s)');
 });
 
 it('avisa quando nao ha certificado cadastrado', function () {
+    EmitenteCertificado::query()->delete();
+
     Livewire::actingAs($this->user)->test(Inicio::class)
         ->assertSee('Nenhum certificado');
 });
 
 it('exige a permissao de relatorio', function () {
-    $sem = User::factory()->create();
+    $sem = User::factory()->create(['tenant_id' => $this->emitente->tenant_id]);
     $sem->emitentes()->attach($this->emitente);
     setPermissionsTeamId($this->emitente->id);
 

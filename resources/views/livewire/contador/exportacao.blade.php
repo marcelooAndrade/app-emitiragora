@@ -22,9 +22,9 @@
 
             <div class="grid grid-cols-2 gap-px border border-graphite-200 bg-graphite-200 sm:grid-cols-4">
                 @foreach ([
-                    'Autorizadas' => $this->previa['autorizadas'],
-                    'Canceladas' => $this->previa['canceladas'],
-                    'Entradas' => $this->previa['entradas'],
+                    'CT-e autorizados' => $this->previa['autorizados'],
+                    'CT-e cancelados' => $this->previa['cancelados'],
+                    'MDF-e' => $this->previa['mdfes'],
                 ] as $rotulo => $valor)
                     <div class="bg-white p-3">
                         <span class="num display-title block text-2xl">{{ $valor }}</span>
@@ -32,8 +32,8 @@
                     </div>
                 @endforeach
                 <div class="bg-white p-3">
-                    <span class="num display-title block text-2xl">{{ number_format($this->previa['valor'], 0, ',', '.') }}</span>
-                    <span class="etiqueta text-graphite-500">Faturado</span>
+                    <span class="num display-title block text-2xl">{{ App\Support\Dinheiro::formatar($this->previa['frete_centavos']) }}</span>
+                    <span class="etiqueta text-graphite-500">Frete</span>
                 </div>
             </div>
 
@@ -44,13 +44,10 @@
     <x-ui.card title="O que vai no pacote">
         <dl class="grid gap-2 text-sm">
             @foreach ([
-                'emitidas/' => 'XML autorizado das notas de saída',
-                'canceladas/' => 'XML das notas que foram canceladas',
-                'eventos/' => 'Eventos de cancelamento homologados',
-                'cartas-de-correcao/' => 'Cartas de correção homologadas',
-                'inutilizacoes/' => 'Faixas de numeração inutilizadas',
-                'entradas/' => 'XML das notas de fornecedores importadas',
-                'resumo.csv' => 'Planilha com uma linha por nota de saída',
+                'cte/' => 'XML autorizado dos CT-e (receita de frete)',
+                'cte-cancelados/' => 'XML dos CT-e que foram cancelados depois',
+                'mdfe/' => 'XML autorizado dos MDF-e',
+                'resumo.csv' => 'Planilha com uma linha por CT-e, com o protocolo de cancelamento quando houver',
             ] as $pasta => $desc)
                 <div class="flex flex-wrap gap-x-3 border-b border-graphite-100 pb-1">
                     <dt class="num w-48 font-semibold text-graphite-900">{{ $pasta }}</dt>
@@ -59,7 +56,7 @@
             @endforeach
         </dl>
         <p class="mt-4 text-xs text-graphite-500">
-            O XML é o documento fiscal. O DANFE é apenas a representação impressa e não o substitui.
+            O XML é o documento fiscal. O DACTE e o DAMDFE são apenas a representação impressa e não o substituem.
         </p>
     </x-ui.card>
 </div>

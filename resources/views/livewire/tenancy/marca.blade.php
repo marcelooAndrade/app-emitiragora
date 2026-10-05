@@ -67,9 +67,9 @@
     </x-ui.card>
 
     {{-- Logos. São duas de propósito: o tenant é a empresa que assina o
-         sistema, o emitente é o CNPJ que assina a nota. Matriz e filial
+         sistema, o emitente é o CNPJ que assina o CT-e. Matriz e filial
          dividem a primeira e podem imprimir logos diferentes na segunda. --}}
-    <x-ui.card title="Logos" subtitle="Uma identifica o sistema na tela, a outra sai impressa no DANFE. Não se substituem.">
+    <x-ui.card title="Logos" subtitle="Uma identifica o sistema na tela, a outra sai impressa no DACTE e no DAMDFE. Não se substituem.">
         <div class="grid gap-8 md:grid-cols-2">
 
             <form wire:submit="salvarLogoSistema" class="grid min-w-0 content-start gap-3">
@@ -111,16 +111,16 @@
                 </div>
             </form>
 
-            <form wire:submit="salvarLogoDanfe" class="grid min-w-0 content-start gap-3">
+            <form wire:submit="salvarLogoDocumento" class="grid min-w-0 content-start gap-3">
                 <div>
-                    <h3 class="text-xs font-semibold text-graphite-900">Logo do DANFE</h3>
+                    <h3 class="text-xs font-semibold text-graphite-900">Logo dos documentos</h3>
                     <p class="mt-1 text-xs text-graphite-600">
-                        Impressa na via auxiliar da nota, do emitente
+                        Impressa no DACTE e no DAMDFE do emitente
                         <span class="font-medium text-graphite-900">{{ $this->emitente?->nome_fantasia ?: $this->emitente?->razao_social ?: 'em foco' }}</span>.
                     </p>
                 </div>
 
-                {{-- Aqui o fundo é branco porque o DANFE é impresso em papel. --}}
+                {{-- Aqui o fundo é branco porque o DACTE e o DAMDFE são impressos em papel. --}}
                 <div class="flex h-20 items-center justify-center border border-graphite-300 bg-white px-4">
                     @if ($this->emitente?->logo_path)
                         <span class="etiqueta bg-success-100 px-2 py-1 text-success-800">Logo definida</span>
@@ -129,20 +129,20 @@
                     @endif
                 </div>
 
-                <x-ui.field label="Arquivo" for="logo-danfe" :error="$errors->first('logoDanfe')"
-                    hint="PNG ou JPG, até 1 MB. O DANFE imprime em preto e branco.">
-                    <input type="file" id="logo-danfe" wire:model="logoDanfe" accept="image/png,image/jpeg"
+                <x-ui.field label="Arquivo" for="logo-documento" :error="$errors->first('logoDocumento')"
+                    hint="PNG ou JPG, até 1 MB. O DACTE e o DAMDFE imprimem em preto e branco.">
+                    <input type="file" id="logo-documento" wire:model="logoDocumento" accept="image/png,image/jpeg"
                         class="w-full min-w-0 rounded-md border border-graphite-300 bg-white p-2 text-xs text-graphite-700 file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-graphite-100 file:px-3 file:py-1.5 file:text-xs file:font-semibold file:text-graphite-900">
                 </x-ui.field>
 
                 <div class="flex flex-wrap gap-2">
-                    <x-ui.button type="submit" size="sm" wire:loading.attr="disabled" wire:target="logoDanfe,salvarLogoDanfe">
+                    <x-ui.button type="submit" size="sm" wire:loading.attr="disabled" wire:target="logoDocumento,salvarLogoDocumento">
                         Enviar
                     </x-ui.button>
                     @if ($this->emitente?->logo_path)
                         <x-ui.button type="button" variant="ghost" size="sm"
-                            wire:click="removerLogoDanfe"
-                            wire:confirm="Remover a logo do DANFE? As próximas vias saem sem ela.">
+                            wire:click="removerLogoDocumento"
+                            wire:confirm="Remover a logo dos documentos? As próximas vias saem sem ela.">
                             Remover
                         </x-ui.button>
                     @endif

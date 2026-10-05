@@ -3,8 +3,10 @@
 namespace App\Support;
 
 /**
- * As três perguntas que o modal do site faz antes de mandar a pessoa pro
- * cadastro: tipo de empresa, tamanho da frota e volume de documentos.
+ * As duas perguntas que o modal do site faz antes de mandar a pessoa pro
+ * cadastro: tamanho da frota e volume de CT-e e MDF-e por mês. A pergunta do
+ * tipo de empresa saiu em 05/10/2026, quando o EmitirAgora passou a ser só
+ * de transportadora; resposta antiga com `tipo` é descartada pelo filtro.
  *
  * O site (site-emitiragora, src/lib/cadastro.ts) usa exatamente estas
  * chaves. Mudar uma aqui sem mudar lá faz a resposta ser descartada em
@@ -18,14 +20,8 @@ class PerfilDeCadastro
 {
     /** @var array<string, array<string, string>> */
     public const OPCOES = [
-        'tipo' => [
-            'transportadora' => 'Transportadora',
-            'empresa' => 'Empresa sem frota',
-            'contabilidade' => 'Escritório de contabilidade',
-            'outro' => 'Outro',
-        ],
         'frota' => [
-            'sem-frota' => 'Sem frota própria',
+            'sem-frota' => 'Só com agregados e terceiros',
             '1-5' => '1 a 5 veículos',
             '6-20' => '6 a 20 veículos',
             '21-50' => '21 a 50 veículos',
@@ -41,7 +37,7 @@ class PerfilDeCadastro
 
     /**
      * Respostas válidas vindas do formulário de cadastro, nos campos
-     * `perfil_tipo`, `perfil_frota` e `perfil_volume`. Nulo quando nenhuma
+     * `perfil_frota` e `perfil_volume`. Nulo quando nenhuma
      * veio, pra quem se cadastra direto pelo app não ganhar um `{}` vazio.
      *
      * @param  array<string, mixed>  $input

@@ -15,28 +15,25 @@ beforeEach(function () {
 });
 
 it('existe como perfil do sistema', function () {
-    expect(Perfil::cases())->toHaveCount(5)
+    expect(Perfil::cases())->toHaveCount(4)
         ->and(Perfil::Contador->value)->toBe('Contador');
-});
-
-it('escreve a regra fiscal', function () {
-    expect($this->user->can('tributacao.gerenciar'))->toBeTrue();
 });
 
 it('exporta o pacote da contabilidade', function () {
     expect($this->user->can('contador.exportar'))->toBeTrue();
 });
 
-it('enxerga as notas para conferir', function () {
-    expect($this->user->can('nota.ver'))->toBeTrue();
+it('enxerga as viagens para conferir', function () {
+    expect($this->user->can('transporte.ver'))->toBeTrue();
 });
 
-it('nao emite nota', function () {
-    expect($this->user->can('nota.emitir'))->toBeFalse();
+it('nao emite nem cancela CT-e e MDF-e', function () {
+    expect($this->user->can('transporte.operar'))->toBeFalse()
+        ->and($this->user->can('transporte.cancelar'))->toBeFalse();
 });
 
-it('nao cancela nota', function () {
-    expect($this->user->can('nota.cancelar'))->toBeFalse();
+it('cuida do financeiro', function () {
+    expect($this->user->can('financeiro.gerenciar'))->toBeTrue();
 });
 
 it('nao mexe no certificado', function () {
@@ -45,18 +42,4 @@ it('nao mexe no certificado', function () {
 
 it('nao vira o ambiente para producao', function () {
     expect($this->user->can('emitente.ativar-producao'))->toBeFalse();
-});
-
-it('nao movimenta estoque', function () {
-    expect($this->user->can('estoque.movimentar'))->toBeFalse();
-});
-
-it('nenhum outro perfil escreve regra fiscal, so o administrador', function () {
-    foreach ([Perfil::Faturamento, Perfil::Estoque, Perfil::Consulta] as $perfil) {
-        $outro = User::factory()->create();
-        $outro->assignRole($perfil->value);
-
-        expect($outro->can('tributacao.gerenciar'))
-            ->toBeFalse("perfil {$perfil->value} nao deveria escrever regra fiscal");
-    }
 });

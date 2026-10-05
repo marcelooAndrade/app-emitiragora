@@ -19,9 +19,9 @@
             // explícita porque é regra de negócio.
             $marcaPropria = $tenant?->logo_path && $tenant->plano->permiteMarcaPropria();
 
-            // O que o painel promete é o que o sistema tem hoje: nota, estoque,
-            // financeiro e DRE. Nada de recurso que ainda não existe aqui.
-            $destaques = ['NF-e e NFS-e', 'Financeiro com DRE', 'Acesso do contador'];
+            // O que o painel promete é o que o sistema tem hoje: documento de
+            // transporte, financeiro e DRE. Nada de recurso que não existe aqui.
+            $destaques = ['CT-e, MDF-e e CIOT', 'Financeiro com DRE', 'Acesso do contador'];
         @endphp
 
         <div class="grid min-h-svh lg:grid-cols-[1.1fr_1fr]">
@@ -46,13 +46,13 @@
                         @endif
                     </a>
 
-                    <p class="mt-20 text-xs font-bold uppercase tracking-[0.18em] text-primary-600">Gestão fiscal e financeira</p>
+                    <p class="mt-20 text-xs font-bold uppercase tracking-[0.18em] text-primary-600">Para transportadoras</p>
                     <h1 class="mt-5 font-display text-5xl font-bold leading-[1.05] tracking-tight xl:text-6xl">
-                        Da nota emitida ao resultado do mês, tudo num só lugar.
+                        Da carga carregada ao resultado do mês, tudo num só lugar.
                     </h1>
                     <p class="mt-6 max-w-lg text-base leading-7 text-graphite-300">
-                        Notas, produtos, estoque, contas a pagar e a receber e DRE organizados para a rotina
-                        real da sua empresa.
+                        CT-e, MDF-e, CIOT, averbação, contrato do motorista e financeiro com DRE,
+                        organizados para a rotina de quem roda estrada.
                     </p>
 
                     <ul class="mt-10 flex flex-wrap gap-x-6 gap-y-3 text-sm text-graphite-200">

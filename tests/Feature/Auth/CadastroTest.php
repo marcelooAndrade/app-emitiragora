@@ -156,26 +156,24 @@ it('preenche nome, e-mail e telefone vindos do site', function () {
 });
 
 it('nao quebra quando o site manda parametro em formato de lista', function () {
-    $this->get('http://vendaredonda.com.br/register?nome[]=x&tipo[]=transportadora')->assertOk();
+    $this->get('http://vendaredonda.com.br/register?nome[]=x&frota[]=6-20')->assertOk();
 });
 
 it('repassa as respostas do site em campos escondidos', function () {
-    $this->get('http://vendaredonda.com.br/register?tipo=transportadora&frota=6-20&volume=11-30')
+    $this->get('http://vendaredonda.com.br/register?frota=6-20&volume=11-30')
         ->assertOk()
-        ->assertSee('name="tipo" value="transportadora"', false)
         ->assertSee('name="frota" value="6-20"', false)
         ->assertSee('name="volume" value="11-30"', false);
 });
 
 it('guarda as respostas do site na empresa', function () {
     $this->post('http://vendaredonda.com.br/register', dadosDeCadastro([
-        'perfil_tipo' => 'transportadora',
         'perfil_frota' => '6-20',
         'perfil_volume' => '11-30',
     ]));
 
     expect(Tenant::first()->perfil_cadastro)
-        ->toBe(['tipo' => 'transportadora', 'frota' => '6-20', 'volume' => '11-30']);
+        ->toBe(['frota' => '6-20', 'volume' => '11-30']);
 });
 
 /**
@@ -184,11 +182,13 @@ it('guarda as respostas do site na empresa', function () {
  */
 it('ignora resposta fora da lista sem barrar o cadastro', function () {
     $this->post('http://vendaredonda.com.br/register', dadosDeCadastro([
-        'perfil_tipo' => 'transportadora',
         'perfil_frota' => 'mil-caminhoes',
+        'perfil_volume' => '11-30',
+        // A pergunta do tipo de empresa saiu; resposta antiga é descartada.
+        'perfil_tipo' => 'transportadora',
     ]))->assertSessionHasNoErrors();
 
-    expect(Tenant::first()->perfil_cadastro)->toBe(['tipo' => 'transportadora']);
+    expect(Tenant::first()->perfil_cadastro)->toBe(['volume' => '11-30']);
 });
 
 it('deixa o perfil vazio pra quem se cadastra direto pelo app', function () {
@@ -197,14 +197,8 @@ it('deixa o perfil vazio pra quem se cadastra direto pelo app', function () {
     expect(Tenant::first()->perfil_cadastro)->toBeNull();
 });
 
-it('transportadora entra no plano Transporte', function () {
-    $this->post('http://vendaredonda.com.br/register', dadosDeCadastro(['perfil_tipo' => 'transportadora']));
+it('toda conta nasce no plano Transporte', function () {
+    $this->post('http://vendaredonda.com.br/register', dadosDeCadastro(['perfil_frota' => 'sem-frota']));
 
     expect(Tenant::first()->plano)->toBe(PlanoTenant::Transporte);
-});
-
-it('empresa sem frota entra no plano Pequena Empresa', function () {
-    $this->post('http://vendaredonda.com.br/register', dadosDeCadastro(['perfil_tipo' => 'empresa']));
-
-    expect(Tenant::first()->plano)->toBe(PlanoTenant::PequenaEmpresa);
 });
