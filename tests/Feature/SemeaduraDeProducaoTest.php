@@ -58,7 +58,7 @@ it('o cadastro funciona num banco semeado como o da producao', function () {
 
     $this->seed(DatabaseSeeder::class);
 
-    $this->post('http://vendaredonda.com.br/register', [
+    $this->post('http://vendaredonda.com.br/register', comConvite([
         'name' => 'Marcelo Andrade',
         'email' => 'marcelo@exemplo.com.br',
         'password' => 'Rt7#kzQwLm',
@@ -68,7 +68,7 @@ it('o cadastro funciona num banco semeado como o da producao', function () {
         'inscricao_estadual' => 'ISENTO',
         'crt' => '3',
         'telefone' => '(19) 99999-0000',
-    ])->assertRedirect();
+    ]))->assertRedirect();
 
     $usuario = User::query()->withoutGlobalScopes()->firstWhere('email', 'marcelo@exemplo.com.br');
 

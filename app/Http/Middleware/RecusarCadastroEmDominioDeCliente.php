@@ -25,7 +25,7 @@ class RecusarCadastroEmDominioDeCliente
 
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->routeIs('register', 'register.store') && $this->tenantAtual->id() !== null) {
+        if ($request->routeIs('register', 'register.store', 'cadastro.*') && $this->tenantAtual->id() !== null) {
             abort(404);
         }
 

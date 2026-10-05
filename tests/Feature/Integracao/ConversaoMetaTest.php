@@ -118,7 +118,7 @@ it('cadastro dispara a conversao com o mesmo event_id que fica na sessao', funct
     config(['produto.dominio' => 'vendaredonda.com.br']);
     Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
 
-    $resposta = $this->post('http://vendaredonda.com.br/register', [
+    $resposta = $this->post('http://vendaredonda.com.br/register', comConvite([
         'name' => 'Marcelo Andrade',
         'email' => 'marcelo@exemplo.com.br',
         'password' => 'senha-muito-longa-123',
@@ -128,7 +128,7 @@ it('cadastro dispara a conversao com o mesmo event_id que fica na sessao', funct
         'inscricao_estadual' => '123456789012',
         'crt' => '3',
         'telefone' => '1930960072',
-    ]);
+    ]));
     $resposta->assertSessionHasNoErrors();
 
     $user = User::firstWhere('email', 'marcelo@exemplo.com.br');
@@ -141,4 +141,37 @@ it('cadastro dispara a conversao com o mesmo event_id que fica na sessao', funct
     });
 
     $resposta->assertSessionHas('meta_pixel_evento', ['nome' => 'CompleteRegistration', 'id' => $eventId]);
+});
+
+/**
+ * A metade do navegador: a primeira tela depois do cadastro (o painel) é a
+ * confirmação, e é nela que o pixel dispara o CompleteRegistration com o
+ * mesmo event_id da Conversions API. Só uma vez: a visita seguinte ao
+ * painel não repete a conversão.
+ */
+it('primeira tela depois do cadastro dispara o pixel uma vez so', function () {
+    $this->seed(PerfilSeeder::class);
+    Tenant::query()->delete();
+    config(['produto.dominio' => 'vendaredonda.com.br']);
+    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
+
+    $this->followingRedirects()->post('http://vendaredonda.com.br/register', comConvite([
+        'name' => 'Marcelo Andrade',
+        'email' => 'marcelo@exemplo.com.br',
+        'password' => 'senha-muito-longa-123',
+        'password_confirmation' => 'senha-muito-longa-123',
+        'razao_social' => 'DISTRIBUIDORA RIO CLARO LTDA',
+        'cnpj' => '11222333000181',
+        'inscricao_estadual' => '123456789012',
+        'crt' => '3',
+        'telefone' => '1930960072',
+    ]))
+        ->assertOk()
+        ->assertSee('connect.facebook.net', false)
+        ->assertSee('CompleteRegistration', false)
+        ->assertSee('cadastro-'.User::firstWhere('email', 'marcelo@exemplo.com.br')->id, false);
+
+    $this->get('http://vendaredonda.com.br/dashboard')
+        ->assertOk()
+        ->assertDontSee('CompleteRegistration', false);
 });

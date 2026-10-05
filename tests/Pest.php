@@ -54,6 +54,7 @@ expect()->extend('toBeOne', function () {
  */
 
 use App\Enums\Fiscal\Ambiente;
+use App\Models\CadastroIniciado;
 use App\Models\Emitente;
 use App\Models\EmitenteNfse;
 use App\Models\Fatura;
@@ -581,4 +582,22 @@ function viagemPronta(?Emitente $emitente = null, array $dadosViagem = []): Viag
     $viagens->definirPeso($viagem, $nota, 500);
 
     return $viagem->fresh();
+}
+
+/**
+ * Dados de cadastro com o convite do link do e-mail, sem o qual o
+ * CreateNewUser não cria conta (ver CadastroController). O convite sai para
+ * o e-mail dos próprios dados, como aconteceria de verdade.
+ *
+ * @param  array<string, mixed>  $dados
+ * @return array<string, mixed>
+ */
+function comConvite(array $dados): array
+{
+    $cadastro = CadastroIniciado::firstOrCreate(
+        ['email' => mb_strtolower($dados['email'] ?? 'marcelo@exemplo.com.br')],
+        ['nome' => $dados['name'] ?? 'Marcelo Andrade', 'telefone' => $dados['telefone'] ?? '1930960072'],
+    );
+
+    return [...$dados, 'convite' => $cadastro->novoConvite()];
 }

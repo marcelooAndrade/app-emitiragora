@@ -19,7 +19,7 @@ beforeEach(function () {
 
 function cadastroValido(array $extra = []): array
 {
-    return array_merge([
+    return comConvite(array_merge([
         'name' => 'Marcelo Andrade',
         'email' => 'marcelo@exemplo.com.br',
         'password' => 'senha-muito-longa-123',
@@ -29,7 +29,7 @@ function cadastroValido(array $extra = []): array
         'inscricao_estadual' => '123456789012',
         'crt' => '3',
         'telefone' => '1930960072',
-    ], $extra);
+    ], $extra));
 }
 
 it('o cadastro despacha o envio do lead', function () {

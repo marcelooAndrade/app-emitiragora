@@ -7,6 +7,7 @@ use App\Enums\Perfil;
 use App\Enums\PlanoTenant;
 use App\Jobs\EnviarConversaoMeta;
 use App\Jobs\EnviarLeads;
+use App\Models\CadastroIniciado;
 use App\Models\Emitente;
 use App\Models\Tenant;
 use App\Models\User;
@@ -21,6 +22,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -33,6 +35,10 @@ use Spatie\Permission\PermissionRegistrar;
  *
  * São quatro coisas numa transação: tenant no plano gratuito, emitente,
  * usuário e papel de administrador. Se qualquer uma falhar, nenhuma fica.
+ *
+ * Só nasce conta com o convite do link que foi para o e-mail (ver
+ * CadastroController): o endereço vem do convite, nunca do formulário, e por
+ * isso a conta já sai com o e-mail verificado.
  */
 class CreateNewUser implements CreatesNewUsers
 {
@@ -40,6 +46,16 @@ class CreateNewUser implements CreatesNewUsers
 
     public function create(array $input): User
     {
+        $cadastro = CadastroIniciado::peloConvite(is_string($input['convite'] ?? null) ? $input['convite'] : '');
+
+        if (! $cadastro) {
+            throw ValidationException::withMessages([
+                'convite' => 'Este link de cadastro expirou ou já foi usado. Peça um novo.',
+            ]);
+        }
+
+        $input['email'] = $cadastro->email;
+
         Validator::make($input, [
             // Os limites de name, email e razao_social espelham o que o admin
             // pessoal aceita na entrada dele. Afrouxar aqui faria o cadastro
@@ -73,8 +89,8 @@ class CreateNewUser implements CreatesNewUsers
         ])->validate();
 
         /** @var array{0: User, 1: Tenant} $criados */
-        $criados = DB::transaction(function () use ($input): array {
-            $perfil = PerfilDeCadastro::doCadastro($input);
+        $criados = DB::transaction(function () use ($input, $cadastro): array {
+            $perfil = $cadastro->perfil ?: PerfilDeCadastro::doCadastro($input);
 
             $tenant = Tenant::create([
                 'nome' => $input['razao_social'],
@@ -103,6 +119,14 @@ class CreateNewUser implements CreatesNewUsers
                 'email' => $input['email'],
                 'password' => $input['password'],
             ]);
+
+            // Abrir o link do e-mail é a verificação. Fora do `create` porque
+            // `email_verified_at` não é preenchível em massa, de propósito.
+            $user->forceFill(['email_verified_at' => now()])->save();
+
+            // Dentro da transação: convite usado e conta criada andam juntos,
+            // e o mesmo link nunca cria duas contas.
+            $cadastro->converter($user);
 
             $user->emitentes()->attach($emitente);
 
@@ -174,8 +198,11 @@ class CreateNewUser implements CreatesNewUsers
                         // devolve array quando chamado sem chave nenhuma. A
                         // checagem aqui é defensiva, para o tipo bater com o
                         // que o montador espera receber.
-                        'fbp' => is_string($fbp = request()->cookie('_fbp')) ? $fbp : null,
-                        'fbc' => is_string($fbc = request()->cookie('_fbc')) ? $fbc : null,
+                        // O link do e-mail costuma abrir em outro navegador,
+                        // sem os cookies do clique no anúncio; aí valem os que
+                        // o site mandou no começo do cadastro.
+                        'fbp' => is_string($fbp = request()->cookie('_fbp')) ? $fbp : $cadastro->fbp,
+                        'fbc' => is_string($fbc = request()->cookie('_fbc')) ? $fbc : $cadastro->fbc,
                         'ip' => request()->ip(),
                         'user_agent' => request()->userAgent(),
                     ],

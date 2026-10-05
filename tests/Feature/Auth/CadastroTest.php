@@ -22,7 +22,7 @@ beforeEach(function () {
 
 function dadosDeCadastro(array $extra = []): array
 {
-    return array_merge([
+    return comConvite(array_merge([
         'name' => 'Marcelo Andrade',
         'email' => 'marcelo@exemplo.com.br',
         'password' => 'senha-muito-longa-123',
@@ -32,7 +32,7 @@ function dadosDeCadastro(array $extra = []): array
         'inscricao_estadual' => '123456789012',
         'crt' => '3',
         'telefone' => '1930960072',
-    ], $extra);
+    ], $extra));
 }
 
 it('nao existe em dominio de cliente', function () {
@@ -162,9 +162,9 @@ it('nao quebra quando o site manda parametro em formato de lista', function () {
 it('repassa as respostas do site em campos escondidos', function () {
     $this->get('http://vendaredonda.com.br/register?tipo=transportadora&frota=6-20&volume=11-30')
         ->assertOk()
-        ->assertSee('name="perfil_tipo" value="transportadora"', false)
-        ->assertSee('name="perfil_frota" value="6-20"', false)
-        ->assertSee('name="perfil_volume" value="11-30"', false);
+        ->assertSee('name="tipo" value="transportadora"', false)
+        ->assertSee('name="frota" value="6-20"', false)
+        ->assertSee('name="volume" value="11-30"', false);
 });
 
 it('guarda as respostas do site na empresa', function () {

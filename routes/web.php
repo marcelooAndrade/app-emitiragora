@@ -1,11 +1,13 @@
 <?php
 
+use App\Http\Controllers\CadastroController;
 use App\Http\Controllers\EscolherEmitenteController;
 use App\Http\Controllers\FaturaPublicaController;
 use App\Http\Controllers\LogoTenantController;
 use App\Http\Controllers\NotaServicoArquivoController;
 use App\Http\Controllers\RaizController;
 use App\Http\Controllers\TransporteArquivoController;
+use App\Http\Middleware\ExigirOrigemDoSite;
 use App\Livewire\Certificados\Gerenciar;
 use App\Livewire\Contador\Exportacao;
 use App\Livewire\Estoque\Painel;
@@ -25,6 +27,7 @@ use App\Livewire\Tenancy\Marca;
 use App\Livewire\Transporte;
 use App\Livewire\Tributacao\Regras;
 use App\Livewire\Usuarios\Cadastro as UsuariosCadastro;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Support\Facades\Route;
 
 // A raiz muda de superfície conforme o host: apresentação no domínio nu
@@ -41,6 +44,19 @@ Route::get('logo', LogoTenantController::class)->name('logo');
 // identificador, sorteado por fatura, e a marca vem da empresa dona dela.
 Route::get('fatura/{token}', [FaturaPublicaController::class, 'show'])->name('fatura.publica');
 Route::get('fatura/{token}/logo', [FaturaPublicaController::class, 'logo'])->name('fatura.publica.logo');
+
+// Cadastro com o e-mail no meio: a conta só nasce pelo link que chega no
+// e-mail. Ver CadastroController. O `iniciar` recebe o modal do site, de
+// outro domínio, sem como ter o token de CSRF daqui: no lugar dele vale a
+// checagem de origem (ExigirOrigemDoSite), mais o limite por IP.
+Route::post('cadastro/iniciar', [CadastroController::class, 'iniciar'])
+    ->withoutMiddleware(PreventRequestForgery::class)
+    ->middleware([ExigirOrigemDoSite::class, 'throttle:10,1'])
+    ->name('cadastro.iniciar');
+Route::middleware('guest')->group(function () {
+    Route::get('cadastro/enviado', [CadastroController::class, 'enviado'])->name('cadastro.enviado');
+    Route::get('cadastro/concluir/{convite}', [CadastroController::class, 'concluir'])->name('cadastro.concluir');
+});
 
 // Página de indicação para contadores. Pública, mesmo padrão da apresentação.
 Route::view('contadores', 'contadores')->name('contadores');

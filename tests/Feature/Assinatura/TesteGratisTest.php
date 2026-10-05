@@ -28,13 +28,13 @@ it('quem se cadastra ganha 14 dias de teste', function () {
     auth()->logout();
     Tenant::query()->whereKeyNot($this->tenant->id)->delete();
 
-    $this->post('http://vendaredonda.com.br/register', [
+    $this->post('http://vendaredonda.com.br/register', comConvite([
         'name' => 'Marcelo Andrade', 'email' => 'novo@exemplo.com.br',
         'password' => 'Senha-forte-123', 'password_confirmation' => 'Senha-forte-123',
         'razao_social' => 'TRANSPORTES TESTE LTDA', 'cnpj' => '11222333000181',
         'inscricao_estadual' => '123456789012', 'crt' => '3', 'telefone' => '1930960072',
         'perfil_tipo' => 'transportadora',
-    ]);
+    ]));
 
     $novo = Tenant::firstWhere('nome', 'TRANSPORTES TESTE LTDA');
 
