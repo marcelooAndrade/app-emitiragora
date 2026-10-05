@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 /*
@@ -14,8 +15,13 @@ use Illuminate\Support\Facades\Schema;
  */
 return new class extends Migration
 {
+    /** As tabelas desta migration, na ordem em que o `down` as apaga. */
+    private const TABELAS = ['transporte_series', 'regras_icms_transporte', 'motoristas', 'veiculos', 'emitente_transporte'];
+
     public function up(): void
     {
+        $this->limparSobrasDeTentativaAnterior();
+
         Schema::create('emitente_transporte', function (Blueprint $table) {
             $table->id();
             $table->foreignId('emitente_id')->unique()->constrained()->cascadeOnDelete();
@@ -112,10 +118,35 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('transporte_series');
-        Schema::dropIfExists('regras_icms_transporte');
-        Schema::dropIfExists('motoristas');
-        Schema::dropIfExists('veiculos');
-        Schema::dropIfExists('emitente_transporte');
+        foreach (self::TABELAS as $tabela) {
+            Schema::dropIfExists($tabela);
+        }
+    }
+
+    /**
+     * O primeiro deploy desta migration em produção parou no meio. No MySQL
+     * `create table` não volta atrás quando a migration falha, então ficou
+     * tabela criada sem a migration registrada, e todo deploy seguinte parava
+     * em "Table 'emitente_transporte' already exists".
+     *
+     * Se a migration não está registrada, tabela daqui só pode ser sobra de
+     * tentativa que falhou, nunca usada pelo sistema: apaga e cria de novo.
+     * Tabela com linha não é sobra, e aí o deploy para em vez de apagar dado.
+     */
+    private function limparSobrasDeTentativaAnterior(): void
+    {
+        foreach (self::TABELAS as $tabela) {
+            if (! Schema::hasTable($tabela)) {
+                continue;
+            }
+
+            if (DB::table($tabela)->exists()) {
+                throw new RuntimeException(
+                    "A tabela {$tabela} já existe e tem dados, mas a migration que a cria não está registrada. Confira o banco antes de seguir."
+                );
+            }
+
+            Schema::drop($tabela);
+        }
     }
 };
