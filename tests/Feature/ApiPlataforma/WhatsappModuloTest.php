@@ -178,6 +178,23 @@ it('manda mensagem quando a instancia esta conectada', function () {
     Http::assertSent(fn ($request) => $request->hasHeader('token', 'token-uazapi-1'));
 });
 
+it('manda mensagem para grupo, pelo id do grupo com @g.us', function () {
+    $cliente = clienteComWhatsapp();
+    Sanctum::actingAs($cliente);
+    $cliente->whatsappInstancia()->create([
+        'uazapi_instance_id' => 'inst-1', 'uazapi_token' => 'token-uazapi-1', 'nome' => 'x', 'status' => 'connected',
+    ]);
+
+    Http::fake(['uazapi.test/send/text' => Http::response(['messageid' => 'msg-2', 'status' => 'Pending'], 200)]);
+
+    // Id de grupo tem 23 caracteres; o limite de 20 servia só a telefone.
+    $this->postJson('http://api.vendaredonda.test/whatsapp/v1/mensagens', [
+        'numero' => '120363312257537196@g.us', 'texto' => 'Relatório do dia',
+    ])->assertCreated()->assertJson(['enviado' => true, 'id' => 'msg-2']);
+
+    Http::assertSent(fn ($request) => $request['number'] === '120363312257537196@g.us');
+});
+
 it('recusa listar grupos sem instancia conectada', function () {
     $cliente = clienteComWhatsapp();
     Sanctum::actingAs($cliente);

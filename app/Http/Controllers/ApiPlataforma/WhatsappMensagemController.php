@@ -15,8 +15,10 @@ class WhatsappMensagemController extends Controller
 
     public function store(Request $request): JsonResponse
     {
+        // `numero` é telefone ou id de grupo (120363...@g.us, 23 caracteres),
+        // que a uazapi recebe no mesmo campo. O limite de 20 barrava grupo.
         $dados = $request->validate([
-            'numero' => ['required', 'string', 'max:20'],
+            'numero' => ['required', 'string', 'max:64'],
             'texto' => ['required', 'string', 'max:4096'],
         ]);
 
