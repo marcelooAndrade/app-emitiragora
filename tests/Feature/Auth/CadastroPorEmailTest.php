@@ -223,3 +223,37 @@ it('sem convite nao nasce conta', function () {
 
     expect(User::withoutGlobalScopes()->count())->toBe(0);
 });
+
+it('o e-mail guardado vira Lead no Meta, com o mesmo id que o navegador usa', function () {
+    config(['integracao.meta.pixel_id' => '4043930915910691', 'integracao.meta.access_token' => 'segredo']);
+    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
+
+    $this->withHeaders(['Origin' => SITE, 'User-Agent' => 'Navegador/1.0'])->postJson(INICIAR, contatoDoSite())->assertOk();
+
+    Http::assertSent(function ($request) {
+        $evento = $request['data'][0] ?? [];
+
+        return $request->url() === 'https://graph.facebook.com/v21.0/4043930915910691/events'
+            && $evento['event_name'] === 'Lead'
+            && $evento['event_id'] === 'lead-'.substr(hash('sha256', 'marcelo@exemplo.com.br'), 0, 32)
+            && $evento['event_source_url'] === 'https://emitiragora.com.br/teste-gratis?utm_source=meta&fbclid=abc'
+            && $evento['user_data']['fbp'] === 'fb.1.111.222'
+            && $evento['user_data']['client_user_agent'] === 'Navegador/1.0';
+    });
+});
+
+it('e-mail que ja tem conta nao vira Lead', function () {
+    $this->post('http://vendaredonda.com.br/register', comConvite([
+        'name' => 'Marcelo Andrade', 'email' => 'marcelo@exemplo.com.br',
+        'password' => 'senha-muito-longa-123', 'password_confirmation' => 'senha-muito-longa-123',
+        'razao_social' => 'DISTRIBUIDORA RIO CLARO LTDA', 'cnpj' => '11222333000181',
+        'inscricao_estadual' => '123456789012', 'crt' => '3', 'telefone' => '1930960072',
+    ]));
+    auth()->logout();
+    config(['integracao.meta.pixel_id' => '4043930915910691', 'integracao.meta.access_token' => 'segredo']);
+    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
+
+    $this->withHeaders(['Origin' => SITE])->postJson(INICIAR, contatoDoSite())->assertOk();
+
+    Http::assertNotSent(fn ($request) => ($request['data'][0]['event_name'] ?? null) === 'Lead');
+});

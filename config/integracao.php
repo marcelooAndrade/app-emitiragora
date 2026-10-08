@@ -29,6 +29,10 @@ return [
     'meta' => [
         'pixel_id' => env('META_PIXEL_ID'),
         'access_token' => env('META_CAPI_ACCESS_TOKEN'),
+        // Código da aba "Testar eventos" do Gerenciador de Eventos. Com ele,
+        // o servidor manda tudo como teste, para conferir antes de anunciar.
+        // Vazio em produção de verdade.
+        'test_event_code' => env('META_TEST_EVENT_CODE'),
     ],
 
     /*

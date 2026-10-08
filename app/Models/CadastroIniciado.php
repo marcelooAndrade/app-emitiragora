@@ -53,6 +53,17 @@ class CadastroIniciado extends Model
         return $convite;
     }
 
+    /**
+     * Id do Lead no Meta, igual nos dois lados: o ModalCadastro do site
+     * calcula o mesmo SHA-256 do e-mail no navegador. Sai do e-mail, e não do
+     * id da linha, porque o navegador não conhece o id e a resposta do
+     * `iniciar` não pode variar (ver CadastroController).
+     */
+    public static function idDoEventoLead(string $email): string
+    {
+        return 'lead-'.substr(hash('sha256', mb_strtolower(trim($email))), 0, 32);
+    }
+
     /** O cadastro de um convite ainda válido: não vencido e não usado. */
     public static function peloConvite(string $convite): ?self
     {

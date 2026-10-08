@@ -1,6 +1,7 @@
 <?php
 
 use App\Jobs\EnviarConversaoMeta;
+use App\Models\CadastroIniciado;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\Integrations\MetaConversoesGateway;
@@ -174,4 +175,43 @@ it('primeira tela depois do cadastro dispara o pixel uma vez so', function () {
     $this->get('http://vendaredonda.com.br/dashboard')
         ->assertOk()
         ->assertDontSee('CompleteRegistration', false);
+});
+
+it('monta o Lead do cadastro iniciado com os dados hasheados', function () {
+    $cadastro = CadastroIniciado::create([
+        'email' => 'marcelo@exemplo.com.br', 'nome' => 'Marcelo Andrade', 'telefone' => '(19) 97135-1777',
+        'fbp' => 'fb.1.111.222',
+    ]);
+
+    $evento = app(MontadorDeConversoesMeta::class)->paraLead(
+        $cadastro, 'https://emitiragora.com.br/teste-gratis', ['ip' => '203.0.113.9'],
+    );
+
+    expect($evento['event_name'])->toBe('Lead')
+        // O navegador calcula o mesmo id a partir do e-mail (ModalCadastro do
+        // site): é o que deixa o Meta juntar os dois em vez de contar dois.
+        ->and($evento['event_id'])->toBe('lead-'.substr(hash('sha256', 'marcelo@exemplo.com.br'), 0, 32))
+        ->and($evento['event_source_url'])->toBe('https://emitiragora.com.br/teste-gratis')
+        ->and($evento['user_data']['em'])->toBe([hash('sha256', 'marcelo@exemplo.com.br')])
+        ->and($evento['user_data']['ph'])->toBe([hash('sha256', '5519971351777')])
+        ->and($evento['user_data']['fn'])->toBe([hash('sha256', 'marcelo')])
+        ->and($evento['user_data']['fbp'])->toBe('fb.1.111.222')
+        ->and($evento['user_data']['client_ip_address'])->toBe('203.0.113.9');
+});
+
+it('manda o codigo de teste de eventos quando configurado', function () {
+    config(['integracao.meta.test_event_code' => 'TEST12345']);
+    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
+
+    app(MetaConversoesGateway::class)->enviar(['event_name' => 'Lead']);
+
+    Http::assertSent(fn ($request) => $request['test_event_code'] === 'TEST12345');
+});
+
+it('sem codigo de teste o evento vai como evento de verdade', function () {
+    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
+
+    app(MetaConversoesGateway::class)->enviar(['event_name' => 'Lead']);
+
+    Http::assertSent(fn ($request) => ! isset($request['test_event_code']));
 });

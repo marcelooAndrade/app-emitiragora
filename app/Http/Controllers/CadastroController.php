@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\EnviarConversaoMeta;
 use App\Mail\ContaJaExiste;
 use App\Mail\ConviteDeCadastro;
 use App\Models\CadastroIniciado;
 use App\Models\User;
+use App\Services\Integrations\MontadorDeConversoesMeta;
 use App\Support\PerfilDeCadastro;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -135,5 +137,25 @@ class CadastroController
         $convite = $cadastro->novoConvite();
 
         Mail::to($email)->send(new ConviteDeCadastro($cadastro->nome, route('cadastro.concluir', $convite)));
+
+        $this->avisarMeta($cadastro, $request);
+    }
+
+    /**
+     * O e-mail guardado é o Lead do anúncio. Consequência, nunca condição:
+     * falha aqui não pode impedir o e-mail que já saiu, mesma regra do
+     * CreateNewUser.
+     */
+    private function avisarMeta(CadastroIniciado $cadastro, Request $request): void
+    {
+        try {
+            EnviarConversaoMeta::dispatch(app(MontadorDeConversoesMeta::class)->paraLead(
+                $cadastro,
+                (string) ($cadastro->origem ?: $request->headers->get('referer') ?: $request->fullUrl()),
+                ['ip' => $request->ip(), 'user_agent' => $request->userAgent()],
+            ));
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 }
