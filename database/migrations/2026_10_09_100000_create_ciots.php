@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Crypt;
@@ -126,21 +127,30 @@ return new class extends Migration
         }
     }
 
-    /** O e-Frete só rodava em homologação, então as credenciais vão para lá. */
+    /**
+     * O e-Frete só rodava em homologação, então as credenciais vão para lá.
+     * Credencial que não decifra (chave do app trocada) fica para trás em vez
+     * de travar o deploy: basta digitá-la de novo em Configurações, CIOT.
+     */
     private function copiarCredenciaisEfrete(): void
     {
         $ler = fn (?string $v): ?string => $v === null ? null : Crypt::decryptString($v);
         foreach (DB::table('emitente_transporte')->whereNotNull('efrete_usuario')->get() as $t) {
-            DB::table('emitente_ciot')->insert([
-                'emitente_id' => $t->emitente_id,
-                'provedor' => 'efrete',
-                'credenciais_homologacao' => Crypt::encryptString((string) json_encode(['efrete' => [
+            try {
+                $credenciais = [
                     'usuario' => $ler($t->efrete_usuario),
                     'senha' => $ler($t->efrete_senha),
                     'integrador' => $ler($t->efrete_integrador),
                     'massa_antt' => (bool) $t->efrete_massa_antt,
                     'embalagem' => 'Pallet',
-                ]])),
+                ];
+            } catch (DecryptException) {
+                continue;
+            }
+            DB::table('emitente_ciot')->insert([
+                'emitente_id' => $t->emitente_id,
+                'provedor' => 'efrete',
+                'credenciais_homologacao' => Crypt::encryptString((string) json_encode(['efrete' => $credenciais])),
                 'recebimento_tipo' => 'pix',
                 'created_at' => now(),
                 'updated_at' => now(),
