@@ -2,19 +2,20 @@
 
 namespace App\Services\Transporte;
 
-use App\Enums\Fiscal\Ambiente;
 use App\Enums\Transporte\CteStatus;
 use App\Enums\Transporte\MdfeStatus;
 use App\Models\Cte;
 use App\Models\User;
 use App\Models\Viagem;
-use App\Services\Transporte\Efrete\CiotEfrete;
+use App\Services\Transporte\Ciot\ProvedoresCiot;
+use App\Services\Transporte\Ciot\ServicoCiot;
 
 /**
  * O botão "Emitir": transmite os CT-e pendentes e, com todos autorizados,
- * o MDF-e. É o "automatizar" do Transm (FiscalProcessoOrchestrator): com
- * veículo de terceiro e e-Frete configurado, o CIOT sai no meio, entre os
- * CT-e autorizados e o MDF-e, sem outro clique.
+ * o CIOT e depois o MDF-e. É o "automatizar" do Transm
+ * (FiscalProcessoOrchestrator). Desde 09/10/2026 (CIOT para todos, DF-026)
+ * o CIOT sai em toda viagem, com caminhão próprio ou de terceiro, pela
+ * empresa configurada no emitente, e sem CIOT o MDF-e não sai.
  *
  * Não para no primeiro CT-e rejeitado: transmite todos, para quem opera ver
  * de uma vez o que precisa corrigir.
@@ -27,7 +28,8 @@ class EmissaoViagem
         private readonly MontadorCtes $montador,
         private readonly TransmissorCte $ctes,
         private readonly TransmissorMdfe $mdfe,
-        private readonly CiotEfrete $ciot,
+        private readonly ServicoCiot $ciot,
+        private readonly ProvedoresCiot $provedores,
     ) {}
 
     /** @return array{ok: array<int, string>, erros: array<int, string>} */
@@ -87,24 +89,22 @@ class EmissaoViagem
         return ['ok' => $ok, 'erros' => $erros];
     }
 
-    /** Só quando dá para gerar sozinho: terceiro, contrato sem CIOT e e-Frete ligado. */
+    /** Entre os CT-e autorizados e o MDF-e. Sem CIOT registrado, para aqui. */
     private function gerarCiot(Viagem $viagem, ?User $user, array &$ok, array &$erros): void
     {
-        $viagem->loadMissing(['contrato', 'emitente', 'veiculo']);
-        $contrato = $viagem->contrato;
-        if (! $viagem->comTerceiro() || $contrato?->status !== 'ativo' || (filled($contrato->ciot) && $contrato->ciot_status !== 'processando')
-            || ! $viagem->emitente->configuracaoTransporte()->temEfrete()
-            // Fora de homologação a trava do e-Frete vale: o CIOT é digitado.
-            || $viagem->emitente->ambiente !== Ambiente::Homologacao) {
-            return;
-        }
+        $jaTinha = (bool) $viagem->ciotVigente()->first()?->registrado();
         try {
-            $contrato = $this->ciot->gerar($contrato, [], $user);
-            $contrato->ciot_status === 'registrado'
-                ? $ok[] = "CIOT {$contrato->ciot} gerado no e-Frete."
-                : $erros[] = 'O e-Frete aceitou o CIOT e ainda não devolveu o número. Aperte Emitir de novo em instantes.';
+            $ciot = $this->ciot->garantir($viagem, $user);
         } catch (TransporteException $e) {
             $erros[] = 'CIOT: '.$e->getMessage();
+
+            return;
+        }
+        $nome = $this->provedores->nome($ciot->provedor);
+        if (! $ciot->registrado()) {
+            $erros[] = "{$nome} aceitou o pedido do CIOT e ainda não devolveu o número. Aperte Emitir de novo em instantes.";
+        } elseif (! $jaTinha) {
+            $ok[] = "CIOT {$ciot->numeroCompleto()} gerado via {$nome}.";
         }
     }
 }

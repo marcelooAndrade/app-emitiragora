@@ -82,10 +82,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('veiculos', Transporte\Veiculos::class)->name('veiculos');
     Route::get('motoristas', Transporte\Motoristas::class)->name('motoristas');
     Route::get('transporte', Transporte\Configuracao::class)->name('transporte.configuracao');
+    Route::get('transporte/ciot', Transporte\ConfiguracaoCiot::class)->name('transporte.ciot');
     Route::get('transporte/cte/{cte}/dacte', [TransporteArquivoController::class, 'dacte'])->name('transporte.dacte');
     Route::get('transporte/cte/{cte}/xml', [TransporteArquivoController::class, 'cteXml'])->name('transporte.cte.xml');
     Route::get('transporte/contrato/{contrato}', [TransporteArquivoController::class, 'contrato'])->name('transporte.contrato');
-    Route::get('transporte/contrato/{contrato}/ciot', [TransporteArquivoController::class, 'ciotPdf'])->name('transporte.ciot.pdf');
+    Route::get('transporte/ciot/{ciot}/pdf', [TransporteArquivoController::class, 'ciotPdf'])->name('transporte.ciot.pdf');
     Route::get('transporte/mdfe/{mdfe}/damdfe', [TransporteArquivoController::class, 'damdfe'])->name('transporte.damdfe');
     Route::get('transporte/mdfe/{mdfe}/xml', [TransporteArquivoController::class, 'mdfeXml'])->name('transporte.mdfe.xml');
 

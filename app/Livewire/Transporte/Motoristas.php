@@ -64,7 +64,7 @@ class Motoristas extends Component
     #[Computed]
     public function usaEfrete(): bool
     {
-        return $this->emitente->configuracaoTransporte()->temEfrete();
+        return $this->emitente->configuracaoCiot()->provedor === 'efrete';
     }
 
     /** CEP completo: o ViaCEP preenche rua, bairro e município. */

@@ -48,7 +48,6 @@ function dadosContrato(array $extra = []): array
         'vencimento_saldo' => '2026-10-20',
         'forma_pagamento' => 'pix',
         'chave_pix' => 'jose@exemplo.com',
-        'ciot' => '123456789012',
         ...$extra,
     ];
 }
@@ -106,15 +105,18 @@ it('recusa contrato com saldo negativo', function () {
     app(ContratosFrete::class)->salvar(viagemDeTerceiro(), dadosContrato(['imposto_renda_centavos' => 30000]));
 })->throws(TransporteException::class, 'saldo ficaria negativo');
 
-it('MDF-e de terceiro pede o contrato e, para TAC, o CIOT', function () {
+it('MDF-e de terceiro pede o contrato e depois o CIOT', function () {
     $viagem = viagemDeTerceiro();
     comGatewayCte(['enviar' => cteAutorizado()]);
     app(TransmissorCte::class)->transmitir($viagem->ctes->sole());
 
     expect(collect(app(TransmissorMdfe::class)->pendencias($viagem->fresh()))->join(' '))->toContain('contrato do frete');
 
-    app(ContratosFrete::class)->salvar($viagem->fresh(), dadosContrato(['ciot' => '']));
-    expect(collect(app(TransmissorMdfe::class)->pendencias($viagem->fresh()))->join(' '))->toContain('CIOT');
+    app(ContratosFrete::class)->salvar($viagem->fresh(), dadosContrato());
+    expect(collect(app(TransmissorMdfe::class)->pendencias($viagem->fresh()))->join(' '))->toContain('Informe o CIOT');
+
+    comCiotInformado($viagem);
+    expect(collect(app(TransmissorMdfe::class)->pendencias($viagem->fresh()))->join(' '))->not->toContain('CIOT');
 });
 
 it('com contrato o MDF-e leva CIOT e pagamento a prazo, e passa no xsd', function () {
@@ -122,6 +124,7 @@ it('com contrato o MDF-e leva CIOT e pagamento a prazo, e passa no xsd', functio
     comGatewayCte(['enviar' => cteAutorizado()]);
     app(TransmissorCte::class)->transmitir($viagem->ctes->sole());
     app(ContratosFrete::class)->salvar($viagem->fresh(), dadosContrato());
+    comCiotInformado($viagem);
 
     $mdfe = app(TransmissorMdfe::class)->preparar($viagem->fresh());
     $mdfe->forceFill(['numero' => 3])->save();
@@ -252,7 +255,6 @@ describe('telas', function () {
             ->set('contratoFrete', '1.000,00')
             ->assertSee('200,00')
             ->set('contratoPix', 'jose@exemplo.com')
-            ->set('contratoCiot', '123456789012')
             ->call('salvarViagem')
             ->assertHasNoErrors()
             ->assertSee('Contrato em PDF');

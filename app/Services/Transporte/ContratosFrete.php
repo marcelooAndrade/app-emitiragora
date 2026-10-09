@@ -46,7 +46,6 @@ class ContratosFrete
                 'banco_codigo' => $c->banco_codigo,
                 'agencia' => $c->agencia,
                 'conta' => $c->conta,
-                'ciot' => $c->ciot,
             ];
         }
 
@@ -65,7 +64,6 @@ class ContratosFrete
             'banco_codigo' => null,
             'agencia' => null,
             'conta' => null,
-            'ciot' => null,
         ];
     }
 
@@ -84,7 +82,7 @@ class ContratosFrete
      */
     public function salvar(Viagem $viagem, array $dados, ?User $user = null): ContratoFrete
     {
-        $viagem->load(['emitente', 'motorista', 'veiculo', 'reboque', 'reboque2', 'mdfe', 'contrato']);
+        $viagem->load(['emitente', 'motorista', 'veiculo', 'reboque', 'reboque2', 'mdfe', 'contrato', 'ciotVigente']);
         $this->conferir($viagem, $dados);
 
         return DB::transaction(function () use ($viagem, $dados, $user): ContratoFrete {
@@ -121,11 +119,8 @@ class ContratosFrete
                 'banco_codigo' => $forma === 'transferencia' ? preg_replace('/\D/', '', (string) ($dados['banco_codigo'] ?? '')) : null,
                 'agencia' => $forma === 'transferencia' ? trim((string) ($dados['agencia'] ?? '')) : null,
                 'conta' => $forma === 'transferencia' ? trim((string) ($dados['conta'] ?? '')) : null,
-                // CIOT que o e-Frete gerou (ou está gerando) não é trocado pelo formulário.
-                'ciot' => $contrato->ciot_status !== null ? $contrato->ciot
-                    : (filled($dados['ciot'] ?? null) ? preg_replace('/\D/', '', (string) $dados['ciot']) : null),
                 'emitido_em' => $contrato->emitido_em ?? now(),
-            ])->forceFill(array_intersect_key($dados, array_flip(['ciot_distancia_km', 'ciot_embalagem', 'ciot_tipo_carga', 'ciot_fim_previsto'])))->save();
+            ])->save();
 
             // Os campos da viagem acompanham o contrato, para quem lê só a viagem.
             $viagem->forceFill(['frete_motorista_centavos' => $frete, 'adiantamento_centavos' => $adiantamento])->save();
@@ -173,8 +168,10 @@ class ContratosFrete
         if ($this->travado($viagem)) {
             throw new TransporteException('O MDF-e desta viagem já foi para a SEFAZ com o contrato. Para mudar, cancele o MDF-e.');
         }
-        if ($viagem->contrato?->ciotPeloEfrete()) {
-            throw new TransporteException('O CIOT deste contrato já foi gerado no e-Frete com estes valores. Para mudar, cancele a operação no e-Frete.');
+        // O CIOT foi declarado com estes valores; mudar depois seria "dados
+        // divergentes da contratação", multa do art. 19 da Res. 6.078/2026.
+        if ($viagem->ciotVigente?->registrado()) {
+            throw new TransporteException('O CIOT desta viagem já foi gerado com estes valores. Para mudar o contrato, cancele o CIOT antes.');
         }
         if ($viagem->motorista === null) {
             throw new TransporteException('Escolha o motorista antes do contrato.');
@@ -208,10 +205,6 @@ class ContratosFrete
             throw new TransporteException('Informe a chave Pix de quem recebe o frete.');
         } elseif (mb_strlen(trim((string) $dados['chave_pix'])) > 60) {
             throw new TransporteException('A chave Pix tem no máximo 60 caracteres no MDF-e.');
-        }
-        $ciot = preg_replace('/\D/', '', (string) ($dados['ciot'] ?? ''));
-        if ($ciot !== '' && strlen($ciot) !== 12) {
-            throw new TransporteException('O CIOT tem 12 dígitos.');
         }
     }
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Ciot;
 use App\Models\ContratoFrete;
 use App\Models\Cte;
 use App\Models\Mdfe;
@@ -14,7 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
- * DACTE, DAMDFE, XML autorizados e o contrato do frete. O escopo global
+ * DACTE, DAMDFE, XML autorizados, o contrato do frete e o PDF do CIOT. O escopo global
  * garante o tenant, e matriz e filial dividem o tenant, então
  * o documento ainda precisa ser do emitente em foco.
  */
@@ -39,12 +40,13 @@ class TransporteArquivoController extends Controller
         return $this->pdf($documentos->contrato($contrato), "contrato-frete-{$contrato->numero}.pdf");
     }
 
-    public function ciotPdf(ContratoFrete $contrato, EmitenteAtual $emitenteAtual): Response
+    /** Comprovante que a empresa do CIOT devolveu, quando devolveu. */
+    public function ciotPdf(Ciot $ciot, EmitenteAtual $emitenteAtual): Response
     {
-        $this->conferir($contrato->emitente_id, $emitenteAtual);
-        abort_if(blank($contrato->ciot_pdf_path) || ! Storage::disk('fiscal')->exists($contrato->ciot_pdf_path), 404);
+        $this->conferir($ciot->emitente_id, $emitenteAtual);
+        abort_if(blank($ciot->pdf_path) || ! Storage::disk('fiscal')->exists($ciot->pdf_path), 404);
 
-        return $this->pdf((string) Storage::disk('fiscal')->get($contrato->ciot_pdf_path), "ciot-{$contrato->ciot}.pdf");
+        return $this->pdf((string) Storage::disk('fiscal')->get($ciot->pdf_path), "ciot-{$ciot->numero}.pdf");
     }
 
     public function cteXml(Cte $cte, EmitenteAtual $emitenteAtual): StreamedResponse

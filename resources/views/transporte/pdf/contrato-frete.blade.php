@@ -62,7 +62,7 @@
         <td width="22%"><div class="rotulo">Emissão</div><div class="valor">{{ ($contrato->emitido_em ?? now())->format('d/m/Y') }}</div></td>
         <td width="22%"><div class="rotulo">Carregamento</div><div class="valor">{{ $viagem->data_carregamento?->format('d/m/Y') ?: '—' }}</div></td>
         <td width="22%"><div class="rotulo">MDF-e</div><div class="valor">{{ $viagem->mdfe?->numero ? $viagem->mdfe->numeroFormatado() : 'Pendente' }}</div></td>
-        <td width="34%"><div class="rotulo">CIOT</div><div class="valor">{{ $contrato->ciot ?: 'Não informado' }}</div></td>
+        <td width="34%"><div class="rotulo">CIOT</div><div class="valor">{{ $contrato->viagem?->ciotVigente?->registrado() ? $contrato->viagem->ciotVigente->numeroCompleto() : 'Não informado' }}</div></td>
     </tr>
 </table>
 

@@ -13,6 +13,7 @@ use App\Models\Viagem;
 use App\Services\Fiscal\CertificateService;
 use App\Services\Fiscal\RespostaSefaz;
 use App\Services\Fiscal\SefazErrorTranslator;
+use App\Services\Transporte\Ciot\ServicoCiot;
 use App\Support\Documento;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
@@ -31,6 +32,7 @@ class TransmissorMdfe
         private readonly RegraIcms $regras,
         private readonly CertificateService $certificados,
         private readonly SefazErrorTranslator $tradutor,
+        private readonly ServicoCiot $ciot,
     ) {}
 
     /**
@@ -40,7 +42,7 @@ class TransmissorMdfe
      */
     public function preparar(Viagem $viagem): Mdfe
     {
-        $viagem->load(['ctes', 'mdfe', 'emitente', 'contrato']);
+        $viagem->load(['ctes', 'mdfe', 'emitente', 'contrato', 'ciotVigente']);
         $ctes = $viagem->ctes->filter(fn (Cte $c): bool => $c->status === CteStatus::Autorizado)->values();
         if ($ctes->isEmpty()) {
             throw new TransporteException('O MDF-e precisa de pelo menos um CT-e autorizado.');
@@ -82,7 +84,7 @@ class TransmissorMdfe
             'municipio_carregamento_codigo' => $primeiro->municipio_inicio_codigo,
             'municipio_carregamento' => $primeiro->municipio_inicio,
             'percurso_ufs' => $mdfe->exists && $mdfe->percurso_ufs !== null ? $mdfe->percurso_ufs : $percursoPadrao,
-            'ciot' => $viagem->contrato?->status === 'ativo' ? $viagem->contrato->ciot : null,
+            'ciot' => $viagem->ciotVigente?->registrado() ? $viagem->ciotVigente->numero : null,
             'seguro' => $config->seguradora_nome ? [
                 'responsavel' => $config->responsavel_seguro,
                 'seguradora_nome' => $config->seguradora_nome,
@@ -108,6 +110,11 @@ class TransmissorMdfe
                 return $viagem->mdfe;
             }
             $this->conferir($viagem);
+            // Res. ANTT 6.078/2026, art. 1º-C: o CIOT vai no MDF-e. O Emitir
+            // gera o CIOT antes; aqui só se garante que ninguém pulou a etapa.
+            if (! $viagem->ciotVigente()->first()?->registrado()) {
+                throw new TransporteException('O MDF-e precisa do CIOT da viagem. Aperte Emitir, que gera o CIOT antes do MDF-e.');
+            }
             $mdfe = $this->preparar($viagem);
 
             if ($mdfe->numero === null) {
@@ -157,7 +164,7 @@ class TransmissorMdfe
     /** O que impede o MDF-e, dito de um jeito que dá para resolver. */
     public function pendencias(Viagem $viagem): array
     {
-        $viagem->loadMissing(['ctes', 'emitente', 'motorista', 'veiculo', 'reboque', 'reboque2', 'contrato']);
+        $viagem->loadMissing(['ctes', 'emitente', 'motorista', 'veiculo', 'reboque', 'reboque2', 'contrato', 'ciotVigente']);
         $pendencias = [];
         $validos = $viagem->ctes->reject(fn (Cte $c): bool => $c->status === CteStatus::Cancelado);
         if ($validos->isEmpty() || $validos->contains(fn (Cte $c): bool => $c->status !== CteStatus::Autorizado)) {
@@ -178,17 +185,14 @@ class TransmissorMdfe
                 $pendencias[] = 'Complete o cadastro da carreta '.$reboque->placaFormatada().': '.implode(', ', $faltando).'.';
             }
         }
-        if ($viagem->comTerceiro()) {
-            // Frete pago a terceiro: o MDF-e leva o pagamento (infPag) e, para
-            // TAC, o CIOT. Sem contrato não há de onde tirar nenhum dos dois.
-            $contrato = $viagem->contrato?->status === 'ativo' ? $viagem->contrato : null;
-            if ($contrato === null) {
-                $pendencias[] = 'Veículo de terceiro: preencha o contrato do frete (quanto o motorista recebe e como).';
-            } elseif ($contrato->exigeCiot() && blank($contrato->ciot)) {
-                $pendencias[] = $viagem->emitente->configuracaoTransporte()->temEfrete()
-                    ? 'O proprietário do veículo é TAC: gere o CIOT no e-Frete (botão no contrato ou Emitir).'
-                    : 'O proprietário do veículo é TAC: informe o CIOT no contrato do frete.';
-            }
+        if ($viagem->comTerceiro() && $viagem->contrato?->status !== 'ativo') {
+            // Frete pago a terceiro: o MDF-e leva o pagamento (infPag), e o
+            // CIOT do terceiro sai do contrato.
+            $pendencias[] = 'Veículo de terceiro: preencha o contrato do frete (quanto o motorista recebe e como).';
+        } else {
+            // CIOT para todos (DF-026): o que impede o CIOT impede o MDF-e.
+            // Com tudo certo a lista fica vazia, e o Emitir gera o CIOT.
+            array_push($pendencias, ...$this->ciot->pendencias($viagem));
         }
         if ($faltando = $viagem->emitente->configuracaoTransporte()->pendenciasMdfe()) {
             $pendencias[] = 'Complete em Transporte, Configuração: '.implode('; ', $faltando).'.';

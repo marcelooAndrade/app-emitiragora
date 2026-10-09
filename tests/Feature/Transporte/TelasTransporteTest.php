@@ -83,6 +83,11 @@ it('do XML à fatura numa tela só', function () {
         ->assertHasNoErrors()
         ->set('motoristaId', $motorista->id)
         ->set('freteValor', '150,00')
+        // CIOT para todos (DF-026): sem empresa integrada, o CIOT é digitado.
+        ->set('ciotInformarAberto', true)
+        ->set('ciotInformadoNumero', '1234.5678.9012')
+        ->call('informarCiot')
+        ->assertHasNoErrors()
         ->call('emitir')
         ->assertSet('resultado.erros', [])
         ->assertSee('Tudo autorizado');

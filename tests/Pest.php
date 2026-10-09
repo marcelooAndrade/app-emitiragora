@@ -54,6 +54,7 @@ expect()->extend('toBeOne', function () {
  */
 
 use App\Models\CadastroIniciado;
+use App\Models\Ciot;
 use App\Models\Emitente;
 use App\Models\Motorista;
 use App\Models\Pessoa;
@@ -64,6 +65,10 @@ use App\Models\Viagem;
 use App\Services\Fiscal\CertificateService;
 use App\Services\Fiscal\RespostaSefaz;
 use App\Services\Fiscal\SefazGateway;
+use App\Services\Transporte\Ciot\GatewayCiot;
+use App\Services\Transporte\Ciot\OperacaoCiot;
+use App\Services\Transporte\Ciot\RespostaCiot;
+use App\Services\Transporte\Ciot\ServicoCiot;
 use App\Services\Transporte\GatewayCte;
 use App\Services\Transporte\GatewayMdfe;
 use App\Services\Transporte\Viagens;
@@ -285,6 +290,94 @@ function cteAutorizado(string $protocolo = '135260000999001'): RespostaSefaz
 function mdfeAutorizado(string $protocolo = '958260000999001'): RespostaSefaz
 {
     return new RespostaSefaz('100', 'Autorizado o uso do MDF-e', $protocolo, null, '<mdfeProc/>');
+}
+
+/**
+ * CIOT para todos (DF-026): o MDF-e não sai sem CIOT. Quem testa o MDF-e e
+ * não o CIOT registra um CIOT digitado na viagem, como faria quem gera o
+ * CIOT no programa da ANTT.
+ */
+function comCiotInformado(Viagem $viagem, string $numero = '123456789012'): Ciot
+{
+    return app(ServicoCiot::class)->informar($viagem->fresh(), $numero);
+}
+
+/**
+ * Uma empresa de CIOT falsa, registrada em `config/ciot.php` como `fake` e
+ * ligada ao emitente. O roteiro diz o que cada método devolve: uma
+ * `RespostaCiot`, uma exceção, ou uma lista delas em ordem. Guarda as
+ * chamadas, com a operação montada e as credenciais recebidas.
+ */
+function provedorCiotFake(array $roteiro = [], ?Emitente $emitente = null, string $chave = 'fake'): object
+{
+    $fake = new class($roteiro) implements GatewayCiot
+    {
+        /** @var array<int, array{metodo: string, ciot_id: ?int, operacao: ?OperacaoCiot, credenciais: array}> */
+        public array $chamadas = [];
+
+        public function __construct(public array $roteiro) {}
+
+        public function declarar(Ciot $ciot, OperacaoCiot $operacao, array $credenciais): RespostaCiot
+        {
+            return $this->responder('declarar', $ciot, $operacao, $credenciais);
+        }
+
+        public function consultar(Ciot $ciot, OperacaoCiot $operacao, array $credenciais): RespostaCiot
+        {
+            return $this->responder('consultar', $ciot, $operacao, $credenciais);
+        }
+
+        public function cancelar(Ciot $ciot, string $motivo, array $credenciais): RespostaCiot
+        {
+            return $this->responder('cancelar', $ciot, null, $credenciais, new RespostaCiot('cancelado'));
+        }
+
+        public function encerrar(Ciot $ciot, array $credenciais): RespostaCiot
+        {
+            return $this->responder('encerrar', $ciot, null, $credenciais, new RespostaCiot('encerrado'));
+        }
+
+        public function testarConexao(Emitente $emitente, array $credenciais): RespostaCiot
+        {
+            return $this->responder('testarConexao', null, null, $credenciais, new RespostaCiot('ok', mensagem: 'Conexão aceita.'));
+        }
+
+        public function campos(): array
+        {
+            return ['token' => ['rotulo' => 'Token', 'segredo' => true], 'conta' => ['rotulo' => 'Conta']];
+        }
+
+        public function pendencias(Viagem $viagem, array $credenciais): array
+        {
+            return $this->roteiro['pendencias'] ?? [];
+        }
+
+        private function responder(string $metodo, ?Ciot $ciot, ?OperacaoCiot $operacao, array $credenciais, ?RespostaCiot $padrao = null): RespostaCiot
+        {
+            $this->chamadas[] = ['metodo' => $metodo, 'ciot_id' => $ciot?->getKey(), 'operacao' => $operacao, 'credenciais' => $credenciais];
+            $r = $this->roteiro[$metodo] ?? $padrao ?? new RespostaCiot('registrado', numero: '123456789012', verificador: '1234');
+            if (is_array($r)) {
+                $r = count($this->roteiro[$metodo]) > 1 ? array_shift($this->roteiro[$metodo]) : $this->roteiro[$metodo][0];
+            }
+            if ($r instanceof Throwable) {
+                throw $r;
+            }
+
+            return $r;
+        }
+
+        /** @return array<int, string> */
+        public function metodos(): array
+        {
+            return array_column($this->chamadas, 'metodo');
+        }
+    };
+
+    config(["ciot.provedores.{$chave}" => ['classe' => "ciot.{$chave}", 'nome' => 'Empresa Teste', 'descricao' => 'Para teste.', 'producao' => true]]);
+    app()->instance("ciot.{$chave}", $fake);
+    $emitente?->configuracaoCiot()->update(['provedor' => $chave]);
+
+    return $fake;
 }
 
 function eventoRegistrado(string $protocolo = '135260000888001'): RespostaSefaz

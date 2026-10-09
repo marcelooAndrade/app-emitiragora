@@ -3,11 +3,11 @@
 use App\Enums\Fiscal\Ambiente;
 use App\Enums\Perfil;
 use App\Livewire\Transporte\ViagemDetalhe;
-use App\Models\ContratoFrete;
+use App\Models\Ciot;
 use App\Models\User;
 use App\Models\Viagem;
+use App\Services\Transporte\Ciot\ServicoCiot;
 use App\Services\Transporte\ContratosFrete;
-use App\Services\Transporte\Efrete\CiotEfrete;
 use App\Services\Transporte\Efrete\GatewaySoapEfrete;
 use App\Services\Transporte\EmissaoViagem;
 use App\Services\Transporte\TransmissorCte;
@@ -70,18 +70,29 @@ function restEfreteFake(array $situacao = ['Sucesso' => true, 'RNTRCAtivo' => tr
     ]);
 }
 
-/** Viagem de terceiro (TAC), com tudo que o e-Frete pede e o CT-e autorizado. */
-function viagemEfrete(bool $autorizarCte = true): Viagem
+/**
+ * Viagem de terceiro (TAC), com tudo que o e-Frete pede e o CT-e autorizado.
+ * Desde 09/10/2026 (CIOT para todos) o e-Frete é uma das empresas de CIOT:
+ * credenciais em Configurações, CIOT, e a operação pedida pelo ServicoCiot.
+ */
+function viagemEfrete(bool $autorizarCte = true, bool $massaAntt = false): Viagem
 {
     config(['fiscal.efrete.espera_consulta_ms' => 0]);
     $viagem = viagemPronta();
-    $viagem->emitente->configuracaoTransporte()->update(['efrete_usuario' => 'usuario', 'efrete_senha' => 'senha', 'efrete_integrador' => 'hash-integrador']);
+    $config = $viagem->emitente->configuracaoCiot();
+    $config->update(['provedor' => 'efrete']);
+    $config->guardarCredenciais('efrete', Ambiente::Homologacao, [
+        'usuario' => 'usuario', 'senha' => 'senha', 'integrador' => 'hash-integrador', 'embalagem' => 'Pallet', 'massa_antt' => $massaAntt,
+    ]);
+    $viagem->update(['distancia_km' => 180, 'tipo_carga' => 5, 'previsao_entrega' => today()->addDays(2)->toDateString()]);
     $viagem->motorista->update([
         'cnh' => '12345678901', 'telefone' => '19999998888', 'nascimento' => '1980-05-10',
         'cep' => '13602200', 'municipio_codigo' => '3503307', 'logradouro' => 'RUA A', 'numero' => '10', 'bairro' => 'CENTRO',
     ]);
+    // Caminhão toco (tipo de rodado 02): sem carreta, sem a exigência de
+    // implemento que o cavalo mecânico tem no CIOT.
     $viagem->veiculo->update([
-        'chassi' => '9BWZZZ377VT004251', 'eixos' => 3,
+        'chassi' => '9BWZZZ377VT004251', 'eixos' => 3, 'tipo_rodado' => '02',
         'proprietario_tipo' => 'terceiro', 'proprietario_documento' => '52998224725', 'proprietario_nome' => 'JOSE AUTONOMO',
         'proprietario_rntrc' => '87654321', 'proprietario_tp' => '1',
         'proprietario_cep' => '13602200', 'proprietario_municipio_codigo' => '3503307', 'proprietario_logradouro' => 'RUA B',
@@ -94,33 +105,35 @@ function viagemEfrete(bool $autorizarCte = true): Viagem
     app(ContratosFrete::class)->salvar($viagem->fresh(), [
         'frete_centavos' => 100000, 'adiantamento_centavos' => 80000, 'vencimento_saldo' => today()->addDays(7)->toDateString(),
         'forma_pagamento' => 'pix', 'chave_pix' => 'jose@exemplo.com',
-        'ciot_distancia_km' => 180, 'ciot_embalagem' => 'Pallet', 'ciot_tipo_carga' => 5, 'ciot_fim_previsto' => today()->addDays(2)->toDateString(),
     ]);
 
     return $viagem->fresh();
 }
 
-it('gera o CIOT, guarda o PDF e o número vai para o contrato', function () {
+it('gera o CIOT, guarda o PDF e o número vai para a viagem e o MDF-e', function () {
     $viagem = viagemEfrete();
     restEfreteFake();
     $soap = soapEfreteFake(['adicionar' => ['Sucesso' => true, 'CodigoIdentificacaoOperacao' => '123456789012/4321', 'ProtocoloServico' => 'PROT-9']]);
 
-    $contrato = app(CiotEfrete::class)->gerar($viagem->contrato);
+    $ciot = app(ServicoCiot::class)->garantir($viagem);
 
     $operacao = $soap->enviados['adicionar'][0];
-    expect($contrato->ciot)->toBe('123456789012')
-        ->and($contrato->ciot_verificador)->toBe('4321')
-        ->and($contrato->ciot_status)->toBe('registrado')
-        ->and($contrato->ciot_protocolo)->toBe('PROT-9')
-        ->and(Storage::disk('fiscal')->get($contrato->ciot_pdf_path))->toBe('%PDF-1.4 ciot')
-        ->and($operacao['IdOperacaoCliente'])->toBe("EA-{$viagem->emitente_id}-{$contrato->id}")
+    expect($ciot->numero)->toBe('123456789012')
+        ->and($ciot->verificador)->toBe('4321')
+        ->and($ciot->situacao)->toBe('registrado')
+        ->and($ciot->provedor)->toBe('efrete')
+        ->and($ciot->protocolo)->toBe('PROT-9')
+        ->and(Storage::disk('fiscal')->get($ciot->pdf_path))->toBe('%PDF-1.4 ciot')
+        ->and($operacao['IdOperacaoCliente'])->toBe("EA-{$viagem->emitente_id}-{$viagem->contrato->id}")
         ->and($operacao['Contratado'])->toBe(['CpfOuCnpj' => '52998224725', 'RNTRC' => '087654321'])
         ->and($operacao['CodigoNCMNaturezaCarga'])->toBe('7222')
+        ->and($operacao['TipoEmbalagem'])->toBe('Pallet')
+        ->and($operacao['Viagens']['DistanciaPercorrida'])->toBe(180)
         ->and($operacao['Pagamentos'])->toHaveCount(2)
         ->and($operacao['Pagamentos'][0]['TipoChavePix'])->toBe('Email')
         ->and($operacao['Viagens']['Valores']['TotalDeQuitacao'])->toEqual(200.0)
         ->and($operacao['Viagens']['NotasFiscais']['NotaFiscal'])->toHaveCount(1)
-        ->and(json_encode($contrato->ciot_resposta))->not->toContain('tk-123');
+        ->and(json_encode($ciot->resposta))->not->toContain('tk-123');
     Http::assertSent(fn ($r) => str_ends_with($r->url(), '/services/veiculos/gravar') && $r['Veiculo']['Chassi'] === '9BWZZZ377VT004251');
 
     $mdfe = app(TransmissorMdfe::class)->preparar($viagem->fresh());
@@ -134,9 +147,10 @@ it('diz tudo que falta antes de chamar o e-Frete', function () {
     Http::fake();
     soapEfreteFake([]);
 
-    expect(fn () => app(CiotEfrete::class)->gerar($viagem->contrato->fresh()))
+    expect(fn () => app(ServicoCiot::class)->garantir($viagem->fresh()))
         ->toThrow(TransporteException::class, 'CNH com 11 dígitos, data de nascimento');
     Http::assertNothingSent();
+    expect(Ciot::sole()->situacao)->toBe('recusado');
 });
 
 it('placa fora da frota na ANTT para antes de abrir a operação', function () {
@@ -144,7 +158,7 @@ it('placa fora da frota na ANTT para antes de abrir a operação', function () {
     restEfreteFake(['Sucesso' => true, 'RNTRCAtivo' => true, 'Veiculos' => [['Placa' => 'ABC1D23', 'FazParteDaFrota' => false]]]);
     $soap = soapEfreteFake([]);
 
-    expect(fn () => app(CiotEfrete::class)->gerar($viagem->contrato))->toThrow(TransporteException::class, 'ABC1D23');
+    expect(fn () => app(ServicoCiot::class)->garantir($viagem))->toThrow(TransporteException::class, 'ABC1D23');
     expect($soap->enviados)->toBe([]);
 });
 
@@ -155,14 +169,15 @@ it('sem número na hora fica processando e a consulta seguinte registra', functi
         'adicionar' => ['Sucesso' => true, 'Mensagem' => 'Em processamento'],
         'obter' => [['Sucesso' => true], ['Sucesso' => true], ['Sucesso' => true], ['Sucesso' => true, 'CodigoIdentificacaoOperacao' => '210987654321']],
     ]);
-    $ciot = app(CiotEfrete::class);
+    $servico = app(ServicoCiot::class);
 
-    expect($ciot->gerar($viagem->contrato)->ciot_status)->toBe('processando');
-    $contrato = $ciot->gerar($viagem->contrato->fresh());
+    expect($servico->garantir($viagem)->situacao)->toBe('processando');
+    $ciot = $servico->garantir($viagem->fresh());
 
-    expect($contrato->ciot)->toBe('210987654321')
-        ->and($contrato->ciot_status)->toBe('registrado')
-        ->and($soap->enviados['adicionar'])->toHaveCount(1);
+    expect($ciot->numero)->toBe('210987654321')
+        ->and($ciot->situacao)->toBe('registrado')
+        ->and($soap->enviados['adicionar'])->toHaveCount(1)
+        ->and(Ciot::count())->toBe(1);
 });
 
 it('operação já cadastrada não gera outro CIOT: acha a que existe', function () {
@@ -173,26 +188,25 @@ it('operação já cadastrada não gera outro CIOT: acha a que existe', function
         'obter' => ['Sucesso' => true, 'CodigoIdentificacaoOperacao' => '111122223333'],
     ]);
 
-    expect(app(CiotEfrete::class)->gerar($viagem->contrato)->ciot)->toBe('111122223333');
+    expect(app(ServicoCiot::class)->garantir($viagem)->numero)->toBe('111122223333');
 });
 
-it('fora de homologação o e-Frete fica travado, como no Transm', function () {
+it('em produção o e-Frete fica bloqueado até o teste em homologação', function () {
     $viagem = viagemEfrete();
     $viagem->emitente->forceFill(['ambiente' => Ambiente::Producao])->save();
     Http::fake();
     soapEfreteFake([]);
 
-    expect(fn () => app(CiotEfrete::class)->gerar($viagem->contrato->fresh()))->toThrow(TransporteException::class, 'só em homologação');
+    expect(fn () => app(ServicoCiot::class)->garantir($viagem->fresh()))->toThrow(TransporteException::class, 'produção fica bloqueada');
     Http::assertNothingSent();
 });
 
 it('massa de teste da ANTT troca contratado e placas e não regrava cadastros', function () {
-    $viagem = viagemEfrete();
-    $viagem->emitente->configuracaoTransporte()->update(['efrete_massa_antt' => true]);
+    $viagem = viagemEfrete(massaAntt: true);
     restEfreteFake();
     $soap = soapEfreteFake(['adicionar' => ['Sucesso' => true, 'CodigoIdentificacaoOperacao' => '123456789012']]);
 
-    app(CiotEfrete::class)->gerar($viagem->contrato->fresh());
+    app(ServicoCiot::class)->garantir($viagem);
 
     $operacao = $soap->enviados['adicionar'][0];
     expect($operacao['Contratado']['CpfOuCnpj'])->toBe('48384601000171')
@@ -210,7 +224,7 @@ it('Emitir faz CT-e, CIOT e MDF-e de uma vez', function () {
     $resultado = app(EmissaoViagem::class)->emitir($viagem);
 
     expect($resultado['erros'])->toBe([])
-        ->and($resultado['ok'])->toContain('CIOT 123456789012 gerado no e-Frete.')
+        ->and($resultado['ok'])->toContain('CIOT 123456789012 gerado via e-Frete.')
         ->and($viagem->fresh()->mdfe->ciot)->toBe('123456789012');
 });
 
@@ -218,23 +232,23 @@ it('depois do CIOT gerado o contrato não muda mais', function () {
     $viagem = viagemEfrete();
     restEfreteFake();
     soapEfreteFake(['adicionar' => ['Sucesso' => true, 'CodigoIdentificacaoOperacao' => '123456789012']]);
-    app(CiotEfrete::class)->gerar($viagem->contrato);
+    app(ServicoCiot::class)->garantir($viagem);
 
     expect(fn () => app(ContratosFrete::class)->salvar($viagem->fresh(), [
         'frete_centavos' => 150000, 'adiantamento_centavos' => 0, 'vencimento_saldo' => today()->toDateString(), 'chave_pix' => 'x@y.com',
-    ]))->toThrow(TransporteException::class, 'já foi gerado no e-Frete');
+    ]))->toThrow(TransporteException::class, 'O CIOT desta viagem já foi gerado');
 });
 
 it('encerra o CIOT no e-Frete', function () {
     $viagem = viagemEfrete();
     restEfreteFake();
     soapEfreteFake(['adicionar' => ['Sucesso' => true, 'CodigoIdentificacaoOperacao' => '123456789012']]);
-    $ciot = app(CiotEfrete::class);
-    $contrato = $ciot->gerar($viagem->contrato);
+    $servico = app(ServicoCiot::class);
+    $ciot = $servico->garantir($viagem);
 
-    $contrato = $ciot->encerrar($contrato);
+    $ciot = $servico->encerrar($ciot);
 
-    expect($contrato->ciot_status)->toBe('encerrado');
+    expect($ciot->situacao)->toBe('encerrado');
     Http::assertSent(fn ($r) => str_ends_with($r->url(), 'EncerrarOperacaoTransporte') && $r['CodigoIdentificacaoOperacao'] === '123456789012');
 });
 
@@ -250,11 +264,11 @@ it('pela tela: gera o CIOT e baixa o PDF', function () {
     soapEfreteFake(['adicionar' => ['Sucesso' => true, 'CodigoIdentificacaoOperacao' => '123456789012']]);
 
     Livewire::test(ViagemDetalhe::class, ['viagem' => $viagem->id])
-        ->assertSee('Gerar CIOT no e-Frete')
+        ->assertSee('Gerar CIOT')
         ->call('gerarCiot')
         ->assertHasNoErrors()
         ->assertSee('123456789012')
         ->assertSee('PDF do CIOT');
 
-    $this->get(route('transporte.ciot.pdf', ContratoFrete::sole()))->assertOk();
+    $this->get(route('transporte.ciot.pdf', Ciot::sole()))->assertOk();
 });

@@ -11,8 +11,8 @@ use App\Models\Veiculo;
 use App\Models\Viagem;
 use App\Models\ViagemNota;
 use App\Services\Transporte\AverbacaoAtm;
+use App\Services\Transporte\Ciot\ServicoCiot;
 use App\Services\Transporte\ContratosFrete;
-use App\Services\Transporte\Efrete\CiotEfrete;
 use App\Services\Transporte\EmissaoViagem;
 use App\Services\Transporte\EventosCte;
 use App\Services\Transporte\EventosMdfe;
@@ -105,18 +105,32 @@ class ViagemDetalhe extends Component
 
     public string $contratoConta = '';
 
-    public string $contratoCiot = '';
-
     public bool $descontosAbertos = false;
 
-    // O que só o e-Frete pede para gerar o CIOT.
+    // Dados do CIOT (CIOT para todos, DF-026): gravados com a viagem.
+    /** '' = o sistema sugere (lotação com um tomador, fracionada com mais). */
+    public string $ciotTipoOperacao = '';
+
     public string $ciotDistancia = '';
 
-    public string $ciotEmbalagem = 'Pallet';
+    public string $ciotPrevisao = '';
 
     public string $ciotTipoCarga = '5';
 
-    public string $ciotFimPrevisto = '';
+    public bool $ciotAltoDesempenho = false;
+
+    public bool $ciotRetornoVazio = false;
+
+    // CIOT gerado fora: programa da ANTT, portal da empresa, outra transportadora.
+    public bool $ciotInformarAberto = false;
+
+    public string $ciotInformadoNumero = '';
+
+    public string $ciotInformadoResponsavel = '';
+
+    public bool $ciotCancelarAberto = false;
+
+    public string $ciotMotivo = '';
 
     /** @var array{ok: array<int, string>, erros: array<int, string>}|null */
     public ?array $resultado = null;
@@ -186,7 +200,7 @@ class ViagemDetalhe extends Component
     {
         return Viagem::query()
             ->where('emitente_id', $this->emitente?->getKey())
-            ->with(['notas', 'ctes.notas', 'ctes.eventos', 'ctes.fatura', 'mdfe', 'contrato', 'motorista', 'veiculo', 'reboque', 'reboque2', 'eventos.user'])
+            ->with(['notas', 'ctes.notas', 'ctes.eventos', 'ctes.fatura', 'mdfe', 'contrato', 'ciotVigente', 'motorista', 'veiculo', 'reboque', 'reboque2', 'eventos.user'])
             ->find($this->viagemId);
     }
 
@@ -213,12 +227,6 @@ class ViagemDetalhe extends Component
     public function veiculoTerceiro(): bool
     {
         return (bool) $this->cavalos->firstWhere('id', $this->veiculoId)?->deTerceiro();
-    }
-
-    #[Computed]
-    public function usaEfrete(): bool
-    {
-        return (bool) $this->emitente?->configuracaoTransporte()->temEfrete();
     }
 
     /** O saldo enquanto a pessoa digita, para ela ver a conta fechando. */
@@ -301,9 +309,14 @@ class ViagemDetalhe extends Component
             'dataCarregamento' => ['required', 'date'],
             'freteModo' => ['required', 'in:tonelada,fechado'],
             'observacoes' => ['nullable', 'string', 'max:1000'],
-        ], ['reboque2Id.different' => 'Escolha carretas diferentes.'], [
+            'ciotTipoOperacao' => ['nullable', 'in:1,2'],
+            'ciotDistancia' => ['nullable', 'integer', 'min:1', 'max:99999'],
+            'ciotPrevisao' => ['nullable', 'date', 'after_or_equal:dataCarregamento'],
+            'ciotTipoCarga' => ['required', 'integer', 'between:1,12'],
+        ], ['reboque2Id.different' => 'Escolha carretas diferentes.', 'ciotPrevisao.after_or_equal' => 'A entrega não pode ser antes do carregamento.'], [
             'motoristaId' => 'motorista', 'veiculoId' => 'cavalo', 'reboqueId' => 'carreta', 'reboque2Id' => 'segunda carreta',
-            'dataCarregamento' => 'data de carregamento',
+            'dataCarregamento' => 'data de carregamento', 'ciotDistancia' => 'distância', 'ciotPrevisao' => 'previsão de entrega',
+            'ciotTipoCarga' => 'tipo de carga',
         ]);
 
         $mdfeEmitido = in_array($viagem->mdfe?->status, [MdfeStatus::Autorizado, MdfeStatus::Encerrado], true);
@@ -321,6 +334,18 @@ class ViagemDetalhe extends Component
             'data_carregamento' => $this->dataCarregamento,
             'observacoes' => trim($this->observacoes) ?: null,
         ];
+        // O CIOT foi declarado com estes dados: depois dele registrado, não
+        // mudam mais (carga lotação não admite retificação, DCS regra B121).
+        if (! $viagem->ciotVigente?->registrado()) {
+            $dados += [
+                'tipo_operacao' => $this->ciotTipoOperacao ?: null,
+                'distancia_km' => $this->ciotDistancia !== '' ? (int) $this->ciotDistancia : null,
+                'previsao_entrega' => $this->ciotPrevisao ?: null,
+                'tipo_carga' => (int) $this->ciotTipoCarga,
+                'alto_desempenho' => $this->ciotAltoDesempenho,
+                'retorno_vazio' => $this->ciotRetornoVazio,
+            ];
+        }
         // O frete está dentro do CT-e: depois de autorizado ele não muda.
         if (! $viagem->travada()) {
             $valor = Dinheiro::emCentavos($this->freteValor);
@@ -338,7 +363,7 @@ class ViagemDetalhe extends Component
         unset($this->viagem, $this->pendenciasMdfe, $this->freteTotal);
 
         // Um botão só: com veículo de terceiro, o contrato vai junto.
-        $comContrato = $this->veiculoTerceiro && filled($this->contratoFrete) && ! $this->viagem->contrato?->ciotPeloEfrete();
+        $comContrato = $this->veiculoTerceiro && filled($this->contratoFrete) && ! $this->viagem->ciotVigente?->registrado();
         if ($comContrato && ! $this->gravarContrato()) {
             return;
         }
@@ -353,32 +378,52 @@ class ViagemDetalhe extends Component
         }
     }
 
-    /** Grava o contrato como está na tela e pede o CIOT ao e-Frete. */
-    public function gerarCiot(CiotEfrete $ciot): void
+    /** Grava a viagem e pede o CIOT à empresa configurada. */
+    public function gerarCiot(ServicoCiot $ciot): void
     {
         $this->authorize('transporte.operar');
-        if (! $this->viagem->contrato?->ciotPeloEfrete() && ! $this->gravarContrato()) {
+        $this->salvarViagem(app(MontadorCtes::class));
+        if ($this->getErrorBag()->isNotEmpty()) {
             return;
         }
-        $contrato = $this->viagem->contrato;
-        // Distância, embalagem e fim previsto já foram gravados com o contrato.
-        if ($this->executar(function () use ($ciot, &$contrato): void {
-            $contrato = $ciot->gerar($contrato, [], Auth::user());
-        }, 'contrato')) {
-            $this->preencherContrato();
-            session()->flash($contrato->ciot_status === 'registrado' ? 'sucesso' : 'aviso', $contrato->ciot_status === 'registrado'
-                ? "CIOT {$contrato->ciot} gerado no e-Frete. Já está no contrato e vai no MDF-e."
-                : 'O e-Frete aceitou o pedido e ainda não devolveu o número. Clique em Consultar CIOT em instantes.');
+        $gerado = null;
+        if ($this->executar(function () use ($ciot, &$gerado): void {
+            $gerado = $ciot->garantir($this->viagem, Auth::user());
+        }, 'ciot')) {
+            session()->flash($gerado->registrado() ? 'sucesso' : 'aviso', $gerado->registrado()
+                ? "CIOT {$gerado->numeroCompleto()} gerado. Vai no MDF-e."
+                : 'A empresa aceitou o pedido do CIOT e ainda não devolveu o número. Clique em Consultar CIOT em instantes.');
         }
     }
 
-    public function encerrarCiot(CiotEfrete $ciot): void
+    public function informarCiot(ServicoCiot $ciot): void
     {
         $this->authorize('transporte.operar');
-        $contrato = $this->viagem->contrato;
-        abort_if($contrato === null, 404);
-        if ($this->executar(fn () => $ciot->encerrar($contrato, Auth::user()), 'contrato')) {
-            session()->flash('sucesso', "CIOT {$contrato->ciot} encerrado no e-Frete.");
+        if ($this->executar(fn () => $ciot->informar($this->viagem, $this->ciotInformadoNumero, $this->ciotInformadoResponsavel, Auth::user()), 'ciot')) {
+            $this->reset('ciotInformarAberto', 'ciotInformadoNumero', 'ciotInformadoResponsavel');
+            session()->flash('sucesso', 'CIOT informado. Vai no MDF-e.');
+        }
+    }
+
+    public function cancelarCiot(ServicoCiot $ciot): void
+    {
+        $this->authorize('transporte.cancelar');
+        $atual = $this->viagem->ciotVigente;
+        abort_if($atual === null, 404);
+        if ($this->executar(fn () => $ciot->cancelar($atual, $this->ciotMotivo, Auth::user()), 'ciot')) {
+            $this->reset('ciotCancelarAberto', 'ciotMotivo');
+            session()->flash('sucesso', "CIOT {$atual->numeroCompleto()} cancelado. Corrija o que precisar e gere outro.");
+        }
+    }
+
+    /** Para quando o encerramento junto com o MDF-e falhou na empresa. */
+    public function encerrarCiot(ServicoCiot $ciot): void
+    {
+        $this->authorize('transporte.operar');
+        $atual = $this->viagem->ciotVigente;
+        abort_if($atual === null, 404);
+        if ($this->executar(fn () => $ciot->encerrar($atual, Auth::user()), 'ciot')) {
+            session()->flash('sucesso', "CIOT {$atual->numeroCompleto()} encerrado.");
         }
     }
 
@@ -635,8 +680,6 @@ class ViagemDetalhe extends Component
             'banco_codigo' => $this->contratoBanco,
             'agencia' => $this->contratoAgencia,
             'conta' => $this->contratoConta,
-            'ciot' => $this->contratoCiot,
-            ...($this->usaEfrete ? $this->dadosCiot() : []),
         ];
 
         $ok = $this->executar(fn () => app(ContratosFrete::class)->salvar($this->viagem, $dados, Auth::user()), 'contrato');
@@ -645,16 +688,6 @@ class ViagemDetalhe extends Component
         }
 
         return $ok;
-    }
-
-    private function dadosCiot(): array
-    {
-        return [
-            'ciot_distancia_km' => (int) preg_replace('/\D/', '', $this->ciotDistancia) ?: null,
-            'ciot_embalagem' => $this->ciotEmbalagem ?: null,
-            'ciot_tipo_carga' => (int) $this->ciotTipoCarga ?: 5,
-            'ciot_fim_previsto' => $this->ciotFimPrevisto ?: null,
-        ];
     }
 
     /** Adiantamento em branco é o percentual padrão da empresa, como no Transm. */
@@ -684,13 +717,17 @@ class ViagemDetalhe extends Component
         $this->contratoBanco = (string) $s['banco_codigo'];
         $this->contratoAgencia = (string) $s['agencia'];
         $this->contratoConta = (string) $s['conta'];
-        $this->contratoCiot = (string) $s['ciot'];
-        $contrato = $this->viagem->contrato;
-        $this->ciotDistancia = $contrato?->ciot_distancia_km ? (string) $contrato->ciot_distancia_km : '';
-        $this->ciotEmbalagem = $contrato?->ciot_embalagem ?: 'Pallet';
-        $this->ciotTipoCarga = (string) ($contrato?->ciot_tipo_carga ?: 5);
-        $this->ciotFimPrevisto = $contrato?->ciot_fim_previsto?->toDateString()
-            ?? ($this->viagem->data_carregamento ?? today())->addDays(3)->toDateString();
+    }
+
+    private function preencherCiot(): void
+    {
+        $viagem = $this->viagem;
+        $this->ciotTipoOperacao = (string) $viagem->tipo_operacao;
+        $this->ciotDistancia = $viagem->distancia_km ? (string) $viagem->distancia_km : '';
+        $this->ciotPrevisao = $viagem->previsaoEntrega()->toDateString();
+        $this->ciotTipoCarga = (string) ($viagem->tipo_carga ?: 5);
+        $this->ciotAltoDesempenho = (bool) $viagem->alto_desempenho;
+        $this->ciotRetornoVazio = (bool) $viagem->retorno_vazio;
     }
 
     private function preencher(): void
@@ -711,6 +748,7 @@ class ViagemDetalhe extends Component
         $this->dataEncerramento = today()->toDateString();
         $this->municipioEncerramento = (string) $viagem->ctes->last()?->municipio_fim_codigo;
         $this->preencherContrato();
+        $this->preencherCiot();
         $this->preencherPesos();
     }
 

@@ -112,8 +112,8 @@ class EfreteCliente
         if ($config->emitente?->ambiente !== Ambiente::Homologacao || rtrim((string) config('fiscal.efrete.url'), '/') !== 'https://dev.efrete.com.br') {
             throw new TransporteException('O CIOT pelo e-Frete está liberado só em homologação, como no Transm.');
         }
-        if (! $config->temEfrete()) {
-            throw new TransporteException('Informe usuário, senha e hash do integrador do e-Frete em Transporte, Configuração.');
+        if (blank($config->efrete_usuario) || blank($config->efrete_senha) || blank($config->efrete_integrador)) {
+            throw new TransporteException('Informe usuário, senha e hash do integrador do e-Frete em Configurações, CIOT.');
         }
     }
 

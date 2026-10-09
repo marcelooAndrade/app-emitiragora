@@ -89,7 +89,7 @@ class Veiculos extends Component
     #[Computed]
     public function usaEfrete(): bool
     {
-        return $this->emitente->configuracaoTransporte()->temEfrete();
+        return $this->emitente->configuracaoCiot()->provedor === 'efrete';
     }
 
     public function updatedProprietarioCep(ViaCepService $viaCep): void
@@ -185,7 +185,7 @@ class Veiculos extends Component
             'proprietarioUf' => ['nullable', 'size:2'],
             'proprietarioTp' => [$terceiro ? 'required' : 'nullable', 'in:0,1,2'],
             'chassi' => ['nullable', 'size:17'],
-            'eixos' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'eixos' => ['nullable', 'integer', 'min:1', 'max:4'],
             'proprietarioCep' => ['nullable', 'digits:8'],
             'proprietarioMunicipioCodigo' => ['nullable', 'digits:7'],
             'proprietarioLogradouro' => ['nullable', 'string', 'max:60'],

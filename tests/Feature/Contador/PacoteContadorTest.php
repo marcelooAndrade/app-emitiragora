@@ -39,6 +39,7 @@ beforeEach(function () {
 
     comGatewayCte(['enviar' => cteAutorizado()]);
     comGatewayMdfe(['enviar' => mdfeAutorizado()]);
+    comCiotInformado($this->viagem);
     app(EmissaoViagem::class)->emitir($this->viagem);
 
     $this->cte = $this->viagem->ctes()->sole();

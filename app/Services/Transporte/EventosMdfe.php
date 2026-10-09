@@ -5,6 +5,7 @@ namespace App\Services\Transporte;
 use App\Enums\Transporte\MdfeStatus;
 use App\Models\Mdfe;
 use App\Models\User;
+use App\Services\Transporte\Ciot\ServicoCiot;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use NFePHP\Common\UFList;
@@ -19,6 +20,7 @@ class EventosMdfe
 {
     public function __construct(
         private readonly GatewayMdfe $gateway,
+        private readonly ServicoCiot $ciot,
     ) {}
 
     /**
@@ -73,6 +75,8 @@ class EventosMdfe
             ])->save();
             $mdfe->viagem->registrar('mdfe_encerrado', "MDF-e {$mdfe->numeroFormatado()} encerrado em {$nome}/{$uf}.", ['mdfe_id' => $mdfe->getKey()], $user?->getKey());
             $mdfe->viagem->recalcularStatus();
+            // A viagem acabou: o CIOT dela também. Falha aqui não desfaz o MDF-e.
+            $this->ciot->encerrarDepoisDoMdfe($mdfe->viagem, $user);
 
             return $mdfe->fresh();
         });

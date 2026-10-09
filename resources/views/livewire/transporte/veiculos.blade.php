@@ -90,12 +90,14 @@
                                 @endforeach
                             </x-ui.select>
                         </x-ui.field>
+                        {{-- CIOT para todos (DF-026): a ANTT pede os eixos de todo veículo,
+                             de 2 a 4 no cavalo ou caminhão e de 1 a 4 na carreta. --}}
+                        <x-ui.field label="Eixos" hint="Para o CIOT: 2 a 4 no cavalo ou caminhão, 1 a 4 na carreta." :error="$errors->first('eixos')">
+                            <x-ui.input wire:model="eixos" inputmode="numeric" maxlength="1" />
+                        </x-ui.field>
                         @if ($this->usaEfrete)
-                            <x-ui.field label="Chassi" hint="17 caracteres. Para o CIOT." :error="$errors->first('chassi')">
+                            <x-ui.field label="Chassi" hint="17 caracteres. Para o CIOT pelo e-Frete." :error="$errors->first('chassi')">
                                 <x-ui.input wire:model="chassi" maxlength="17" />
-                            </x-ui.field>
-                            <x-ui.field label="Eixos" hint="Para o CIOT." :error="$errors->first('eixos')">
-                                <x-ui.input wire:model="eixos" inputmode="numeric" maxlength="2" />
                             </x-ui.field>
                         @endif
                     </div>

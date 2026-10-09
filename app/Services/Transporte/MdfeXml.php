@@ -28,7 +28,7 @@ class MdfeXml
     /** @return array{xml: string, chave: string, emitido_em: Carbon} */
     public function montar(Mdfe $mdfe): array
     {
-        $mdfe->loadMissing(['emitente', 'viagem.ctes.notas', 'viagem.motorista', 'viagem.veiculo', 'viagem.reboque', 'viagem.reboque2', 'viagem.contrato']);
+        $mdfe->loadMissing(['emitente', 'viagem.ctes.notas', 'viagem.motorista', 'viagem.veiculo', 'viagem.reboque', 'viagem.reboque2', 'viagem.contrato', 'viagem.ciotVigente']);
         $emitente = $mdfe->emitente;
         $config = $emitente->configuracaoTransporte();
         $viagem = $mdfe->viagem;
@@ -93,7 +93,14 @@ class MdfeXml
 
         $make->taginfANTT((object) ['RNTRC' => str_pad((string) $config->rntrc, 8, '0', STR_PAD_LEFT)]);
         if (filled($mdfe->ciot)) {
-            $make->taginfCIOT((object) ['CIOT' => $mdfe->ciot, 'CPF' => null, 'CNPJ' => $emitente->cnpj]);
+            // Quem gerou o CIOT: a própria transportadora, ou a outra
+            // transportadora quando o veículo é dela (DF-026).
+            $quemGerou = (string) preg_replace('/\D/', '', (string) ($viagem->ciotVigente?->responsavel_documento ?: $emitente->cnpj));
+            $make->taginfCIOT((object) [
+                'CIOT' => $mdfe->ciot,
+                'CPF' => strlen($quemGerou) === 11 ? $quemGerou : null,
+                'CNPJ' => strlen($quemGerou) === 11 ? null : $quemGerou,
+            ]);
         }
         foreach ($this->contratantes($ctes) as $contratante) {
             $make->taginfContratante($contratante);
@@ -188,6 +195,13 @@ class MdfeXml
             'cUnid' => '01',
             'qCarga' => number_format((float) $ctes->sum(fn (Cte $c): float => (float) $c->peso_kg), 4, '.', ''),
         ]);
+
+        // O DCS da ANTT manda imprimir o aviso ao transportador no documento
+        // da viagem quando ele vem com o CIOT: no MDF-e, sai no DAMDFE.
+        $aviso = trim((string) $viagem->ciotVigente?->aviso_transportador);
+        if ($aviso !== '') {
+            $make->taginfAdic((object) ['infAdFisco' => null, 'infCpl' => mb_substr('Aviso da ANTT ao transportador: '.$aviso, 0, 5000)]);
+        }
 
         $responsavel = config('fiscal.responsavel_tecnico');
         if (filled($responsavel['cnpj'] ?? null)) {

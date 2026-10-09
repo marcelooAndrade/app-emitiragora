@@ -20,8 +20,9 @@ use Illuminate\Support\Collection;
  * Portado do `EfreteCiotPayloadFactory` do app-transm. Lá a operação tinha
  * um formulário próprio (o "CIOT" do processo fiscal); aqui quase tudo sai
  * do que a viagem já tem: valores do contrato, CT-e autorizados, NF-e,
- * motorista e veículos. A pessoa só informa distância, embalagem, tipo de
- * carga e o fim previsto. Operação "Padrao", que é a viagem de lotação.
+ * motorista e veículos. Distância, tipo de carga e previsão de entrega vêm
+ * da viagem (CIOT para todos, 09/10/2026); a embalagem é ajuste do e-Frete
+ * em Configurações, CIOT. Operação "Padrao", que é a viagem de lotação.
  */
 class PayloadEfrete
 {
@@ -60,7 +61,7 @@ class PayloadEfrete
             'DataFimViagem' => $c['fim']->format('Y-m-d\TH:i:s'),
             'CodigoNCMNaturezaCarga' => $ncm,
             'PesoCarga' => round((float) $c['notas']->sum(fn (ViagemNota $n): float => (float) $n->peso_kg), 3),
-            'TipoEmbalagem' => $contrato->ciot_embalagem,
+            'TipoEmbalagem' => $config->efrete_embalagem,
             'Viagens' => $viagens->count() === 1 ? $viagens->first() : $viagens->all(),
             'Impostos' => [
                 'IRRF' => $this->reais($contrato->imposto_renda_centavos),
@@ -93,7 +94,7 @@ class PayloadEfrete
                 'EMail' => $this->email($emitente->email),
             ], fn (mixed $v): bool => $v !== null && $v !== ''),
             'Veiculos' => collect($c['veiculos'])->map(fn (Veiculo $v): array => ['Placa' => $this->placa($v, $config)])->all(),
-            'CodigoTipoCarga' => (int) $contrato->ciot_tipo_carga,
+            'CodigoTipoCarga' => (int) $contrato->viagem->tipo_carga,
             'AltoDesempenho' => false,
             'ComposicaoVeicular' => count($c['veiculos']) > 1,
             'RetornoVazio' => false,
@@ -197,12 +198,12 @@ class PayloadEfrete
         return ['CodigoIdentificacaoOperacao' => $codigo, ...$this->autenticacao($config, $token, 1)];
     }
 
-    public function encerramento(ContratoFrete $contrato, EmitenteTransporte $config, string $token): array
+    public function encerramento(ContratoFrete $contrato, EmitenteTransporte $config, string $token, string $ciot): array
     {
         $contrato->loadMissing('viagem.notas');
 
         return [
-            'CodigoIdentificacaoOperacao' => $contrato->ciot,
+            'CodigoIdentificacaoOperacao' => $ciot,
             'PesoCarga' => round((float) $contrato->viagem->notas->sum(fn (ViagemNota $n): float => (float) $n->peso_kg), 3),
             ...$this->autenticacao($config, $token, 2),
         ];
@@ -255,13 +256,13 @@ class PayloadEfrete
                 $falta[] = 'no veículo '.$v->placaFormatada().': '.implode(', ', $pendente);
             }
         }
-        if (! $contrato->ciot_distancia_km) {
+        if (! $viagem->distancia_km) {
             $falta[] = 'distância da viagem (km)';
         }
-        if (! array_key_exists((string) $contrato->ciot_embalagem, self::EMBALAGENS)) {
-            $falta[] = 'tipo de embalagem';
+        if (! array_key_exists((string) $config->efrete_embalagem, self::EMBALAGENS)) {
+            $falta[] = 'tipo de embalagem (em Configurações, CIOT)';
         }
-        if (! array_key_exists((int) $contrato->ciot_tipo_carga, self::TIPOS_CARGA)) {
+        if (! array_key_exists((int) $viagem->tipo_carga, self::TIPOS_CARGA)) {
             $falta[] = 'tipo de carga';
         }
         if ($ctes->isNotEmpty() && strlen($this->naturezaCarga($viagem->notas)) !== 4) {
@@ -272,7 +273,7 @@ class PayloadEfrete
         }
 
         $inicio = $viagem->data_carregamento && $viagem->data_carregamento->isFuture() ? $viagem->data_carregamento->startOfDay() : now()->startOfMinute();
-        $fim = ($contrato->ciot_fim_previsto ?? $inicio->copy()->addDays(3))->copy()->setTime(18, 0);
+        $fim = $viagem->previsaoEntrega()->copy()->setTime(18, 0);
         $dias = $inicio->diffInDays($fim, false);
         if ($dias <= 0 || $dias > 90) {
             throw new TransporteException('O fim previsto da viagem precisa ser depois do início e em até 90 dias.');
@@ -313,7 +314,7 @@ class PayloadEfrete
         }
 
         return $viagem + [
-            'DistanciaPercorrida' => (int) $contrato->ciot_distancia_km,
+            'DistanciaPercorrida' => (int) $contrato->viagem->distancia_km,
             'Valores' => [
                 'TotalOperacao' => $this->reais($frete),
                 'TotalViagem' => $this->reais($adiantamento + $quitacao),

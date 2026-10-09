@@ -86,33 +86,9 @@
                     </div>
                 </div>
 
-                <div class="grid gap-3 border-t border-graphite-100 pt-5">
-                    <div>
-                        <p class="font-semibold text-graphite-900">CIOT automático (e-Frete)</p>
-                        <p class="text-xs text-graphite-500">
-                            Com o e-Frete configurado, o CIOT do terceiro sai por um botão na viagem e entra sozinho no contrato e no MDF-e.
-                            @if ($this->config->temEfrete())
-                                <span class="font-semibold text-success-700">Integração ligada.</span>
-                            @endif
-                            Por enquanto só em homologação, como no Transm.
-                        </p>
-                    </div>
-                    <div class="grid gap-4 sm:grid-cols-3">
-                        <x-ui.field label="Usuário do e-Frete" for="ef-usuario" hint="Em branco desliga a integração." :error="$errors->first('efreteUsuario')">
-                            <x-ui.input id="ef-usuario" wire:model="efreteUsuario" maxlength="100" autocomplete="off" />
-                        </x-ui.field>
-                        <x-ui.field label="Senha do e-Frete" for="ef-senha" :hint="$this->config->efrete_senha ? 'Salva. Em branco, continua a mesma.' : null" :error="$errors->first('efreteSenha')">
-                            <x-ui.input id="ef-senha" type="password" wire:model="efreteSenha" maxlength="100" autocomplete="new-password" />
-                        </x-ui.field>
-                        <x-ui.field label="Hash do integrador" for="ef-integrador" :hint="$this->config->efrete_integrador ? 'Salvo. Em branco, continua o mesmo.' : 'Fornecido pela e-Frete.'" :error="$errors->first('efreteIntegrador')">
-                            <x-ui.input id="ef-integrador" type="password" wire:model="efreteIntegrador" maxlength="200" autocomplete="off" />
-                        </x-ui.field>
-                    </div>
-                    <label class="flex items-start gap-2 text-sm text-graphite-700">
-                        <input type="checkbox" wire:model="efreteMassaAntt" class="mt-0.5">
-                        <span>Usar a massa de teste da ANTT (troca contratado, RNTRC e placas pelos dados que a ANTT aceita em homologação)</span>
-                    </label>
-                </div>
+                <p class="border-t border-graphite-100 pt-5 text-xs text-graphite-500">
+                    A empresa que gera o CIOT e as credenciais dela ficam em <a href="{{ route('transporte.ciot') }}" wire:navigate class="font-semibold text-graphite-700 underline-offset-2 hover:underline">Configurações, CIOT</a>.
+                </p>
             </fieldset>
             @if ($podeEditar)
                 <div><x-ui.button type="submit">Salvar</x-ui.button></div>

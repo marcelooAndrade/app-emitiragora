@@ -29,6 +29,7 @@ function emitirViagem($viagem): void
 {
     comGatewayCte(['enviar' => cteAutorizado()]);
     comGatewayMdfe(['enviar' => mdfeAutorizado()]);
+    comCiotInformado($viagem);
     app(EmissaoViagem::class)->emitir($viagem);
 }
 

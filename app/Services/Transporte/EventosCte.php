@@ -7,6 +7,7 @@ use App\Enums\Transporte\MdfeStatus;
 use App\Models\Cte;
 use App\Models\CteEvento;
 use App\Models\User;
+use App\Services\Transporte\Ciot\ServicoCiot;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Throwable;
@@ -34,6 +35,7 @@ class EventosCte
     public function __construct(
         private readonly GatewayCte $gateway,
         private readonly ContratosFrete $contratos,
+        private readonly ServicoCiot $ciot,
     ) {}
 
     public function cancelar(Cte $cte, string $justificativa, ?User $user = null): Cte
@@ -93,6 +95,7 @@ class EventosCte
 
             $cte->viagem->recalcularStatus();
             $this->contratos->cancelarSeSemCte($cte->viagem->fresh());
+            $this->ciot->cancelarSeSemCte($cte->viagem->fresh(), $user);
 
             return $cte->fresh();
         });

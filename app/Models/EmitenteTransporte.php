@@ -20,7 +20,7 @@ class EmitenteTransporte extends Model
     protected $guarded = ['id', 'emitente_id'];
 
     /** Oculto também tira do audit_logs (ver Auditavel). */
-    protected $hidden = ['atm_usuario', 'atm_senha', 'atm_codigo', 'efrete_usuario', 'efrete_senha', 'efrete_integrador'];
+    protected $hidden = ['atm_usuario', 'atm_senha', 'atm_codigo'];
 
     protected $attributes = [
         'cte_serie' => 1,
@@ -43,10 +43,6 @@ class EmitenteTransporte extends Model
             'atm_usuario' => 'encrypted',
             'atm_senha' => 'encrypted',
             'atm_codigo' => 'encrypted',
-            'efrete_usuario' => 'encrypted',
-            'efrete_senha' => 'encrypted',
-            'efrete_integrador' => 'encrypted',
-            'efrete_massa_antt' => 'boolean',
         ];
     }
 
@@ -65,12 +61,6 @@ class EmitenteTransporte extends Model
         $cfop = $this->cfop ?: '5353';
 
         return strtoupper($ufInicio) === strtoupper($ufFim) ? '5'.substr($cfop, 1) : '6'.substr($cfop, 1);
-    }
-
-    /** e-Frete configurado: o CIOT pode sair sozinho pela viagem. */
-    public function temEfrete(): bool
-    {
-        return filled($this->efrete_usuario) && filled($this->efrete_senha) && filled($this->efrete_integrador);
     }
 
     public function temAtm(): bool

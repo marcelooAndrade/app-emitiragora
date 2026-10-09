@@ -22,6 +22,8 @@ it('emitir tudo autoriza o CT-e e o MDF-e e a viagem vai para em viagem', functi
     comGatewayCte(['enviar' => cteAutorizado()]);
     comGatewayMdfe(['enviar' => mdfeAutorizado()]);
 
+    comCiotInformado($viagem);
+
     $resultado = app(EmissaoViagem::class)->emitir($viagem);
 
     $viagem = $viagem->fresh(['ctes', 'mdfe']);
@@ -38,6 +40,8 @@ it('com CT-e rejeitado não tenta o MDF-e e diz o motivo', function () {
     $viagem = viagemPronta();
     comGatewayCte(['enviar' => new RespostaSefaz('225', 'Rejeicao: Falha no Schema XML')]);
     $mdfe = comGatewayMdfe(['enviar' => mdfeAutorizado()]);
+
+    comCiotInformado($viagem);
 
     $resultado = app(EmissaoViagem::class)->emitir($viagem);
 
@@ -101,6 +105,7 @@ it('encerra o MDF-e no destino e a viagem fica encerrada', function () {
     $viagem = viagemPronta();
     comGatewayCte(['enviar' => cteAutorizado()]);
     comGatewayMdfe(['enviar' => mdfeAutorizado(), 'encerrar' => eventoRegistrado('958260000777001')]);
+    comCiotInformado($viagem);
     app(EmissaoViagem::class)->emitir($viagem);
 
     $mdfe = app(EventosMdfe::class)->encerrar($viagem->fresh()->mdfe);
@@ -114,6 +119,7 @@ it('não cancela CT-e que está num MDF-e em viagem', function () {
     $viagem = viagemPronta();
     comGatewayCte(['enviar' => cteAutorizado(), 'cancelar' => eventoRegistrado()]);
     comGatewayMdfe(['enviar' => mdfeAutorizado()]);
+    comCiotInformado($viagem);
     app(EmissaoViagem::class)->emitir($viagem);
 
     app(EventosCte::class)->cancelar($viagem->fresh()->ctes->sole(), 'Frete cancelado pelo cliente antes da saida');
@@ -123,6 +129,7 @@ it('cancela o CT-e depois de cancelar o MDF-e', function () {
     $viagem = viagemPronta();
     comGatewayCte(['enviar' => cteAutorizado(), 'cancelar' => eventoRegistrado('135260000555001')]);
     comGatewayMdfe(['enviar' => mdfeAutorizado(), 'cancelar' => eventoRegistrado()]);
+    comCiotInformado($viagem);
     app(EmissaoViagem::class)->emitir($viagem);
 
     app(EventosMdfe::class)->cancelar($viagem->fresh()->mdfe, 'Viagem cancelada antes da saida do veiculo');
