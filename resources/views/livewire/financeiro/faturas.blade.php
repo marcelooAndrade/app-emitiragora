@@ -173,7 +173,7 @@
                             <td class="num px-5 py-3 text-right text-graphite-700">{{ App\Support\Dinheiro::formatar((int) $ativas->where('status', 'pendente')->sum('valor_centavos')) }}</td>
                             <td class="num px-5 py-3 text-graphite-700">{{ $proxima ? $proxima->vencimento->format('d/m/Y') : 'Tudo pago' }}</td>
                             <td class="px-5 py-3 text-right">
-                                <x-ui.button :href="route('faturas.detalhe', $fatura)" wire:navigate variant="ghost" size="sm">Abrir</x-ui.button>
+                                <x-ui.button :href="route('faturas.detalhe', $fatura)" wire:navigate variant="suave" size="sm">Abrir</x-ui.button>
                             </td>
                         </tr>
                     @endforeach

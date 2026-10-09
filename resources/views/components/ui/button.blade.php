@@ -6,24 +6,29 @@
 ])
 
 @php
-    // A ação primária é grafite, nunca o vermelho da marca: primary-600 e
-    // danger-600 têm contraste de apenas 1,43 entre si, e num emissor fiscal
-    // "Transmitir" e "Cancelar CT-e" convivem na mesma tela.
+    // A ação primária é o petróleo da marca, nunca o vermelhão: primary-600 e
+    // danger-600 têm contraste de apenas 1,77 entre si, e num emissor fiscal
+    // "Transmitir" e "Cancelar CT-e" convivem na mesma tela. `suave` é a
+    // ação de linha (ver, abrir), no tom claro da marca, e é onde o
+    // vermelhão aparece sem disputar com o botão de perigo.
     $variants = [
-        'primary' => 'bg-graphite-900 text-white border border-graphite-900 shadow-sm hover:bg-graphite-700 hover:border-graphite-700',
-        'secondary' => 'bg-white text-graphite-900 border border-graphite-300 shadow-sm hover:bg-graphite-50',
-        'destructive' => 'bg-danger-600 text-white border border-danger-600 shadow-sm hover:bg-danger-700 hover:border-danger-700',
-        'ghost' => 'bg-transparent text-graphite-600 border border-transparent hover:bg-graphite-100 hover:text-graphite-900',
+        'primary' => 'bg-graphite-900 text-white hover:bg-graphite-700',
+        'secondary' => 'bg-white text-graphite-800 ring-1 ring-inset ring-graphite-200 hover:bg-graphite-50 hover:ring-graphite-300',
+        'suave' => 'bg-primary-50 text-primary-800 hover:bg-primary-100',
+        'destructive' => 'bg-danger-600 text-white hover:bg-danger-700',
+        'ghost' => 'bg-transparent text-graphite-600 hover:bg-graphite-100 hover:text-graphite-900',
     ];
 
     $sizes = [
-        'sm' => 'min-h-8 px-3 text-xs',
-        'md' => 'min-h-10 px-5 text-[13px]',
-        'lg' => 'min-h-12 px-6 text-[13px]',
+        'sm' => 'min-h-9 px-4 text-[13px]',
+        'md' => 'min-h-11 px-6 text-sm',
+        'lg' => 'min-h-12 px-7 text-sm',
     ];
 
+    // Pílula, escrita como se fala: o visual de 09/10/2026 tirou a caixa
+    // alta espaçada dos botões.
     $classes = implode(' ', [
-        'inline-flex items-center justify-center gap-2 rounded-md font-semibold uppercase tracking-[0.05em]',
+        'inline-flex items-center justify-center gap-2 rounded-full font-semibold whitespace-nowrap',
         'transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
         'focus-visible:outline-primary-600 disabled:opacity-50 disabled:pointer-events-none',
         $variants[$variant] ?? $variants['primary'],

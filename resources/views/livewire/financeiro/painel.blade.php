@@ -70,31 +70,22 @@
     {{-- Recebido, pago e resultado são números únicos. Número único é cartão,
          não gráfico: uma barra sozinha não compara com nada. --}}
     <div class="grid gap-4 sm:grid-cols-3">
-        <x-ui.card>
-            <p class="etiqueta text-graphite-500">Recebido no mês</p>
-            <p class="num mt-1 text-2xl font-bold text-success-700">
-                {{ App\Support\Dinheiro::formatar($dados['recebidoNoMesCentavos']) }}
-            </p>
-        </x-ui.card>
+        <x-ui.indicador rotulo="Recebido no mês" tom="sucesso" valorClasse="text-success-700"
+            icone="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z">
+            {{ App\Support\Dinheiro::formatar($dados['recebidoNoMesCentavos']) }}
+        </x-ui.indicador>
 
-        <x-ui.card>
-            <p class="etiqueta text-graphite-500">Pago no mês</p>
-            <p class="num mt-1 text-2xl font-bold text-danger-700">
-                {{ App\Support\Dinheiro::formatar($dados['pagoNoMesCentavos']) }}
-            </p>
-        </x-ui.card>
+        <x-ui.indicador rotulo="Pago no mês" tom="perigo" valorClasse="text-danger-700"
+            icone="m15 11.25-3-3m0 0-3 3m3-3v7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z">
+            {{ App\Support\Dinheiro::formatar($dados['pagoNoMesCentavos']) }}
+        </x-ui.indicador>
 
-        <x-ui.card>
-            <p class="etiqueta text-graphite-500">Resultado do mês</p>
-            <p @class([
-                'num mt-1 text-2xl font-bold',
-                'text-graphite-900' => $dados['resultadoDoMesCentavos'] >= 0,
-                'text-danger-700' => $dados['resultadoDoMesCentavos'] < 0,
-            ])>
-                {{ App\Support\Dinheiro::formatar($dados['resultadoDoMesCentavos']) }}
-            </p>
-            <p class="mt-1 text-xs text-graphite-500">Recebido menos pago.</p>
-        </x-ui.card>
+        <x-ui.indicador rotulo="Resultado do mês" detalhe="Recebido menos pago."
+            :tom="$dados['resultadoDoMesCentavos'] < 0 ? 'perigo' : 'marca'"
+            :valorClasse="$dados['resultadoDoMesCentavos'] < 0 ? 'text-danger-700' : 'text-graphite-900'"
+            icone="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z">
+            {{ App\Support\Dinheiro::formatar($dados['resultadoDoMesCentavos']) }}
+        </x-ui.indicador>
     </div>
 
     {{-- Em aberto e vencido. O vencido traz a quantidade junto porque

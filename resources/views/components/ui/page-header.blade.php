@@ -1,13 +1,15 @@
 @props(['title', 'eyebrow' => null, 'description' => null])
 
-<header {{ $attributes->merge(['class' => 'flex flex-wrap items-end justify-between gap-4 border-b border-graphite-200 pb-4']) }}>
+{{-- Visual de 09/10/2026: título grande escrito como se fala, sem filete
+     embaixo; o assunto (eyebrow) vira uma linha discreta acima dele. --}}
+<header {{ $attributes->merge(['class' => 'flex flex-wrap items-end justify-between gap-4']) }}>
     <div class="min-w-0">
         @if ($eyebrow)
-            <p class="etiqueta text-graphite-500">{{ $eyebrow }}</p>
+            <p class="text-[13px] font-medium text-graphite-500">{{ $eyebrow }}</p>
         @endif
-        <h1 class="display-title mt-1 text-3xl text-graphite-900">{{ $title }}</h1>
+        <h1 class="display-title mt-0.5 text-3xl text-graphite-900">{{ $title }}</h1>
         @if ($description)
-            <p class="mt-2 max-w-2xl text-sm text-graphite-600">{{ $description }}</p>
+            <p class="mt-2 max-w-2xl text-sm text-graphite-500">{{ $description }}</p>
         @endif
     </div>
     @isset($actions)

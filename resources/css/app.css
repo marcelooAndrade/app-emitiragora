@@ -49,22 +49,27 @@
     --text-4xl--line-height: calc(46 / 40);
 
     /*
-     | Raio contido.
+     | Raio revisto em 09/10/2026, no visual novo do sistema interno.
      |
-     | O site da RCM tem raio zero em todo controle, e a primeira versão
-     | copiou isso. Num site de 6 campos a aresta viva lê como precisão; numa
-     | tela operada o dia inteiro lê como dureza. O raio aqui é pequeno de
-     | propósito: suaviza sem virar cápsula, e o caráter continua vindo do
-     | peso da tipografia e da barra vermelha. Ver docs/design-system.md.
+     | A primeira versão copiou o raio zero do site da RCM; a segunda (10/09)
+     | ficou numa escala contida, de 2 a 28px. O visual de 09/10, pedido a
+     | partir de painéis de referência, trouxe cartões bem arredondados,
+     | campos macios e botões em pílula. A identidade continua na cor
+     | (petróleo e vermelhão) e na Manrope. Ver docs/design-system.md.
      */
-    --radius-xs: 2px;
-    --radius-sm: 3px;
-    --radius-md: 5px;
-    --radius-lg: 7px;
-    --radius-xl: 10px;
-    --radius-2xl: 14px;
-    --radius-3xl: 20px;
-    --radius-4xl: 28px;
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 18px;
+    --radius-2xl: 22px;
+    --radius-3xl: 28px;
+    --radius-4xl: 32px;
+
+    /* Sombra de cartão: quase invisível, tingida do petróleo da marca em vez
+       de preto puro, para o cartão descolar do fundo sem contorno. */
+    --shadow-cartao: 0 1px 2px rgb(14 27 31 / 0.04), 0 6px 24px -8px rgb(14 27 31 / 0.10);
+    --shadow-flutuante: 0 12px 40px -12px rgb(14 27 31 / 0.25);
 
     /* Vermelhão carimbo. 600 é exatamente a cor da marca. */
     --color-primary-50: #fefaf9;
@@ -198,28 +203,32 @@
     }
 }
 
+/*
+ | Título de página e de cartão. Até 09/10/2026 era caixa alta condensada;
+ | no visual novo é escrito como se fala, em negrito, com o espaçamento um
+ | pouco fechado para não parecer frouxo em tamanho grande.
+ */
 @utility display-title {
     font-family: var(--font-display);
     font-weight: 700;
-    text-transform: uppercase;
-    /* 1,05 colava título de duas linhas. 1,15 mantém o efeito condensado
-       de linha única sem apertar quando o título quebra. */
-    line-height: 1.15;
+    letter-spacing: -0.015em;
+    line-height: 1.2;
 }
 
 /*
- | Rótulo miúdo em caixa alta.
+ | Rótulo miúdo: cabeçalho de tabela, legenda de indicador, situação.
  |
  | Não pode se chamar `overline`: o Tailwind já tem esse utilitário para
  | `text-decoration-line: overline`, e as duas regras se somavam, desenhando
- | um risco acima de todo rótulo do sistema.
+ | um risco acima de todo rótulo do sistema. Desde 09/10/2026 sai da caixa
+ | alta espaçada: no visual novo, caixa alta fica só nos títulos de grupo
+ | do menu e no aviso de homologação.
  */
 @utility etiqueta {
-    font-size: 0.75rem; /* 12px, era 11px. */
-    line-height: 1rem;
+    font-size: 0.8125rem; /* 13px */
+    line-height: 1.125rem;
     font-weight: 600;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    letter-spacing: 0;
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {

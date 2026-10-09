@@ -70,7 +70,7 @@
 <head>
     @include('partials.head')
 </head>
-<body class="min-h-dvh bg-graphite-50 font-sans text-sm text-graphite-900 antialiased">
+<body class="min-h-dvh bg-[#f4f5f6] font-sans text-sm text-graphite-900 antialiased">
 
     {{-- Altura exata da tela, sem rolar: o corpo nunca rola, só `<main>` mais
          abaixo. Sem isso a barra lateral subia junto quando o conteúdo da
@@ -84,7 +84,7 @@
         <div class="flex min-h-0 flex-1">
         {{-- Sidebar, a partir de `md`. Abaixo disso a mesma navegação mora na
              gaveta `#menu-celular`, aberta pelo botão do topo. --}}
-        <aside class="hidden min-h-0 w-64 shrink-0 flex-col bg-graphite-900 md:flex">
+        <aside class="hidden min-h-0 w-[272px] shrink-0 flex-col border-r border-graphite-100 bg-white md:flex">
             @include('partials.navegacao-marca')
             @include('partials.navegacao', ['secoes' => $secoes, 'configuracoes' => $configuracoes])
         </aside>
@@ -96,12 +96,12 @@
              alvo. Os links recarregam a página, e a gaveta some com ela. --}}
         <dialog id="menu-celular" aria-label="Navegação"
                 onclick="if (event.target === this) this.close()"
-                class="m-0 h-dvh max-h-dvh w-72 max-w-[85vw] -translate-x-full bg-graphite-900 p-0 transition-[translate,overlay,display] duration-200 transition-discrete backdrop:bg-graphite-950/60 open:translate-x-0 starting:open:-translate-x-full motion-reduce:transition-none md:hidden">
+                class="m-0 h-dvh max-h-dvh w-72 max-w-[85vw] -translate-x-full bg-white p-0 transition-[translate,overlay,display] duration-200 transition-discrete backdrop:bg-graphite-950/60 open:translate-x-0 starting:open:-translate-x-full motion-reduce:transition-none md:hidden">
             <div class="flex h-full w-full flex-col">
                 <div class="flex shrink-0 items-center">
                     <div class="min-w-0 flex-1">@include('partials.navegacao-marca')</div>
                     <button type="button" aria-label="Fechar menu" onclick="this.closest('dialog').close()"
-                            class="mr-3 flex size-9 items-center justify-center rounded-md text-graphite-400 outline-none hover:bg-white/[0.05] hover:text-white focus-visible:ring-2 focus-visible:ring-primary-500">
+                            class="mr-3 flex size-9 items-center justify-center rounded-md text-graphite-500 outline-none hover:bg-graphite-50 hover:text-graphite-900 focus-visible:ring-2 focus-visible:ring-primary-500">
                         <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
@@ -138,12 +138,12 @@
         <div class="flex min-h-0 min-w-0 flex-1 flex-col">
             {{-- Topbar clara. Escura, ela empilhava uma terceira faixa sob o
                  banner de ambiente e a área de trabalho virava um poço. --}}
-            <header class="flex h-14 shrink-0 flex-wrap items-center gap-3 border-b border-graphite-200 bg-white px-5">
+            <header class="flex h-[72px] shrink-0 flex-wrap items-center gap-3 px-5 lg:px-8">
                 {{-- Abaixo de `md` a barra lateral some; este botão é a única
                      porta para a navegação no celular. --}}
                 <button type="button" aria-label="Abrir menu" aria-controls="menu-celular" aria-haspopup="dialog"
                         onclick="document.getElementById('menu-celular').showModal()"
-                        class="-ml-2 flex size-9 items-center justify-center rounded-md text-graphite-700 outline-none hover:bg-graphite-100 focus-visible:ring-2 focus-visible:ring-primary-500 md:hidden">
+                        class="-ml-2 flex size-10 items-center justify-center rounded-full bg-white text-graphite-700 shadow-cartao outline-none hover:bg-graphite-50 focus-visible:ring-2 focus-visible:ring-primary-500 md:hidden">
                     <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                     </svg>
@@ -154,7 +154,7 @@
                          `<details>` no mesmo padrão sem JavaScript do menu do
                          usuário logo abaixo. --}}
                     <details class="group relative">
-                        <summary class="flex cursor-pointer list-none items-center gap-2 rounded-md border border-graphite-200 bg-graphite-50 px-2.5 py-1.5 text-xs font-medium text-graphite-700 marker:content-none hover:bg-graphite-100">
+                        <summary class="flex cursor-pointer list-none items-center gap-2 rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-graphite-800 shadow-cartao marker:content-none hover:bg-graphite-50">
                             <span class="size-1.5 rounded-full bg-primary-600" aria-hidden="true"></span>
                             {{ $emitente->nome_fantasia ?: $emitente->razao_social }}
                             <svg class="size-3.5 text-graphite-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -164,7 +164,7 @@
 
                         <label class="fixed inset-0 z-10 hidden cursor-default group-open:block" aria-hidden="true" onclick="this.closest('details').open = false"></label>
 
-                        <div class="absolute left-0 z-20 mt-2 w-64 rounded-md border border-graphite-200 bg-white py-1 shadow-lg">
+                        <div class="absolute left-0 z-20 mt-2 w-72 overflow-hidden rounded-lg bg-white py-1 shadow-flutuante">
                             @foreach ($alcancaveis as $opcao)
                                 <form method="POST" action="{{ route('emitente.escolher') }}">
                                     @csrf
@@ -179,7 +179,7 @@
                         </div>
                     </details>
                 @elseif ($emitente)
-                    <span class="flex items-center gap-2 rounded-md border border-graphite-200 bg-graphite-50 px-2.5 py-1.5 text-xs font-medium text-graphite-700">
+                    <span class="flex items-center gap-2 rounded-full bg-white px-4 py-2 text-[13px] font-semibold text-graphite-800 shadow-cartao">
                         <span class="size-1.5 rounded-full bg-primary-600" aria-hidden="true"></span>
                         {{ $emitente->nome_fantasia ?: $emitente->razao_social }}
                     </span>
@@ -195,7 +195,7 @@
                      operação" sem consultar nada. Agora lê o MonitorSefaz, e o
                      title conta o cStat e a hora da consulta. --}}
                 @if ($situacaoSefaz)
-                    <span class="hidden items-center gap-2 text-xs text-graphite-500 sm:flex"
+                    <span class="hidden items-center gap-2 rounded-full bg-white px-3.5 py-2 text-xs font-medium text-graphite-600 shadow-cartao sm:flex"
                           title="{{ $situacaoSefaz->descricao() }}">
                         <span class="size-1.5 rounded-full {{ $situacaoSefaz->estado->classeIndicador() }}" aria-hidden="true"></span>
                         {{ $situacaoSefaz->rotulo($emitente->uf) }}
@@ -208,8 +208,8 @@
                      da apresentação). Antes deste menu não existia jeito nenhum de
                      sair do sistema de dentro dele: o avatar era só decoração. --}}
                 <details class="group relative">
-                    <summary class="flex cursor-pointer list-none items-center gap-2 rounded-md px-1.5 py-1 text-xs text-graphite-600 transition-colors marker:content-none hover:bg-graphite-50">
-                        <span class="flex size-7 items-center justify-center rounded-full bg-graphite-800 text-[10px] font-semibold text-white">
+                    <summary class="flex cursor-pointer list-none items-center gap-2.5 rounded-full py-1 pl-1 pr-2 text-sm font-semibold text-graphite-800 transition-colors marker:content-none hover:bg-white">
+                        <span class="flex size-10 items-center justify-center rounded-full bg-graphite-900 text-xs font-semibold text-white ring-4 ring-white">
                             {{ mb_strtoupper(mb_substr($user?->name ?? '?', 0, 2)) }}
                         </span>
                         <span class="hidden sm:inline">{{ $user?->name }}</span>
@@ -224,7 +224,7 @@
                          com HTML, então o clique fora usa este truque de overlay. --}}
                     <label class="fixed inset-0 z-10 hidden cursor-default group-open:block" aria-hidden="true" onclick="this.closest('details').open = false"></label>
 
-                    <div class="absolute right-0 z-20 mt-2 w-56 rounded-md border border-graphite-200 bg-white py-1 shadow-lg">
+                    <div class="absolute right-0 z-20 mt-2 w-60 overflow-hidden rounded-lg bg-white py-1 shadow-flutuante">
                         <div class="border-b border-graphite-100 px-3 py-2">
                             <p class="truncate text-sm font-medium text-graphite-900">{{ $user?->name }}</p>
                             <p class="truncate text-xs text-graphite-500">{{ $user?->email }}</p>
@@ -255,7 +255,7 @@
                      têm a altura do próprio conteúdo. É o que permite a
                      Destinatários encaixar listagem e formulário na altura
                      cheia da tela, em vez de rolar a página inteira. --}}
-                <div class="mx-auto h-full w-full max-w-[1800px] px-5 py-6 lg:px-8">
+                <div class="mx-auto h-full w-full max-w-[1800px] px-5 pb-8 pt-1 lg:px-8">
                     {{ $slot }}
                 </div>
             </main>

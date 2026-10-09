@@ -5,8 +5,8 @@
 
 <input type="{{ $type }}"
     {{ $attributes->merge([
-        'class' => 'min-h-[38px] min-w-0 rounded-md border border-graphite-300 bg-white px-3 text-sm text-graphite-900 shadow-xs '
-            .'placeholder:text-graphite-400 focus:border-primary-600 focus:outline-none focus:ring-2 '
-            .'focus:ring-primary-600/25 disabled:bg-graphite-50 disabled:text-graphite-500 '
+        'class' => 'min-h-11 min-w-0 rounded-md border border-graphite-200 bg-white px-4 text-sm text-graphite-900 '
+            .'placeholder:text-graphite-400 hover:border-graphite-300 focus:border-primary-600 focus:outline-none focus:ring-4 '
+            .'focus:ring-primary-600/15 disabled:bg-graphite-50 disabled:text-graphite-500 '
             .($numeric ? 'text-right [font-variant-numeric:tabular-nums]' : ''),
     ]) }}>
