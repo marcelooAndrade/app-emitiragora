@@ -7,6 +7,7 @@ use App\Enums\Transporte\MdfeStatus;
 use App\Enums\Transporte\ViagemStatus;
 use App\Models\Concerns\Auditavel;
 use App\Models\Concerns\DoTenantViaEmitente;
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -25,9 +26,13 @@ class Viagem extends Model
 
     protected $guarded = ['id', 'emitente_id', 'numero', 'status'];
 
+    /** Padrões do banco declarados aqui também (DF-014). */
     protected $attributes = [
         'status' => 'rascunho',
         'frete_modo' => 'tonelada',
+        'tipo_carga' => 5,
+        'alto_desempenho' => false,
+        'retorno_vazio' => false,
     ];
 
     protected function casts(): array
@@ -41,6 +46,11 @@ class Viagem extends Model
             'pedagio_centavos' => 'integer',
             'frete_motorista_centavos' => 'integer',
             'adiantamento_centavos' => 'integer',
+            'distancia_km' => 'integer',
+            'previsao_entrega' => 'date',
+            'tipo_carga' => 'integer',
+            'alto_desempenho' => 'boolean',
+            'retorno_vazio' => 'boolean',
         ];
     }
 
@@ -72,6 +82,48 @@ class Viagem extends Model
     public function contrato(): HasOne
     {
         return $this->hasOne(ContratoFrete::class);
+    }
+
+    /** @return HasMany<Ciot, $this> */
+    public function ciots(): HasMany
+    {
+        return $this->hasMany(Ciot::class)->orderBy('id');
+    }
+
+    /**
+     * O CIOT que vale para a viagem agora. Recusados e cancelados ficam no
+     * histórico de `ciots()` e não contam.
+     *
+     * @return HasOne<Ciot, $this>
+     */
+    public function ciotVigente(): HasOne
+    {
+        return $this->hasOne(Ciot::class)->ofMany(['id' => 'max'], fn ($query) => $query->whereIn('situacao', Ciot::VIGENTES));
+    }
+
+    /**
+     * Lotação (1) com um tomador só, fracionada (2) com mais de um. O que a
+     * pessoa escolhe na tela vale mais que a sugestão.
+     */
+    public function tipoOperacao(): string
+    {
+        if (in_array($this->tipo_operacao, ['1', '2'], true)) {
+            return $this->tipo_operacao;
+        }
+        $tomadores = $this->ctes
+            ->reject(fn (Cte $c): bool => $c->status === CteStatus::Cancelado)
+            ->map(fn (Cte $c): string => (string) preg_replace('/\D/', '', (string) ($c->tomador()['documento'] ?? '')))
+            ->filter()
+            ->unique();
+
+        return $tomadores->count() > 1 ? '2' : '1';
+    }
+
+    /** Sem previsão informada: o carregamento mais os dias de `config/ciot.php`. */
+    public function previsaoEntrega(): CarbonInterface
+    {
+        return $this->previsao_entrega?->copy()
+            ?? ($this->data_carregamento ?? today())->copy()->addDays((int) config('ciot.previsao_entrega_dias', 3));
     }
 
     /** @return HasMany<TransporteEvento, $this> */

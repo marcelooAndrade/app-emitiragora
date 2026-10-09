@@ -94,4 +94,16 @@ class Emitente extends Model
     {
         return $this->transporte()->firstOrCreate([]);
     }
+
+    /** @return HasOne<EmitenteCiot, $this> */
+    public function ciotConfiguracao(): HasOne
+    {
+        return $this->hasOne(EmitenteCiot::class);
+    }
+
+    /** Empresa do CIOT e credenciais; nasce como "Digitar o CIOT". */
+    public function configuracaoCiot(): EmitenteCiot
+    {
+        return $this->ciotConfiguracao()->firstOrCreate([]);
+    }
 }
