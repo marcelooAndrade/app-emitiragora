@@ -4,6 +4,7 @@ namespace App\Livewire\Transporte;
 
 use App\Models\Emitente;
 use App\Models\Motorista;
+use App\Models\Viagem;
 use App\Services\Integrations\ViaCepService;
 use App\Support\Documento;
 use App\Support\EmitenteAtual;
@@ -15,10 +16,18 @@ use Livewire\Attributes\Title;
 use Livewire\Component;
 use RuntimeException;
 
+/**
+ * Motoristas no padrão de listagem de 09/10/2026: a lista na largura toda,
+ * e cadastrar ou editar numa janela por cima dela.
+ */
 #[Layout('components.layouts.fiscal')]
 #[Title('Motoristas')]
 class Motoristas extends Component
 {
+    public bool $formularioAberto = false;
+
+    public string $busca = '';
+
     public ?int $editandoId = null;
 
     public string $nome = '';
@@ -92,6 +101,20 @@ class Motoristas extends Component
         return Motorista::where('emitente_id', $this->emitente->getKey())->orderByDesc('ativo')->orderBy('nome')->get();
     }
 
+    /** O que a lista mostra: todos, filtrados pela busca por nome ou CPF. */
+    #[Computed]
+    public function listados(): Collection
+    {
+        $termo = mb_strtoupper(trim($this->busca));
+        $digitos = preg_replace('/\D/', '', $this->busca);
+        if ($termo === '') {
+            return $this->motoristas;
+        }
+
+        return $this->motoristas->filter(fn (Motorista $m): bool => str_contains(mb_strtoupper($m->nome), $termo)
+            || ($digitos !== '' && str_contains((string) $m->cpf, $digitos)))->values();
+    }
+
     public function editar(int $id): void
     {
         $this->authorize('transporte.operar');
@@ -112,12 +135,39 @@ class Motoristas extends Component
         $this->numero = (string) $m->numero;
         $this->complemento = (string) $m->complemento;
         $this->bairro = (string) $m->bairro;
+        $this->formularioAberto = true;
     }
 
     public function novo(): void
     {
-        $this->resetErrorBag();
-        $this->reset();
+        $this->authorize('transporte.operar');
+        $this->limparFormulario();
+        $this->formularioAberto = true;
+    }
+
+    public function fecharFormulario(): void
+    {
+        $this->limparFormulario();
+        $this->formularioAberto = false;
+    }
+
+    /**
+     * Motorista que nunca rodou some de vez. O que já está em alguma viagem
+     * só é inativado: apagar tiraria o nome do histórico da viagem.
+     */
+    public function excluir(int $id): void
+    {
+        $this->authorize('transporte.operar');
+        $m = $this->motoristas->firstWhere('id', $id);
+        abort_if($m === null, 404);
+        if (Viagem::where('motorista_id', $m->id)->exists()) {
+            $m->update(['ativo' => false]);
+            session()->flash('sucesso', "{$m->nome} já está em viagens: foi inativado e não aparece mais para escolher.");
+        } else {
+            $m->delete();
+            session()->flash('sucesso', "{$m->nome} excluído.");
+        }
+        unset($this->motoristas, $this->listados);
     }
 
     public function salvar(): void
@@ -160,8 +210,8 @@ class Motoristas extends Component
             (new Motorista($dados))->forceFill(['emitente_id' => $this->emitente->getKey()])->save();
         }
         session()->flash('sucesso', 'Motorista '.($this->editandoId ? 'atualizado' : 'cadastrado').'.');
-        $this->novo();
-        unset($this->motoristas);
+        $this->fecharFormulario();
+        unset($this->motoristas, $this->listados);
     }
 
     public function alternarAtivo(int $id): void
@@ -170,7 +220,13 @@ class Motoristas extends Component
         $m = $this->motoristas->firstWhere('id', $id);
         abort_if($m === null, 404);
         $m->update(['ativo' => ! $m->ativo]);
-        unset($this->motoristas);
+        unset($this->motoristas, $this->listados);
+    }
+
+    private function limparFormulario(): void
+    {
+        $this->resetErrorBag();
+        $this->reset('editandoId', 'nome', 'cpf', 'cnh', 'telefone', 'chavePix', 'nascimento', 'cep', 'municipioCodigo', 'municipio', 'logradouro', 'numero', 'complemento', 'bairro');
     }
 
     public function render()

@@ -26,6 +26,11 @@ use Spatie\Permission\PermissionRegistrar;
 #[Title('Usuários')]
 class Cadastro extends Component
 {
+    // Padrão de listagem de 09/10/2026: lista na largura toda, formulário numa janela.
+    public bool $formularioAberto = false;
+
+    public string $busca = '';
+
     /** @var array<string, string> */
     public array $form = ['name' => '', 'email' => '', 'senha' => ''];
 
@@ -73,6 +78,62 @@ class Cadastro extends Component
             ->get();
     }
 
+    /** O que a lista mostra: filtrado pela busca por nome ou e-mail. */
+    #[Computed]
+    public function listados(): Collection
+    {
+        $termo = mb_strtolower(trim($this->busca));
+        if ($termo === '') {
+            return $this->usuarios;
+        }
+
+        return $this->usuarios->filter(fn (User $u): bool => str_contains(mb_strtolower($u->name), $termo)
+            || str_contains(mb_strtolower($u->email), $termo))->values();
+    }
+
+    public function fecharFormulario(): void
+    {
+        $this->resetErrorBag();
+        $this->reset('form', 'editandoId', 'emailVerificado', 'contaExistente');
+        $this->prepararPapeisVazios();
+        $this->formularioAberto = false;
+    }
+
+    /**
+     * A lixeira desta tela tira o acesso a esta empresa, em todos os
+     * emitentes dela; não apaga a conta, que pode ser de outra empresa
+     * também. Sem nenhuma outra empresa, a conta fica inativa, para não
+     * sobrar um login que entra e não acha nada.
+     */
+    public function removerAcesso(int $id): void
+    {
+        $this->authorize('usuario.gerenciar');
+        if ($id === auth()->id()) {
+            session()->flash('erro', 'Você não pode remover o próprio acesso.');
+
+            return;
+        }
+
+        $usuario = User::withoutGlobalScope('tenant')->findOrFail($id);
+        $idsDaEmpresa = $this->emitentesDaEmpresa->pluck('id');
+
+        $registrador = app(PermissionRegistrar::class);
+        $timeOriginal = $registrador->getPermissionsTeamId();
+        foreach ($idsDaEmpresa as $emitenteId) {
+            $registrador->setPermissionsTeamId($emitenteId);
+            $usuario->syncRoles([]);
+        }
+        $registrador->setPermissionsTeamId($timeOriginal);
+        $usuario->emitentes()->detach($idsDaEmpresa->all());
+
+        if (! $usuario->emitentes()->withoutGlobalScope('tenant')->exists()) {
+            $usuario->forceFill(['ativo' => false])->save();
+        }
+
+        session()->flash('sucesso', "{$usuario->name} não tem mais acesso a esta empresa.");
+        unset($this->usuarios, $this->listados);
+    }
+
     private function prepararPapeisVazios(): void
     {
         $this->papeis = $this->emitentesDaEmpresa->mapWithKeys(fn (Emitente $e): array => [$e->id => ''])->all();
@@ -80,16 +141,20 @@ class Cadastro extends Component
 
     public function novoUsuario(): void
     {
+        $this->resetErrorBag();
         $this->reset('form', 'editandoId', 'emailVerificado', 'contaExistente');
         $this->prepararPapeisVazios();
+        $this->formularioAberto = true;
     }
 
     public function editar(int $id): void
     {
         $usuario = User::withoutGlobalScope('tenant')->findOrFail($id);
 
+        $this->resetErrorBag();
         $this->reset('form', 'emailVerificado', 'contaExistente');
         $this->prepararPapeisVazios();
+        $this->formularioAberto = true;
 
         $this->editandoId = $usuario->id;
         $this->form['name'] = $usuario->name;
@@ -144,7 +209,7 @@ class Cadastro extends Component
         }
 
         $usuario->forceFill(['ativo' => false])->save();
-        unset($this->usuarios);
+        unset($this->usuarios, $this->listados);
     }
 
     public function reativar(int $id): void
@@ -152,7 +217,7 @@ class Cadastro extends Component
         $this->authorize('usuario.gerenciar');
 
         User::withoutGlobalScope('tenant')->findOrFail($id)->forceFill(['ativo' => true])->save();
-        unset($this->usuarios);
+        unset($this->usuarios, $this->listados);
     }
 
     public function verificarEmail(): void
@@ -239,8 +304,8 @@ class Cadastro extends Component
         $registrador->setPermissionsTeamId($timeOriginal);
 
         session()->flash('sucesso', 'Usuário salvo.');
-        $this->novoUsuario();
-        unset($this->usuarios);
+        $this->fecharFormulario();
+        unset($this->usuarios, $this->listados);
     }
 
     public function render()

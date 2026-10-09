@@ -4,7 +4,10 @@ namespace App\Livewire\Pessoas;
 
 use App\Enums\Fiscal\IndIEDest;
 use App\Enums\Fiscal\TipoPessoa;
+use App\Models\ContaPagar;
+use App\Models\Cte;
 use App\Models\Emitente;
+use App\Models\Fatura;
 use App\Models\Pessoa;
 use App\Services\Integrations\ReceitaWsService;
 use App\Services\Integrations\ViaCepService;
@@ -19,11 +22,18 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use RuntimeException;
 
+/**
+ * Clientes, fornecedores e transportadoras, no padrão de listagem de
+ * 09/10/2026: a lista na largura toda, e cadastrar ou editar numa janela
+ * por cima dela.
+ */
 #[Layout('components.layouts.fiscal')]
-#[Title('Destinatários')]
+#[Title('Clientes')]
 class Cadastro extends Component
 {
     use WithPagination;
+
+    public bool $formularioAberto = false;
 
     /** @var array<string, mixed> */
     public array $form = [];
@@ -64,8 +74,62 @@ class Cadastro extends Component
                     ->orWhere('nome_fantasia', 'like', $termo)
                     ->orWhere('documento', 'like', $termo));
             })
+            ->orderByDesc('ativo')
             ->orderBy('razao_social')
             ->paginate(15);
+    }
+
+    public function updatedBusca(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatedPapel(): void
+    {
+        $this->resetPage();
+    }
+
+    public function novo(): void
+    {
+        $this->authorize('pessoa.gerenciar');
+        $this->limparFormulario();
+        $this->formularioAberto = true;
+    }
+
+    public function fecharFormulario(): void
+    {
+        $this->limparFormulario();
+        $this->formularioAberto = false;
+    }
+
+    /**
+     * Cadastro que nunca entrou em documento some de vez. O que já é tomador
+     * de CT-e, cliente de fatura ou fornecedor de conta a pagar só é
+     * inativado: apagar deixaria esses documentos sem nome.
+     */
+    public function excluir(int $id): void
+    {
+        $this->authorize('pessoa.gerenciar');
+        $pessoa = Pessoa::query()->where('emitente_id', $this->emitente->getKey())->findOrFail($id);
+        $nome = $pessoa->nome_fantasia ?: $pessoa->razao_social;
+        $usado = Cte::where('tomador_pessoa_id', $pessoa->id)->exists()
+            || Fatura::where('pessoa_id', $pessoa->id)->exists()
+            || ContaPagar::where('pessoa_id', $pessoa->id)->exists();
+        if ($usado) {
+            $pessoa->update(['ativo' => false]);
+            session()->flash('sucesso', "{$nome} já está em CT-e, fatura ou conta a pagar: foi inativado.");
+        } else {
+            $pessoa->delete();
+            session()->flash('sucesso', "{$nome} excluído.");
+        }
+        unset($this->pessoas);
+    }
+
+    public function reativar(int $id): void
+    {
+        $this->authorize('pessoa.gerenciar');
+        Pessoa::query()->where('emitente_id', $this->emitente->getKey())->findOrFail($id)->update(['ativo' => true]);
+        unset($this->pessoas);
     }
 
     public function limparFormulario(): void
@@ -118,6 +182,7 @@ class Cadastro extends Component
         $this->form = array_merge($this->form, $pessoa->only(array_keys($this->form)));
         $this->form['tipo_pessoa'] = $pessoa->tipo_pessoa->value;
         $this->form['ind_ie_dest'] = $pessoa->ind_ie_dest->value;
+        $this->formularioAberto = true;
     }
 
     public function buscarCnpj(ReceitaWsService $receita): void
@@ -268,7 +333,7 @@ class Cadastro extends Component
         }
 
         unset($this->pessoas);
-        $this->limparFormulario();
+        $this->fecharFormulario();
         session()->flash('sucesso', 'Cadastro salvo.');
     }
 

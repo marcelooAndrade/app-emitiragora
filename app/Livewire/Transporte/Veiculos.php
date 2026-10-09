@@ -4,6 +4,7 @@ namespace App\Livewire\Transporte;
 
 use App\Models\Emitente;
 use App\Models\Veiculo;
+use App\Models\Viagem;
 use App\Services\Integrations\ViaCepService;
 use App\Support\Documento;
 use App\Support\EmitenteAtual;
@@ -24,6 +25,11 @@ use RuntimeException;
 #[Title('Veículos')]
 class Veiculos extends Component
 {
+    // Padrão de listagem de 09/10/2026: lista na largura toda, formulário numa janela.
+    public bool $formularioAberto = false;
+
+    public string $busca = '';
+
     public ?int $editandoId = null;
 
     public string $tipo = 'tracao';
@@ -116,6 +122,20 @@ class Veiculos extends Component
         return Veiculo::where('emitente_id', $this->emitente->getKey())->orderByDesc('ativo')->orderBy('tipo')->orderBy('placa')->get();
     }
 
+    /** O que a lista mostra: filtrado pela busca por placa ou proprietário. */
+    #[Computed]
+    public function listados(): Collection
+    {
+        $termo = mb_strtoupper(trim($this->busca));
+        if ($termo === '') {
+            return $this->veiculos;
+        }
+        $placa = preg_replace('/[^A-Z0-9]/', '', $termo);
+
+        return $this->veiculos->filter(fn (Veiculo $v): bool => ($placa !== '' && str_contains((string) $v->placa, $placa))
+            || str_contains(mb_strtoupper((string) $v->proprietario_nome), $termo))->values();
+    }
+
     public function editar(int $id): void
     {
         $this->authorize('transporte.operar');
@@ -146,13 +166,40 @@ class Veiculos extends Component
         $this->proprietarioLogradouro = (string) $v->proprietario_logradouro;
         $this->proprietarioNumero = (string) $v->proprietario_numero;
         $this->proprietarioBairro = (string) $v->proprietario_bairro;
+        $this->formularioAberto = true;
     }
 
     public function novo(): void
     {
-        $this->resetErrorBag();
-        $this->reset();
-        $this->uf = (string) $this->emitente->uf;
+        $this->authorize('transporte.operar');
+        $this->limparFormulario();
+        $this->formularioAberto = true;
+    }
+
+    public function fecharFormulario(): void
+    {
+        $this->limparFormulario();
+        $this->formularioAberto = false;
+    }
+
+    /**
+     * Veículo que nunca rodou some de vez. O que já está em alguma viagem
+     * (cavalo ou carreta) só é inativado, para não sumir do histórico.
+     */
+    public function excluir(int $id): void
+    {
+        $this->authorize('transporte.operar');
+        $v = $this->veiculos->firstWhere('id', $id);
+        abort_if($v === null, 404);
+        $usado = Viagem::where(fn ($q) => $q->where('veiculo_id', $v->id)->orWhere('reboque_id', $v->id)->orWhere('reboque2_id', $v->id))->exists();
+        if ($usado) {
+            $v->update(['ativo' => false]);
+            session()->flash('sucesso', "O veículo {$v->placaFormatada()} já está em viagens: foi inativado e não aparece mais para escolher.");
+        } else {
+            $v->delete();
+            session()->flash('sucesso', "Veículo {$v->placaFormatada()} excluído.");
+        }
+        unset($this->veiculos, $this->listados);
     }
 
     public function salvar(): void
@@ -228,8 +275,8 @@ class Veiculos extends Component
             (new Veiculo($dados))->forceFill(['emitente_id' => $this->emitente->getKey()])->save();
         }
         session()->flash('sucesso', 'Veículo '.($this->editandoId ? 'atualizado' : 'cadastrado').'.');
-        $this->novo();
-        unset($this->veiculos);
+        $this->fecharFormulario();
+        unset($this->veiculos, $this->listados);
     }
 
     public function alternarAtivo(int $id): void
@@ -238,7 +285,17 @@ class Veiculos extends Component
         $v = $this->veiculos->firstWhere('id', $id);
         abort_if($v === null, 404);
         $v->update(['ativo' => ! $v->ativo]);
-        unset($this->veiculos);
+        unset($this->veiculos, $this->listados);
+    }
+
+    /** Volta tudo ao padrão, menos a busca, que é da lista e não do formulário. */
+    private function limparFormulario(): void
+    {
+        $busca = $this->busca;
+        $this->resetErrorBag();
+        $this->reset();
+        $this->busca = $busca;
+        $this->uf = (string) $this->emitente->uf;
     }
 
     public function render()
