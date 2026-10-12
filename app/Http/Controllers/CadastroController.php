@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Jobs\EnviarConversaoMeta;
 use App\Mail\ContaJaExiste;
 use App\Mail\ConviteDeCadastro;
 use App\Models\CadastroIniciado;
 use App\Models\User;
-use App\Services\Integrations\MontadorDeConversoesMeta;
 use App\Support\PerfilDeCadastro;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -49,8 +47,6 @@ class CadastroController
                 },
             ],
             'origem' => ['nullable', 'string'],
-            'fbp' => ['nullable', 'string', 'max:255'],
-            'fbc' => ['nullable', 'string', 'max:255'],
         ], [
             'nome.required' => 'Informe seu nome.',
             'email.required' => 'Informe seu e-mail.',
@@ -130,32 +126,10 @@ class CadastroController
             // A URL do anúncio vem longa com utm e fbclid; corta em vez de
             // recusar, porque é contexto, não o dado principal.
             'origem' => Str::limit((string) ($dados['origem'] ?? $request->headers->get('referer', '')), 1000, '') ?: $cadastro->origem,
-            'fbp' => ($dados['fbp'] ?? null) ?: $cadastro->fbp,
-            'fbc' => ($dados['fbc'] ?? null) ?: $cadastro->fbc,
         ]);
 
         $convite = $cadastro->novoConvite();
 
         Mail::to($email)->send(new ConviteDeCadastro($cadastro->nome, route('cadastro.concluir', $convite)));
-
-        $this->avisarMeta($cadastro, $request);
-    }
-
-    /**
-     * O e-mail guardado é o Lead do anúncio. Consequência, nunca condição:
-     * falha aqui não pode impedir o e-mail que já saiu, mesma regra do
-     * CreateNewUser.
-     */
-    private function avisarMeta(CadastroIniciado $cadastro, Request $request): void
-    {
-        try {
-            EnviarConversaoMeta::dispatch(app(MontadorDeConversoesMeta::class)->paraLead(
-                $cadastro,
-                (string) ($cadastro->origem ?: $request->headers->get('referer') ?: $request->fullUrl()),
-                ['ip' => $request->ip(), 'user_agent' => $request->userAgent()],
-            ));
-        } catch (\Throwable $e) {
-            report($e);
-        }
     }
 }

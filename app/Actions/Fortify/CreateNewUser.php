@@ -5,13 +5,11 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Enums\Perfil;
 use App\Enums\PlanoTenant;
-use App\Jobs\EnviarConversaoMeta;
 use App\Jobs\EnviarLeads;
 use App\Models\CadastroIniciado;
 use App\Models\Emitente;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\Integrations\MontadorDeConversoesMeta;
 use App\Services\Integrations\MontadorDeLeads;
 use App\Support\Documento;
 use App\Support\HostDoProduto;
@@ -169,53 +167,6 @@ class CreateNewUser implements CreatesNewUsers
             report($e);
 
             Log::warning('Falha ao despachar o envio de lead do cadastro.', [
-                'tenant_id' => $tenant->getKey(),
-                'excecao' => $e::class,
-                'erro' => $e->getMessage(),
-            ]);
-        }
-
-        // Mesmo motivo e mesma garantia do bloco acima: aviso ao Meta é
-        // consequência do cadastro, nunca condição dele. O event_id é
-        // estável (não um UUID novo a cada tentativa) para o Meta juntar
-        // corretamente se o job precisar repetir, e é o mesmo id que a
-        // sessão guarda abaixo para o navegador disparar o evento
-        // equivalente na primeira tela do painel. Ver EnviarConversaoMeta
-        // e partials/pixel-meta.
-        try {
-            $emitenteCriado = $user->emitentes()->first();
-
-            if ($emitenteCriado) {
-                $eventId = "cadastro-{$user->getKey()}";
-
-                $evento = app(MontadorDeConversoesMeta::class)->paraCadastro(
-                    $user,
-                    $emitenteCriado,
-                    $eventId,
-                    request()->fullUrl(),
-                    [
-                        // `cookie()` com uma chave devolve string ou nulo; só
-                        // devolve array quando chamado sem chave nenhuma. A
-                        // checagem aqui é defensiva, para o tipo bater com o
-                        // que o montador espera receber.
-                        // O link do e-mail costuma abrir em outro navegador,
-                        // sem os cookies do clique no anúncio; aí valem os que
-                        // o site mandou no começo do cadastro.
-                        'fbp' => is_string($fbp = request()->cookie('_fbp')) ? $fbp : $cadastro->fbp,
-                        'fbc' => is_string($fbc = request()->cookie('_fbc')) ? $fbc : $cadastro->fbc,
-                        'ip' => request()->ip(),
-                        'user_agent' => request()->userAgent(),
-                    ],
-                );
-
-                EnviarConversaoMeta::dispatch($evento)->afterCommit();
-
-                session()->flash('meta_pixel_evento', ['nome' => 'CompleteRegistration', 'id' => $eventId]);
-            }
-        } catch (\Throwable $e) {
-            report($e);
-
-            Log::warning('Falha ao despachar a conversão de cadastro ao Meta.', [
                 'tenant_id' => $tenant->getKey(),
                 'excecao' => $e::class,
                 'erro' => $e->getMessage(),

@@ -6,7 +6,6 @@ use App\Models\CadastroIniciado;
 use App\Models\Tenant;
 use App\Models\User;
 use Database\Seeders\PerfilSeeder;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 /**
@@ -33,8 +32,6 @@ function contatoDoSite(array $extra = []): array
         'frota' => '6-20',
         'volume' => '11-30',
         'origem' => 'https://emitiragora.com.br/teste-gratis?utm_source=meta&fbclid=abc',
-        'fbp' => 'fb.1.111.222',
-        'fbc' => 'fb.1.111.abc',
     ], $extra);
 }
 
@@ -66,7 +63,6 @@ it('o modal do site guarda o contato e manda o link pro e-mail', function () {
     expect($cadastro->email)->toBe('marcelo@exemplo.com.br')
         ->and($cadastro->perfil)->toBe(['frota' => '6-20', 'volume' => '11-30'])
         ->and($cadastro->origem)->toContain('utm_source=meta')
-        ->and($cadastro->fbp)->toBe('fb.1.111.222')
         ->and($cadastro->convertido_em)->toBeNull()
         ->and(User::withoutGlobalScopes()->count())->toBe(0);
 
@@ -174,9 +170,6 @@ it('link inventado, vencido ou trocado por um mais novo nao abre nada', function
 });
 
 it('so com o link a conta nasce, com o e-mail do convite e ja verificado', function () {
-    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
-    config(['integracao.meta.pixel_id' => '123456789', 'integracao.meta.access_token' => 'segredo']);
-
     $this->withHeaders(['Origin' => SITE])->postJson(INICIAR, contatoDoSite());
     $convite = conviteDoLink(linkDoConvite());
 
@@ -204,10 +197,6 @@ it('so com o link a conta nasce, com o e-mail do convite e ja verificado', funct
     expect($cadastro->convertido_em)->not->toBeNull()
         ->and($cadastro->user_id)->toBe($user->id);
 
-    // Sem os cookies do anúncio neste navegador, a conversão leva os que o
-    // site mandou no começo.
-    Http::assertSent(fn ($request) => ($request['data'][0]['user_data']['fbp'] ?? null) === 'fb.1.111.222');
-
     // O mesmo link não cria segunda conta.
     auth()->logout();
     $this->get("http://vendaredonda.com.br/cadastro/concluir/{$convite}")->assertSee('Este link não vale mais');
@@ -222,38 +211,4 @@ it('sem convite nao nasce conta', function () {
     ])->assertSessionHasErrors('convite');
 
     expect(User::withoutGlobalScopes()->count())->toBe(0);
-});
-
-it('o e-mail guardado vira Lead no Meta, com o mesmo id que o navegador usa', function () {
-    config(['integracao.meta.pixel_id' => '4043930915910691', 'integracao.meta.access_token' => 'segredo']);
-    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
-
-    $this->withHeaders(['Origin' => SITE, 'User-Agent' => 'Navegador/1.0'])->postJson(INICIAR, contatoDoSite())->assertOk();
-
-    Http::assertSent(function ($request) {
-        $evento = $request['data'][0] ?? [];
-
-        return $request->url() === 'https://graph.facebook.com/v21.0/4043930915910691/events'
-            && $evento['event_name'] === 'Lead'
-            && $evento['event_id'] === 'lead-'.substr(hash('sha256', 'marcelo@exemplo.com.br'), 0, 32)
-            && $evento['event_source_url'] === 'https://emitiragora.com.br/teste-gratis?utm_source=meta&fbclid=abc'
-            && $evento['user_data']['fbp'] === 'fb.1.111.222'
-            && $evento['user_data']['client_user_agent'] === 'Navegador/1.0';
-    });
-});
-
-it('e-mail que ja tem conta nao vira Lead', function () {
-    $this->post('http://vendaredonda.com.br/register', comConvite([
-        'name' => 'Marcelo Andrade', 'email' => 'marcelo@exemplo.com.br',
-        'password' => 'senha-muito-longa-123', 'password_confirmation' => 'senha-muito-longa-123',
-        'razao_social' => 'DISTRIBUIDORA RIO CLARO LTDA', 'cnpj' => '11222333000181',
-        'inscricao_estadual' => '123456789012', 'crt' => '3', 'telefone' => '1930960072',
-    ]));
-    auth()->logout();
-    config(['integracao.meta.pixel_id' => '4043930915910691', 'integracao.meta.access_token' => 'segredo']);
-    Http::fake(['graph.facebook.com/*' => Http::response(['events_received' => 1], 200)]);
-
-    $this->withHeaders(['Origin' => SITE])->postJson(INICIAR, contatoDoSite())->assertOk();
-
-    Http::assertNotSent(fn ($request) => ($request['data'][0]['event_name'] ?? null) === 'Lead');
 });

@@ -263,18 +263,6 @@
     </div>
     </div>
 
-    {{-- O pixel de marketing não carrega no sistema fiscal: só entra aqui,
-         uma única vez, na primeira tela vista logo depois de um cadastro,
-         para o navegador confirmar a mesma conversão que o servidor já
-         mandou via Conversions API (ver CreateNewUser). A sessão descarta o
-         aviso na leitura, então uma nova visita ao painel nunca mais o
-         repete. --}}
-    @if ($eventoMeta = session('meta_pixel_evento'))
-        @if (filled(config('integracao.meta.pixel_id')))
-            @include('partials.pixel-meta', ['pixelId' => config('integracao.meta.pixel_id'), 'evento' => $eventoMeta])
-        @endif
-    @endif
-
     @fluxScripts
 </body>
 </html>
